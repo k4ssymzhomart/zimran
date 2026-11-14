@@ -33,9 +33,6 @@ export interface Progress {
 
 type Skill = 'specific_praise' | 'reflection' | 'description';
 
-/** Clinic pace per minute: 2 of each skill, at most 0.6 questions + commands + criticisms. */
-const SKILL_PER_MINUTE = (NORM_PER_SKILL * 60) / NORM_SECONDS;
-const MAX_AVOID_PER_MINUTE = (MAX_AVOID_5MIN * 60) / NORM_SECONDS;
 /** One missed day is forgiven within any window of this many days. */
 const FREE_DAY_WINDOW = 7;
 
@@ -109,22 +106,30 @@ export function streak(p: Progress, today: string): { days: number; freeDayUsed:
 
 // ---------- trend and mastery ----------
 
-const perMinute = (count: number, seconds: number): number => (seconds > 0 ? (count * 60) / seconds : 0);
 const round1 = (n: number): number => Math.round(n * 10) / 10;
 
-const targetRate = (s: SessionRecord): number => perMinute(s.counts.target, s.seconds);
+/**
+ * A count on the five-minute scale of the clinic norm. A session shorter than five minutes is taken as it
+ * is, never scaled up: one praise in twenty seconds is one praise, not fifteen. A longer one is scaled down.
+ */
+const onNormScale = (count: number, seconds: number): number => (count * NORM_SECONDS) / Math.max(seconds, NORM_SECONDS);
 
-/** Praise and descriptions per minute: the two skills that practice and live play both measure. */
-const sharedRate = (s: SessionRecord): number => perMinute(s.counts.specific_praise + s.counts.description, s.seconds);
+/** Questions, commands and corrections are scaled both ways: a short round at that rate would break the limit. */
+const avoidOnNormScale = (s: SessionRecord): number => (s.seconds > 0 ? (s.counts.avoid * NORM_SECONDS) / s.seconds : 0);
+
+const skills = (s: SessionRecord): number => onNormScale(s.counts.target, s.seconds);
+
+/** Praise and descriptions: the two skills that practice and live play both measure. */
+const sharedSkills = (s: SessionRecord): number => onNormScale(s.counts.specific_praise + s.counts.description, s.seconds);
 
 /**
- * Does `s` stand for its day instead of `kept`? Two sessions of one kind: more skill sentences per minute.
- * A practice round against live play: only the two skills both measure are compared, so a strong live session
- * is not hidden by a short practice round. Practice wins a tie, because it also measures reflections.
+ * Does `s` stand for its day instead of `kept`? Two sessions of one kind: more skill sentences on the
+ * five-minute scale, so a full session is not hidden by a short burst. A practice round against live play:
+ * only the two skills both measure are compared. Practice wins a tie, because it also measures reflections.
  */
 function standsFor(s: SessionRecord, kept: SessionRecord): boolean {
-  if (s.mode === kept.mode) return targetRate(s) > targetRate(kept);
-  return sharedRate(s) > sharedRate(kept) || (sharedRate(s) === sharedRate(kept) && s.mode === 'practice');
+  if (s.mode === kept.mode) return skills(s) > skills(kept);
+  return sharedSkills(s) > sharedSkills(kept) || (sharedSkills(s) === sharedSkills(kept) && s.mode === 'practice');
 }
 
 /** The session that stands for each day, oldest day first. */
@@ -138,7 +143,8 @@ function bestPerDay(p: Progress): SessionRecord[] {
 }
 
 /**
- * Per-minute rates for the chart, one point per day.
+ * One point per day for the chart, on the five-minute scale: the clinic norm is 10 of each skill
+ * and at most 3 questions, commands and corrections.
  * `reflection` is null on a day with only live play: it was not measured, which is not the same as zero.
  */
 export function skillTrend(
@@ -146,15 +152,15 @@ export function skillTrend(
 ): { date: string; specific_praise: number; reflection: number | null; description: number; avoid: number }[] {
   return bestPerDay(p).map((s) => ({
     date: s.date,
-    specific_praise: round1(perMinute(s.counts.specific_praise, s.seconds)),
-    reflection: s.mode === 'live' ? null : round1(perMinute(s.counts.reflection, s.seconds)),
-    description: round1(perMinute(s.counts.description, s.seconds)),
-    avoid: round1(perMinute(s.counts.avoid, s.seconds)),
+    specific_praise: round1(onNormScale(s.counts.specific_praise, s.seconds)),
+    reflection: s.mode === 'live' ? null : round1(onNormScale(s.counts.reflection, s.seconds)),
+    description: round1(onNormScale(s.counts.description, s.seconds)),
+    avoid: round1(avoidOnNormScale(s)),
   }));
 }
 
 /**
- * How close the latest day is to the clinic pace, 0..1 per skill.
+ * How close the latest day is to the clinic norm of 10 of each skill in five minutes, 0..1 per skill.
  * After a day with only live play `reflection` is null (not measured) and `overall` averages the other two.
  */
 export function masteryShare(
@@ -162,7 +168,7 @@ export function masteryShare(
 ): { specific_praise: number; reflection: number | null; description: number; avoidOk: boolean; overall: number } {
   const latest = bestPerDay(p).at(-1);
   if (!latest) return { specific_praise: 0, reflection: 0, description: 0, avoidOk: false, overall: 0 };
-  const share = (k: Skill): number => Math.min(1, perMinute(latest.counts[k], latest.seconds) / SKILL_PER_MINUTE);
+  const share = (k: Skill): number => Math.min(1, onNormScale(latest.counts[k], latest.seconds) / NORM_PER_SKILL);
   const specific_praise = share('specific_praise');
   const description = share('description');
   const reflection = latest.mode === 'live' ? null : share('reflection');
@@ -171,7 +177,7 @@ export function masteryShare(
     specific_praise,
     reflection,
     description,
-    avoidOk: latest.seconds > 0 && perMinute(latest.counts.avoid, latest.seconds) <= MAX_AVOID_PER_MINUTE,
+    avoidOk: latest.seconds > 0 && avoidOnNormScale(latest) <= MAX_AVOID_5MIN,
     overall: measured.reduce((a, b) => a + b, 0) / measured.length,
   };
 }

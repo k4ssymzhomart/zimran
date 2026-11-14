@@ -97,18 +97,19 @@ describe('streak', () => {
 });
 
 describe('trend and mastery', () => {
-  it('uses the best session of each day, per minute', () => {
+  it('uses the best session of each day, on the five-minute scale of the clinic norm', () => {
     let p = addSession(emptyProgress(), EARLY, '2026-11-14', 'practice');
     p = addSession(p, NORM, '2026-11-14', 'practice');
     p = addSession(p, round({ description: 3, question: 1 }, 60), '2026-11-15', 'live');
     expect(skillTrend(p)).toEqual([
-      { date: '2026-11-14', specific_praise: 2, reflection: 2, description: 2, avoid: 0.4 },
+      { date: '2026-11-14', specific_praise: 10, reflection: 10, description: 10, avoid: 2 },
       // Live play does not measure reflections: the day has no reading, not a zero.
-      { date: '2026-11-15', specific_praise: 0, reflection: null, description: 3, avoid: 1 },
+      // A one-minute session is not scaled up for the skills (3 stays 3); the question is (1 a minute is 5 in five).
+      { date: '2026-11-15', specific_praise: 0, reflection: null, description: 3, avoid: 5 },
     ]);
   });
 
-  it('measures the latest day against the clinic pace', () => {
+  it('measures the latest day against the clinic norm', () => {
     expect(masteryShare(emptyProgress())).toEqual({ specific_praise: 0, reflection: 0, description: 0, avoidOk: false, overall: 0 });
     expect(masteryShare(addSession(emptyProgress(), NORM, '2026-11-14', 'practice'))).toEqual({
       specific_praise: 1, reflection: 1, description: 1, avoidOk: true, overall: 1,
@@ -132,7 +133,7 @@ describe('trend and mastery', () => {
     for (const order of [['live', 'practice'], ['practice', 'live']] as const) {
       let p = emptyProgress();
       for (const mode of order) p = addSession(p, mode === 'live' ? strongLive : weakPractice, '2026-11-14', mode);
-      expect(skillTrend(p)).toEqual([{ date: '2026-11-14', specific_praise: 2, reflection: null, description: 2, avoid: 0 }]);
+      expect(skillTrend(p)).toEqual([{ date: '2026-11-14', specific_praise: 10, reflection: null, description: 10, avoid: 0 }]);
     }
   });
 
@@ -142,12 +143,29 @@ describe('trend and mastery', () => {
     for (const order of [['live', 'practice'], ['practice', 'live']] as const) {
       let p = emptyProgress();
       for (const mode of order) p = addSession(p, mode === 'live' ? live : practice, '2026-11-14', mode);
-      expect(skillTrend(p)[0]).toMatchObject({ specific_praise: 1, reflection: 1.2, description: 1 });
+      expect(skillTrend(p)[0]).toMatchObject({ specific_praise: 5, reflection: 6, description: 5 });
     }
     // Two live sessions on one day: the stronger one stands.
     let twoLive = addSession(emptyProgress(), round({ description: 3 }), '2026-11-14', 'live');
     twoLive = addSession(twoLive, round({ specific_praise: 10, description: 10 }), '2026-11-14', 'live');
-    expect(skillTrend(twoLive)[0]).toMatchObject({ specific_praise: 2, reflection: null, description: 2 });
+    expect(skillTrend(twoLive)[0]).toMatchObject({ specific_praise: 10, reflection: null, description: 10 });
+  });
+
+  it('reads a short round as it is: one sentence in twenty seconds is not a pace', () => {
+    const burst = round({ specific_praise: 1, description: 1 }, 20);
+    const p = addSession(emptyProgress(), burst, '2026-11-14', 'practice');
+    expect(skillTrend(p)).toEqual([{ date: '2026-11-14', specific_praise: 1, reflection: 0, description: 1, avoid: 0 }]);
+    expect(masteryShare(p)).toMatchObject({ specific_praise: 0.1, reflection: 0, description: 0.1 });
+    // A full five-minute session of the same day stands for it, not the short burst with the higher pace.
+    const full = round({ specific_praise: 6, reflection: 5, description: 7 });
+    expect(masteryShare(addSession(p, full, '2026-11-14', 'practice'))).toMatchObject({ specific_praise: 0.6, reflection: 0.5, description: 0.7 });
+  });
+
+  it('still holds a short round to the limit for questions, commands and corrections', () => {
+    const p = addSession(emptyProgress(), round({ description: 2, question: 2 }, 60), '2026-11-14', 'practice');
+    // Two in one minute is ten in five, well over the limit of three.
+    expect(skillTrend(p)[0].avoid).toBe(10);
+    expect(masteryShare(p).avoidOk).toBe(false);
   });
 
   it('caps each skill at 1', () => {

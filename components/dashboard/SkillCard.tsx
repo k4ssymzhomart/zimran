@@ -7,7 +7,7 @@ const METERS = [
   { key: 'description', label: 'Describe', color: 'bg-leaf' },
 ] as const;
 
-/** "Your skill": the latest day against the clinic pace, then the trend. `span` is the chart's room in days. */
+/** "Your skill": the latest day against the clinic norm, then the trend. `span` is the chart's room in days. */
 export function SkillCard({ progress, span }: { progress: Progress; span?: number }) {
   const share = masteryShare(progress);
   const trend = skillTrend(progress);
@@ -17,7 +17,7 @@ export function SkillCard({ progress, span }: { progress: Progress; span?: numbe
       <h2 id="skill-h" className="font-display text-xl font-semibold">
         Your <span className="italic text-tomato">skill</span>
       </h2>
-      <p className="mt-1 text-sm text-ink-soft">How close your latest day is to the clinic pace: 10 of each in five minutes.</p>
+      <p className="mt-1 text-sm text-ink-soft">How close your latest day is to the clinic norm: 10 of each in five minutes. A shorter round is not scaled up.</p>
 
       <div className="mt-3 grid grid-cols-3 gap-3">
         {METERS.map((m) => {
@@ -36,7 +36,7 @@ export function SkillCard({ progress, span }: { progress: Progress; span?: numbe
                 <div
                   className="mt-1 h-3 overflow-hidden rounded-full border-2 border-ink bg-[#fffdf8]"
                   role="meter"
-                  aria-label={`${m.label}, share of the clinic pace`}
+                  aria-label={`${m.label}, share of the clinic norm`}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={pct}

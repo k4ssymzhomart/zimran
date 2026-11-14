@@ -75,7 +75,7 @@ result) to take it out of the count.
 
 ## Numbers we stand behind
 
-- **319 unit tests**, all in `lib/`. Run `npm test`.
+- **321 unit tests**, all in `lib/`. Run `npm test`.
 - **72 of 80 (90%)** on the first run of a blind set, before any rule was changed: 80 casual turns written by a
   separate reviewer who had not seen the rules (`lib/coding/blindset.ts`). After generic fixes that set is 80 of 80,
   so it is no longer blind. An earlier check set of 48 (`lib/coding/heldout.ts`) was 40 of 48 on its first run and

@@ -148,7 +148,7 @@ export default function JuryPage() {
       <Section id="numbers" title="Numbers we stand behind">
         <ul className="space-y-3">
           <li>
-            <span className="font-display text-2xl font-semibold">319</span> unit tests. Run <Code>npm test</Code>.
+            <span className="font-display text-2xl font-semibold">321</span> unit tests. Run <Code>npm test</Code>.
           </li>
           <li>
             <span className="font-display text-2xl font-semibold">72 of 80</span> casual turns (90%) were coded as

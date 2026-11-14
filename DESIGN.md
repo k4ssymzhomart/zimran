@@ -37,7 +37,7 @@ import { addCheckin, addSession, calmTrend, dayNumber, masteryShare, planDay, sk
 // streak(progress, today) -> { days, freeDayUsed, activeToday }
 // masteryShare(progress) -> { specific_praise, reflection, description (0..1), avoidOk, overall }
 //   reflection is null after a day with only live play: show "Not counted in live play", never 0
-// skillTrend(progress) -> per-day per-minute numbers (reflection may be null: the line skips that day); calmTrend(progress) -> weekly averages
+// skillTrend(progress) -> per-day counts on the five-minute scale, clinic norm 10 (reflection may be null: the line skips that day); calmTrend(progress) -> weekly averages
 // simulateFamily(seed, startDate) -> { days: DemoDay[], progress } — always shown with <DemoBadge />, which prints DEMO_LABEL
 ```
 
