@@ -158,3 +158,30 @@ describe('checkAnswer', () => {
     expect(checkAnswer(question, '').coded).toEqual([]);
   });
 });
+
+describe('wording a review asked for', () => {
+  it('the lesson about commands is titled so it reads for a son too', () => {
+    // "Let her lead" came out as "Let his lead" once the screens swapped the pronouns for Leo.
+    expect(lessonFor('command').title).toBe('Follow her lead');
+  });
+
+  it('spells clean-up with its hyphen and praises waiting in words a parent would say', () => {
+    const tasks = candidateTasks('criticism');
+    expect(tasks.map((t) => t.hint).join(' ')).toContain('praise the clean-up');
+    expect(tasks.map((t) => t.hint).join(' ')).not.toMatch(/cleanup/);
+    const waiting = tasks.find((t) => t.situation.includes('waits while the tower stops wobbling'));
+    expect(waiting?.modelAnswer).toBe('Nice job waiting so patiently for the tower.');
+    expect(waiting?.hint).toContain('“Nice job waiting so …”');
+    expect(checkAnswer(waiting!, waiting!.modelAnswer)).toMatchObject({ ok: true });
+  });
+
+  it('answers a description with the feedback for a description, also when it names a thing from her line', () => {
+    const task = candidateTasks('question').find((t) => t.childSaid === 'This is our house.')!;
+    const checked = checkAnswer(task, task.modelAnswer);
+    expect(checked.ok).toBe(true);
+    expect(checked.coded.map((c) => c.code)).toEqual(['description']);
+    expect(checked.feedback).toBe('You named exactly what she is doing, so she keeps leading the play.');
+    // Her own words are still a reflection there.
+    expect(checkAnswer(task, "That's our house.").coded.map((c) => c.code)).toEqual(['reflection']);
+  });
+});

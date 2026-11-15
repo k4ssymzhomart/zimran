@@ -91,7 +91,7 @@ const CONTENT: Record<Lever, LessonContent> = {
   },
 
   command: {
-    title: 'Let her lead',
+    title: 'Follow her lead',
     why: 'Describing what she chose keeps her in charge of the play.',
     pairs: [
       { insteadOf: 'Put the blue one on top.', say: 'You chose the red block.' },
@@ -160,14 +160,14 @@ const CONTENT: Record<Lever, LessonContent> = {
         null,
         'No, crayons are not for breaking.',
         'Thank you for putting the crayons back in the box.',
-        'Let the broken crayon pass and praise the cleanup: “Thank you for putting …”.',
+        'Let the broken crayon pass and praise the clean-up: “Thank you for putting …”.',
       ],
       [
         'After banging two blocks together, Mia waits while the tower stops wobbling.',
         null,
         'Stop banging, it is too loud.',
-        'Nice waiting so patiently for the tower.',
-        'Let the noise pass and praise the waiting: “Nice waiting so …”.',
+        'Nice job waiting so patiently for the tower.',
+        'Let the noise pass and praise the waiting: “Nice job waiting so …”.',
       ],
     ],
   },

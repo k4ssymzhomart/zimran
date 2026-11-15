@@ -5,7 +5,7 @@
  */
 import type { Counts, Lever, RoundResult, Targets } from '../types';
 import { planDay } from './plan';
-import { biggestLever, LEVER_NAME, LEVER_TEXT, MAX_AVOID_5MIN, NORM_PER_SKILL, NORM_SECONDS, paceTargets } from './targets';
+import { biggestLever, LEVER_NAME, LEVER_NAME_LIVE, LEVER_TEXT, MAX_AVOID_5MIN, NORM_PER_SKILL, NORM_SECONDS, paceTargets } from './targets';
 
 /** Tantrums today: none, 1-2, 3-5, 6 or more. */
 export type TantrumBucket = 0 | 1 | 2 | 3;
@@ -420,16 +420,24 @@ const counted = (n: number, lever: Lever): string => `${n} ${COUNT_WORDS[lever][
  *  (b) else one skill averages under half of the clinic pace while the plan's skill for today is at 80% of
  *      it or more: the lowest such skill becomes the focus (a tie: description, reflection, specific praise).
  *      On a plan day that focuses on questions or commands, "at 80%" means their average is within the limit.
- * On the plan's "Your weak spot" day any skill under the pace qualifies in (b).
+ * On the plan's "Your own focus" day any skill under the pace qualifies in (b).
  * With fewer than two such sessions the plan speaks. `line` is one sentence with the numbers behind the choice.
  */
 export function todayFocus(p: Progress, today: string): { lever: Lever; source: 'plan' | 'data'; line: string } {
   const plan = planDay(dayNumber(p, today));
-  const fromPlan = { lever: plan.focus, source: 'plan' as const, line: `Today follows the plan, ${plan.theme}: ${LEVER_NAME[plan.focus]}.` };
+  // A day of live play is about the parent's own child, who may be a son.
+  const name = plan.live ? LEVER_NAME_LIVE : LEVER_NAME;
+  // A skill check is about all three skills; after day 28 there is no weekly theme to name.
+  const planLine = plan.isMasteryCheck
+    ? 'Today is the skill check: all three skills against the clinic pace.'
+    : plan.theme === 'Keep'
+      ? `Today follows the plan: ${name[plan.focus]}.`
+      : `Today follows the plan, ${plan.theme}: ${name[plan.focus]}.`;
+  const fromPlan = { lever: plan.focus, source: 'plan' as const, line: planLine };
   const recent = fullSessions(p, today).filter((s) => s.seconds >= FOCUS_MIN_SECONDS).slice(-FOCUS_SESSIONS);
   if (recent.length < 2) return fromPlan;
   const lead = `Your last ${recent.length === 2 ? 'two' : 'three'} sessions`;
-  const start = (lever: Lever): string => `so today starts with ${LEVER_NAME[lever]}.`;
+  const start = (lever: Lever): string => `so today starts with ${name[lever]}.`;
 
   // (a) Too many questions, commands and corrections come before any skill: they hand the lead back to the parent.
   const over = recent.filter((s) => avoidOnNormScale(s) > MAX_AVOID_5MIN).length;

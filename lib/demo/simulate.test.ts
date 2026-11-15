@@ -112,7 +112,8 @@ describe('simulated family', () => {
     expect(weeks?.first.days).toBe(7);
     expect(weeks?.fourth.days).toBe(7);
     expect(weeks!.fourth.avoid).toBeLessThan(weeks!.first.avoid);
-    expect(todayFocus(progress, today).line).toMatch(/^(?:Today follows the plan|Your last three sessions averaged)/);
+    // Day 28 is the skill check, so the plan's own line now says so (it used to name one skill of the three).
+    expect(todayFocus(progress, today).line).toMatch(/^(?:Today is the skill check|Today follows the plan|Your last three sessions averaged)/);
     // Early in the plan the same family's numbers point at what it asks most: questions.
     const early = simulateFamily(7, START, 3).progress;
     expect(todayFocus(early, addDays(START, 3))).toMatchObject({ lever: 'question', source: 'data' });

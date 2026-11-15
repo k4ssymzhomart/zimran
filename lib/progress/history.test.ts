@@ -798,7 +798,8 @@ describe('todayFocus', () => {
     });
     const commands = sessions([round({ command: 5, question: 1 }), round({ command: 4, criticism: 2 })]);
     expect(todayFocus(commands, D(2))).toEqual({
-      lever: 'command', source: 'data', line: 'Your last two sessions averaged 5 commands, so today starts with letting her lead.',
+      // Changed by design: the lever reads "following her lead", which stays grammatical when the screens turn it into "his lead" for Leo.
+      lever: 'command', source: 'data', line: 'Your last two sessions averaged 5 commands, so today starts with following her lead.',
     });
     const corrections = sessions([round({ criticism: 4 }), round({ criticism: 5, description: 9 }), calm]);
     expect(todayFocus(corrections, D(3))).toMatchObject({ lever: 'criticism', source: 'data', line: 'Your last three sessions averaged 3 corrections, so today starts with letting small things pass.' });
@@ -897,10 +898,12 @@ describe('todayFocus', () => {
     expect(todayFocus(ahead, '2027-01-03')).toMatchObject({ lever: 'question', source: 'data' });
   });
 
-  it('on "Your weak spot" day the lowest skill under the pace is the focus, whatever the plan\'s fallback', () => {
+  // Changed by design: the day is titled "Your own focus" (a title addressed to the parent carries no blame),
+  // and after day 28 the plan's line names no weekly theme: there is none, and "Keep:" read as a stray word.
+  it('on "Your own focus" day the lowest skill under the pace is the focus, whatever the plan\'s fallback', () => {
     const good = round({ specific_praise: 9, reflection: 7, description: 8, question: 1 });
     const p = sessions(Array.from({ length: 33 }, () => good));
-    expect(planDay(dayNumber(p, D(33)))).toMatchObject({ day: 34, title: 'Your weak spot', focus: 'specific_praise' });
+    expect(planDay(dayNumber(p, D(33)))).toMatchObject({ day: 34, title: 'Your own focus', focus: 'specific_praise', weakSpot: true });
     expect(todayFocus(p, D(33))).toEqual({
       lever: 'reflection',
       source: 'data',
@@ -909,10 +912,28 @@ describe('todayFocus', () => {
     // Every skill at the pace: nothing to point at, the plan's fallback stands.
     const atPace = sessions(Array.from({ length: 33 }, () => NORM));
     expect(todayFocus(atPace, D(33))).toEqual({
-      lever: 'specific_praise', source: 'plan', line: 'Today follows the plan, Keep: naming exactly what you liked.',
+      lever: 'specific_praise', source: 'plan', line: 'Today follows the plan: naming exactly what you liked.',
     });
     // On any other day after the plan, 7 of 10 is not a clear weak spot.
     expect(todayFocus(sessions(Array.from({ length: 30 }, () => good)), D(30)).source).toBe('plan');
+  });
+
+  it('names all three skills on a skill check, no theme after day 28, and "your child" on a live day', () => {
+    const steady = round({ specific_praise: 9, reflection: 9, description: 9 });
+    const days = (n: number) => sessions(Array.from({ length: n }, () => steady));
+    // Day 28 and day 35 are skill checks: the line is about all three skills, not about one of them.
+    expect(planDay(dayNumber(days(27), D(27))).isMasteryCheck).toBe(true);
+    expect(todayFocus(days(27), D(27))).toEqual({ lever: 'specific_praise', source: 'plan', line: 'Today is the skill check: all three skills against the clinic pace.' });
+    expect(todayFocus(days(34), D(34)).line).toBe('Today is the skill check: all three skills against the clinic pace.');
+    // Day 29: no "Keep:" in front of the skill.
+    expect(todayFocus(days(28), D(28)).line).toBe('Today follows the plan: following her lead.');
+    // Day 30 is live play with the parent's own child, who may be a son.
+    expect(planDay(dayNumber(days(29), D(29))).live).toBe(true);
+    expect(todayFocus(days(29), D(29)).line).toBe('Today follows the plan: describing what your child does.');
+    for (const n of [27, 28, 29, 30, 31, 32, 33, 34]) expect(todayFocus(days(n), D(n)).line, String(n)).not.toMatch(/\bKeep\b|\b(?:she|her)\b.*your child/);
+    // Day 6, "Wait quietly", is about following, not about questions.
+    expect(planDay(dayNumber(days(5), D(5)))).toMatchObject({ day: 6, title: 'Wait quietly' });
+    expect(todayFocus(days(5), D(5)).line).toBe('Today follows the plan, Follow: following her lead.');
   });
 
   it('never scolds and never shouts', () => {

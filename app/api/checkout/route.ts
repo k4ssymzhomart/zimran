@@ -52,7 +52,8 @@ export async function POST(req: Request) {
       ],
       metadata: { plan: planId },
       success_url: `${origin}/unlocked?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/pricing?canceled=1`,
+      // The pricing page reads `cancelled` (its own spelling of the parameter) to show "Checkout was closed. Nothing was charged."
+      cancel_url: `${origin}/pricing?cancelled=1`,
     });
     if (!session.url) throw new Error('Stripe returned no checkout URL.');
     return Response.json({ url: session.url });

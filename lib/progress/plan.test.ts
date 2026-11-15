@@ -55,6 +55,37 @@ describe('28-day plan', () => {
     expect(planDay(12)).toBe(PLAN[11]);
     expect(planDay(28).isMasteryCheck).toBe(true);
   });
+
+  it('gives a day for every number, also one that is not a day at all', () => {
+    for (const odd of [Infinity, -Infinity, Number.NaN]) expect(planDay(odd), String(odd)).toBe(PLAN[0]);
+    for (const n of [-3, 0, 2.7, 28, 29, 1e6, Number.MAX_SAFE_INTEGER]) {
+      const d = planDay(n);
+      expect(typeof d.title, String(n)).toBe('string');
+      expect(d.title.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('says what the next day delivers, and promises nothing the plan cannot know', () => {
+    // Day 4 is about switching toys, not about grabbing.
+    expect(PLAN[2].teaser).toBe('Tomorrow: what to say when she switches toys.');
+    expect(PLAN[3].title).toBe('Let her choose the game');
+    // No "You are closer than you think" to a parent who may be at zero.
+    expect(PLAN[12].teaser).toBe('Tomorrow: ten descriptions in five minutes, one short one at a time.');
+    // Day 18 reflects what she says in words when something is hard; whining is waited out (day 6).
+    expect(PLAN[16].teaser).toBe('Tomorrow: saying it back when something is hard for her.');
+    expect(PLAN[17].title).toBe('Reflect the hard moments');
+    // Day 6 is about following: its focus is the command lever, not questions.
+    expect(PLAN[5]).toMatchObject({ title: 'Wait quietly', focus: 'command' });
+  });
+
+  it('writes week 2 so it reads for a son too, and quotes with curly marks', () => {
+    // "Be her sportscaster" came out as "Be him sportscaster" once the screens swapped the pronouns for Leo.
+    expect(PLAN[7].title).toBe('Be the sportscaster');
+    expect(PLAN[6].teaser).toBe('Tomorrow: week 2 begins, and you become the sportscaster.');
+    expect(PLAN[9].title).toBe('Start with “You are”');
+    expect(PLAN[20].teaser).toBe('Tomorrow: week 4 begins, and “good job” gets an upgrade.');
+    for (const d of [...PLAN, ...CYCLE]) expect(`${d.title} ${d.teaser}`).not.toContain('"');
+  });
 });
 
 // Changed by design: after day 28 there used to be one day, "Keep your five minutes", repeated for good.
@@ -68,7 +99,8 @@ describe('after day 28: a seven-day cycle', () => {
       [31, 'Mixed skills: one of each, twice', 'reflection'],
       [32, 'Hard moment: she says no', 'criticism'],
       [33, 'Live: praise the opposite', 'specific_praise'],
-      [34, 'Your weak spot', 'specific_praise'],
+      // Changed by design: "Your weak spot" labeled the parent; the field `weakSpot` keeps its name.
+      [34, 'Your own focus', 'specific_praise'],
       [35, 'Weekly skill check', 'specific_praise'],
     ]);
     expect(CYCLE.map((d) => d.sceneId)).toEqual(['cleanup', undefined, undefined, 'cleanup', undefined, undefined, undefined]);
@@ -113,7 +145,10 @@ describe('after day 28: a seven-day cycle', () => {
     for (const d of [PLAN[27], ...CYCLE, planDay(60)]) {
       expect(`${d.title} ${d.teaser}`).not.toMatch(/phase|new lesson|new skill|unlock|next level|cure|therap|treat/i);
     }
-    // Day 28 says what comes next in plain words: the same skills, live and with Mia.
-    expect(PLAN[27].teaser).toBe('Next: the same skills, live with your own child and here with Mia.');
+    // Day 28 says what comes next in plain words and in the order the days come: Mia first (day 29), live on day 30.
+    // Changed by design: the old line put live play first.
+    expect(PLAN[27].teaser).toBe('Next: the same skills in harder moments with Mia, and live with your child.');
+    expect(planDay(29).live).toBeUndefined();
+    expect(planDay(30).live).toBe(true);
   });
 });

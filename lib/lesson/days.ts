@@ -20,6 +20,8 @@ export interface DayTask {
   hint: string;
   /** One answer that passes. */
   example: string;
+  /** How many sentences have to land on the wanted skill. Left out, one. */
+  min?: number;
 }
 
 export interface DayLesson {
@@ -45,8 +47,8 @@ const ANY = 'any_target';
 
 const lesson = (idea: string, say: Say, task: DayTask, afterMia?: AfterMia): Omit<DayLesson, 'day'> =>
   afterMia ? { idea, say, afterMia, task } : { idea, say, task };
-const task = (setup: string, miaSays: string | null, want: DayTask['want'], example: string, hint: string): DayTask => ({
-  setup, miaSays, want, hint, example,
+const task = (setup: string, miaSays: string | null, want: DayTask['want'], example: string, hint: string, min?: number): DayTask => ({
+  setup, miaSays, want, hint, example, ...(min ? { min } : {}),
 });
 
 const THREE_SKILLS_HINT = 'Describe what she is doing, say her words back, or praise one exact thing.';
@@ -101,7 +103,7 @@ const DAYS: Omit<DayLesson, 'day'>[] = [
     task(
       'Mia rolls a block across the rug. You roll one too, without a word. Now add one sentence about what she is doing.',
       null, DESCRIBE, "You're rolling the block across the rug.",
-      "Start with “You're …” and name her move.",
+      "Start with “You're …” and name the move.",
     ),
   ),
   // 6 Wait quietly: she whines, the parent waits, she does one calm thing, the parent praises or describes it
@@ -162,7 +164,8 @@ const DAYS: Omit<DayLesson, 'day'>[] = [
     ["You're coloring slowly inside the circle.", "You're sitting and building.", "You're working on the roof."],
     task(
       'Mia sits and colors slowly inside the circle, humming. Describe this calm moment.',
-      null, DESCRIBE, "You're coloring inside the circle.",
+      // "You're coloring so quietly." names the calm itself and reads as specific praise: on this day it passes too.
+      null, ANY, "You're coloring inside the circle.",
       "Say what she is doing while it is calm: “You're coloring …”.",
     ),
   ),
@@ -184,6 +187,7 @@ const DAYS: Omit<DayLesson, 'day'>[] = [
       'Mia draws a house, then adds a red door. Type two descriptions, one for each thing.',
       null, DESCRIBE, "You're drawing a house. You're adding a red door.",
       "Write one “You're …” sentence for each thing she does.",
+      2,
     ),
   ),
   // 14 Ten descriptions
@@ -216,7 +220,7 @@ const DAYS: Omit<DayLesson, 'day'>[] = [
     task(
       'Mia points at her drawing and says: “Rainbow!” Reflect that one word.',
       'Rainbow!', REFLECT, 'A rainbow!',
-      'Say her one word back: “A …”.',
+      'Say the one word back: “A …”.',
     ),
     ['Boom!', 'Train!', 'Sun.'],
   ),
@@ -231,25 +235,26 @@ const DAYS: Omit<DayLesson, 'day'>[] = [
     ),
     ['It is a train.', 'This is the grass.', 'The sun is hot.'],
   ),
-  // 18 Reflect big feelings: she says "This is too hard!", the parent says it back
+  // 18 Reflect the hard moments: something goes sideways and she says so in words. Whining is still waited out (day 6),
+  // so none of these lines is one of her whine beats.
   lesson(
-    'When she is upset, her words still deserve to be heard. She says “This is too hard!” and you say “This is too hard.” with no fixing and no pep talk.',
-    ['This is too hard.', 'It keeps falling.', 'Your juice is all gone.'],
+    'When something goes sideways and she tells you in words, say it back: “It all spilled.” No fixing and no pep talk; whining still gets the quiet wait from day 6.',
+    ['It all spilled.', 'It broke.', 'There are so many toys.'],
     task(
-      'Mia drops her block, crosses her arms and says: “This is too hard!” Say her words back.',
-      'This is too hard!', REFLECT, 'This is too hard.',
-      'Use her words in a calm voice: “This is too …”.',
+      'The pot tips and the toy food rolls out. Mia looks at you and says: “It all spilled.” Say her words back.',
+      'It all spilled.', REFLECT, 'It all spilled.',
+      'Use her words in a calm voice: “It all …”.',
     ),
-    ['This is too hard!', 'It keeps falling!', 'My juice is all gone.'],
+    ['It all spilled.', 'It broke.', 'There are so many toys.'],
   ),
   // 19 Reflect, no question mark
   lesson(
     'A reflection ends with your voice going down. “You made a tower?” asks her to answer, and “You made a tower.” tells her you heard.',
-    ['You made a tower.', 'That is your house.', 'The cars go under there.'],
+    ['You made a tower.', "That's our house.", 'The cars go under there.'],
     task(
       'Mia sets a block on top and says: “I made a tower!” Reflect it as a statement, with a period at the end.',
       'I made a tower!', REFLECT, 'You made a tower.',
-      'End with a period, not a question mark: “You made a tower.”',
+      'Say her words as a statement, with a period at the end: “You made a tower.”',
     ),
     ['I made a tower!', 'This is our house.', 'The cars go under here.'],
   ),
@@ -271,7 +276,7 @@ const DAYS: Omit<DayLesson, 'day'>[] = [
     task(
       "Mia stirs the pot and says: “I'm making soup.” Say her words back.",
       "I'm making soup.", REFLECT, "You're making soup.",
-      "Turn her “I'm” into “You're”: “You're making …”.",
+      "Turn “I'm” into “You're”: “You're making …”.",
     ),
     ["I'm making soup.", 'The tea is hot.', 'Carrots go in the soup.'],
   ),
@@ -292,7 +297,7 @@ const DAYS: Omit<DayLesson, 'day'>[] = [
     'Praise the behavior you want more of, the moment you see it. Gentle hands are a good first pick: “I love how gently you set that down.”',
     ['I love how gently you set that down.', 'Nice job holding the crayon so carefully.', 'Thank you for being gentle with the doll.'],
     task(
-      'Mia lays the doll in the bin very gently. Praise her gentle hands.',
+      'Mia lays the doll in the bin very gently. Praise the gentle hands.',
       null, PRAISE, 'I love how gently you laid the doll down.',
       'Start with “I love how gently you …”.',
     ),
@@ -320,7 +325,7 @@ const DAYS: Omit<DayLesson, 'day'>[] = [
   // 26 Praise the opposite
   lesson(
     'Think of the thing that wears you out, then watch for its opposite. If it is banging blocks, praise gentle stacking the moment you see it.',
-    ["I love how gently you're stacking now.", 'Thank you for using your quiet voice.', 'Great job keeping the crayons on the paper.'],
+    ["I love how gently you're stacking.", 'Thank you for using your quiet voice.', 'Great job keeping the crayons on the paper.'],
     task(
       'Mia was banging blocks a minute ago. Now she sets one down softly. Let the banging pass and praise the opposite.',
       null, PRAISE, 'I love how gently you set that block down.',
@@ -355,7 +360,7 @@ const DAYS: Omit<DayLesson, 'day'>[] = [
 const CYCLE: Omit<DayLesson, 'day'>[] = [
   // Hard moment: clean-up time
   lesson(
-    'Clean-up is where directions pile up. Mia puts toys away slowly and her own way today, so follow anyway: describe each toy she puts away and praise it.',
+    'Clean-up is where directions pile up. Nothing has to get put away in these five minutes: when Mia does put a toy in the bin, describe it or praise it, and let the rest wait.',
     ["You're putting the cars in the bin.", 'Thank you for putting the books away.', 'You carried the bear to the shelf.'],
     task(
       'Toys cover the rug. Mia drops one car in the bin, slowly. Turn “Hurry up and get the rest.” into a description or a praise.',
@@ -387,11 +392,11 @@ const CYCLE: Omit<DayLesson, 'day'>[] = [
   // Hard moment: she says no
   lesson(
     'When she says no during play, there is nothing to win. Let it pass, stay close, and praise or describe the next calm thing she does.',
-    ["You're holding your bear.", 'You put one car in the bin.', 'Thank you for helping with the cars.'],
+    ["You're holding your bear.", 'You rolled the car to me.', 'Thank you for sharing the car.'],
     task(
-      'Mia hugs her bear and says “No!” to the toy bin. You wait, close and quiet. Then she drops one car in. Praise or describe that.',
-      null, ANY, 'Thank you for putting the car in the bin.',
-      'Leave the “No!” alone and name what she did next: “Thank you for putting …”.',
+      'Mia hugs the bear and says “No!” when you reach for a car. You wait, close and quiet. Then she rolls one car over to you. Praise or describe that.',
+      null, ANY, 'Thank you for sharing the car.',
+      'Leave the “No!” alone and name what she did next: “Thank you for sharing …”.',
     ),
   ),
   // Live: praise the opposite
@@ -404,7 +409,7 @@ const CYCLE: Omit<DayLesson, 'day'>[] = [
       'Name what you liked: “Thank you for handing …”.',
     ),
   ),
-  // Your weak spot
+  // Your own focus
   lesson(
     'Today goes to the skill your own numbers show furthest from the pace. One skill for five minutes, and nothing else to think about.',
     ["You're drawing a long line.", "That's the grass.", 'I like how you shared the crayon.'],
@@ -418,7 +423,7 @@ const CYCLE: Omit<DayLesson, 'day'>[] = [
   // Weekly skill check
   lesson(
     'Once a week, a full five minutes against the clinic pace: ten of each skill, three or fewer questions, commands and corrections. Compare it with last week, not with perfect.',
-    ["You're stacking them one by one.", 'It is wobbly.', 'Nice job waiting for the tower.'],
+    ["You're stacking them one by one.", 'It is wobbly.', 'Nice job waiting for the tower to stop wobbling.'],
     task(
       'Mia waits while the tower stops wobbling and says: “It is wobbly.” Answer with any of the three skills.',
       'It is wobbly.', ANY, 'It is wobbly.',
@@ -463,12 +468,15 @@ const PASSED: Partial<Record<Code, string>> = {
   specific_praise: 'That is specific praise: she knows exactly what you liked.',
 };
 
+const ONE: Partial<Record<Code, string>> = { description: 'description', reflection: 'reflection', specific_praise: 'specific praise' };
+
 const lowerFirst = (s: string): string => s.charAt(0).toLowerCase() + s.slice(1);
 
 /**
  * Check a typed answer to the day's task. Every sentence is coded with Mia's line as what she last said.
- * It passes when one sentence lands on the wanted skill and none is a question, command or correction:
- * a good sentence followed by "What is it?" is not there yet. `code` is what the reply talks about:
+ * It passes when one sentence lands on the wanted skill (or as many as the task's `min` asks for) and none
+ * is a question, command or correction: a good sentence followed by "What is it?" is not there yet.
+ * `code` is what the reply talks about:
  * the to-swap sentence if there is one, else the sentence that passed, else the first one that was read.
  * The reply is one calm sentence; on a miss it names what was heard and goes on with the task's hint.
  */
@@ -479,8 +487,11 @@ export function checkDayTask(day: number, answer: string): { ok: boolean; code: 
   if (coded.some((s) => s.rule === 'safety')) return { ok: false, code: 'unknown', feedback: SAFETY_NOTE.body };
 
   const swap = coded.find((s) => BUCKET[s.code] === 'avoid');
-  const hit = coded.find((s) => (asked.want === ANY ? BUCKET[s.code] === 'target' : s.code === asked.want));
-  if (!swap && hit) return { ok: true, code: hit.code, feedback: PASSED[hit.code] ?? '' };
+  const hits = coded.filter((s) => (asked.want === ANY ? BUCKET[s.code] === 'target' : s.code === asked.want));
+  const hit = hits[0];
+  if (!swap && hit && hits.length >= (asked.min ?? 1)) return { ok: true, code: hit.code, feedback: PASSED[hit.code] ?? '' };
+  // One good sentence where the task asks for two: say so, and name the skill that was heard.
+  if (!swap && hit) return { ok: false, code: hit.code, feedback: `That is one ${ONE[hit.code] ?? 'sentence'}; ${lowerFirst(asked.hint)}` };
   const code = (swap ?? coded.find((s) => s.code !== 'unknown'))?.code ?? 'unknown';
   return { ok: false, code, feedback: `${HEARD[code]}; ${lowerFirst(asked.hint)}` };
 }

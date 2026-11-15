@@ -11,6 +11,8 @@ export const NORM_PER_SKILL = 10;
 export const MAX_AVOID_5MIN = 3;
 
 export function paceTargets(seconds: number): Targets {
+  // Rounded to the nearest whole sentence: the 40-second second round of the first visit asks for one of each skill.
+  // (Typed on a phone, two of each in 40 seconds is out of reach, and that round is there to show a first step.)
   const per = Math.max(1, Math.round((NORM_PER_SKILL * seconds) / NORM_SECONDS));
   return {
     specific_praise: per,
@@ -44,21 +46,39 @@ export function countCodes(coded: CodedSentence[]): Counts {
 
 export const LEVER_TEXT: Record<Lever, string> = {
   question: 'Turn questions into descriptions: say what you see her doing.',
-  command: 'Let her lead: describe what she chose instead of telling her what to do.',
+  command: 'Follow her lead: describe what she chose instead of telling her what to do.',
   criticism: 'Skip the correction. Praise the opposite the moment you see it.',
   description: 'Describe what her hands are doing, like a sportscaster.',
   reflection: 'Say her words back to her.',
-  specific_praise: 'Praise one exact thing she did, not just "good job".',
+  specific_praise: 'Praise one exact thing she did, not just “good job”.',
+};
+
+/** The same levers for live play with the parent's own child, who may be a son: "your child" and "they". */
+export const LEVER_TEXT_LIVE: Record<Lever, string> = {
+  question: 'Turn questions into descriptions: say what you see your child doing.',
+  command: 'Let your child lead: describe what they chose instead of telling them what to do.',
+  criticism: LEVER_TEXT.criticism,
+  description: "Describe what your child's hands are doing, like a sportscaster.",
+  reflection: "Say your child's words back to them.",
+  specific_praise: 'Praise one exact thing your child did, not just “good job”.',
 };
 
 /** The lever as it reads after "your biggest lever was". */
 export const LEVER_NAME: Record<Lever, string> = {
   question: 'turning questions into statements',
-  command: 'letting her lead',
+  command: 'following her lead',
   criticism: 'letting small things pass',
   description: 'describing what she does',
   reflection: 'saying her words back',
   specific_praise: 'naming exactly what you liked',
+};
+
+/** The lever names on a day of live play with the parent's own child. */
+export const LEVER_NAME_LIVE: Record<Lever, string> = {
+  ...LEVER_NAME,
+  command: "following your child's lead",
+  description: 'describing what your child does',
+  reflection: "saying your child's words back",
 };
 
 /** The one thing to work on next: the most frequent avoid if over the limit, else the widest gap to target. */
@@ -94,7 +114,9 @@ export function summarizeRound(coded: CodedSentence[], seconds: number, opts: { 
     counts.description >= targets.description &&
     counts.avoid <= targets.maxAvoid;
   const lever = met ? null : biggestLever(counts, targets);
-  return { seconds, counts, targets, met, lever, leverText: lever ? LEVER_TEXT[lever] : null };
+  // A round without reflections is live play: its lever speaks of "your child".
+  const text = opts.reflections === false ? LEVER_TEXT_LIVE : LEVER_TEXT;
+  return { seconds, counts, targets, met, lever, leverText: lever ? text[lever] : null };
 }
 
 const perMinute = (count: number, seconds: number): number => (seconds > 0 ? (count * 60) / seconds : 0);
@@ -117,6 +139,9 @@ export const CHANGE_TEXT: Record<ChangeVerdict, string> = {
  * The rates alone would flatter a shorter round 2 (one sentence in 40 seconds is "more per minute" than
  * one in 60) and would show a minus under a target that was met, so the counts and targets decide
  * what is called good news.
+ *
+ * `perMinute` agrees with `lines`: a skill reads above zero, and `avoid` below zero, only when that change is
+ * listed as good news. A screen that counts its check marks from the signs then marks exactly those lines.
  */
 export function compareRounds(before: RoundResult, after: RoundResult): RoundChange {
   const delta = (k: 'specific_praise' | 'reflection' | 'description' | 'avoid'): number =>
@@ -160,19 +185,26 @@ export function compareRounds(before: RoundResult, after: RoundResult): RoundCha
   else if (after.met) verdict = 'held';
   else if (flat.length > 0 && good.length === 0) verdict = 'harder';
   else verdict = 'same';
-  return { perMinute: d, lines: [...good, ...flat], improved, verdict };
+  const gained = (k: 'specific_praise' | 'reflection' | 'description'): number => (d[k] > 0 && !(after.counts[k] > before.counts[k]) ? 0 : d[k]);
+  const perMinuteShown = {
+    specific_praise: gained('specific_praise'),
+    reflection: gained('reflection'),
+    description: gained('description'),
+    avoid: d.avoid < 0 && !avoidDown ? 0 : d.avoid,
+  };
+  return { perMinute: perMinuteShown, lines: [...good, ...flat], improved, verdict };
 }
 
 /**
  * How many of the parent's sentences were one of the skills, out of everything they said:
- * "5 of your 7 sentences were praise, reflection or description." Praise here is specific praise.
+ * "5 of your 7 sentences were specific praise, reflection or description."
  * `line` is null when nothing was said. Live play does not count reflections, so its line leaves them out.
  */
 export function skillMix(result: { counts: Counts; targets?: Targets }): { skills: number; total: number; line: string | null } {
   const skills = result.counts.target;
   const total = said(result.counts);
   if (total === 0) return { skills, total, line: null };
-  const what = result.targets?.reflection === 0 ? 'praise or description' : 'praise, reflection or description';
+  const what = result.targets?.reflection === 0 ? 'specific praise or description' : 'specific praise, reflection or description';
   const line =
     total === 1
       ? skills === 1
