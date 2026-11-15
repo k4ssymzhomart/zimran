@@ -64,7 +64,7 @@ export default function TodayPage() {
         <Portrait partner={profile.partner} pose="body-waving" size={420} alt={partner.name} priority className="size-[212px] lg:size-[420px]" />
       }
       action={
-        <Button href={last ? ROUTES.daily : ROUTES.play} fullWidth>
+        <Button href={last ? ROUTES.daily : ROUTES.start} fullWidth>
           {last ? 'Start five minutes' : 'Start a round'}
         </Button>
       }

@@ -28,7 +28,7 @@ export default function PracticePage() {
           </div>
           <Portrait partner={profile.partner} pose={profile.partner === 'mia' ? 'body-blocks' : 'body-car'} size={150} className="relative" />
         </div>
-        <Button href={ROUTES.play} fullWidth>
+        <Button href={ROUTES.practiceRound} fullWidth>
           Start a round
         </Button>
 

@@ -17,7 +17,7 @@ export const ROUTES = {
   // Screens with a running clock.
   play: '/play',
   /** One daily five-minute session, saved to the parent's progress. */
-  daily: '/play?daily=1',
+  daily: '/daily',
   live: '/live',
 
   // The four tabs and the session review.
