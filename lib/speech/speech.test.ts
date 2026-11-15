@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { coachPrompt } from '../coach/policy';
 import {
+  pickVoice,
   acceptTranscript,
   cleanTranscript,
   initialSpeech,
@@ -199,5 +200,35 @@ describe('transcripts', () => {
     expect(acceptTranscript('123', 1000, null, null)).toBeNull();
     expect(acceptTranscript('you made a tower', 1200, { text: 'you made a tower', atMs: 1000 }, null)).toBeNull();
     expect(acceptTranscript('say back what she just said', 1200, null, { text: 'Say back what she just said.', endedAtMs: null })).toBeNull();
+  });
+});
+
+describe("the coach's voice", () => {
+  const v = (name: string, lang = 'en-US', isDefault = false) => ({ name, lang, default: isDefault });
+
+  it('never picks a novelty voice, even when it is listed first or is the default', () => {
+    const mac = [v('Albert', 'en-US', true), v('Bubbles'), v('Fred'), v('Samantha'), v('Milena', 'ru-RU')];
+    expect(pickVoice(mac)?.name).toBe('Samantha');
+    expect(pickVoice([v('Albert', 'en-US', true), v('Zarvox')])).toBeNull();
+  });
+  it('prefers the neural voices of Edge, then the network voice of Chrome, then Apple', () => {
+    const all = [v('Samantha'), v('Google US English'), v('Microsoft Aria Online (Natural) - English (United States)')];
+    expect(pickVoice(all)?.name).toMatch(/^Microsoft Aria/);
+    expect(pickVoice(all.slice(0, 2))?.name).toBe('Google US English');
+    expect(pickVoice([v('Samantha'), v('Ava (Premium)')])?.name).toBe('Ava (Premium)');
+  });
+  it('knows the voices of a Mac set to Russian by their Russian names', () => {
+    const russianMac = [
+      v('Eddy (английский (Соединенные Штаты Америки))', 'en-US', true),
+      v('Альберт'), v('Пузырьки'), v('Шутник'), v('Фред'), v('Дэниэл', 'en-GB'), v('Саманта'), v('Милена', 'ru-RU'),
+    ];
+    expect(pickVoice(russianMac)?.name).toBe('Саманта');
+    expect(pickVoice([v('Альберт', 'en-US', true), v('Кэти'), v('Дэниэл', 'en-GB')])?.name).toBe('Дэниэл');
+  });
+  it('falls back to an American English voice, then to any English one, then to the browser', () => {
+    expect(pickVoice([v('Daniel', 'en-GB'), v('Moira', 'en-IE'), v('Someone', 'en-US')])?.name).toBe('Someone');
+    expect(pickVoice([v('Daniel', 'en-GB')])?.name).toBe('Daniel');
+    expect(pickVoice([v('Milena', 'ru-RU')])).toBeNull();
+    expect(pickVoice([])).toBeNull();
   });
 });

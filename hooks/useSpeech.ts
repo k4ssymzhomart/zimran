@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useReducer, useRef } from 'react';
-import { acceptTranscript, initialSpeech, shouldStart, speechReducer, type Heard, type SpokenLine } from '@/lib/speech/speech';
+import { acceptTranscript, initialSpeech, pickVoice, shouldStart, speechReducer, type Heard, type SpokenLine } from '@/lib/speech/speech';
 
 /** The parts of the browser's SpeechRecognition this hook uses (TypeScript ships no types for it). */
 interface RecognitionLike {
@@ -126,12 +126,27 @@ export function useSpeech(onSentence: (text: string) => void) {
     recognition.current?.stop();
   }, []);
 
+  // The coach's voice is chosen, not left to the browser: on a Mac, Chrome's default for en-US can be a novelty
+  // voice. Voices load late in Chrome, so the choice is made again when the list changes.
+  const voice = useRef<SpeechSynthesisVoice | null>(null);
+  useEffect(() => {
+    const synth = typeof window === 'undefined' ? undefined : window.speechSynthesis;
+    if (!synth) return;
+    const choose = () => {
+      voice.current = pickVoice(synth.getVoices());
+    };
+    choose();
+    synth.addEventListener?.('voiceschanged', choose);
+    return () => synth.removeEventListener?.('voiceschanged', choose);
+  }, []);
+
   /** Speak a coach line aloud (for an earbud). The line is remembered so its echo is not coded as the parent. */
   const sayAloud = useCallback((text: string) => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = 1.05;
+    if (voice.current) utterance.voice = voice.current;
+    utterance.lang = voice.current?.lang ?? 'en-US';
+    utterance.rate = 1;
     const line: SpokenLine = { text, endedAtMs: null };
     const done = () => {
       // cancel() below ends the previous line a moment later; only the line still being spoken is closed,

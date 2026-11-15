@@ -198,3 +198,51 @@ export function acceptTranscript(raw: string, nowMs: number, last: Heard | null,
   if (isRepeat(last, text, nowMs) || isEcho(text, spoken, nowMs)) return null;
   return text;
 }
+
+// ---------- the coach's voice ----------
+
+/** The parts of a browser voice (SpeechSynthesisVoice) the choice needs. */
+export interface VoiceLike {
+  name: string;
+  lang: string;
+  default?: boolean;
+}
+
+/**
+ * Voices that read a sentence the way a person would, best first: the neural voices of Edge, Chrome's network
+ * voice, then Apple's downloaded and standard voices. The browser picks none of them by itself.
+ */
+const PREFERRED_VOICES: readonly RegExp[] = [
+  /^Microsoft (Aria|Jenny|Ava|Emma|Andrew|Brian|Guy)\b.*Natural/i,
+  /^Google US English$/i,
+  /^(Ava|Zoe|Allison|Evan|Nathan|Samantha|Susan|Tom|Noelle|Joelle)\b.*\((Premium|Enhanced)\)/i,
+  /^(Samantha|Ava|Allison|Susan|Zoe|Nicky|Aaron|Tom)\b/i,
+  // The same Apple voices on a Mac set to Russian, where the browser lists them by their Russian names.
+  /^(Саманта|Ава|Эллисон|Сьюзен|Зои|Ники|Аарон|Том)(?:\s|\(|$)/,
+  /^Microsoft (Zira|David|Mark)\b/i,
+  /^Google UK English (Female|Male)$/i,
+];
+
+/**
+ * macOS novelty and synthetic-sounding voices, by their English and their Russian names (a Mac set to Russian
+ * lists them as "Альберт", "Пузырьки"). Never the coach, whatever the browser's default is.
+ */
+const NOVELTY_VOICES: readonly RegExp[] = [
+  /^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Wobble|Good News|Jester|Junior|Organ|Pipe Organ|Superstar|Ralph|Trinoids|Whisper|Zarvox|Deranged|Hysterical|Fred|Kathy|Grandma|Grandpa|Eddy|Flo|Reed|Rocko|Sandy|Shelley)\b/i,
+  /^(Альберт|Бах|Виолончель|Воббл|Джуниор|Зарвокс|Колокольчик|Кэти|Орган|Трубный орган|Плохие новости|Хорошие новости|Прыг-скок|Пузырьки|Ральф|Суперзвезда|Триноид|Фред|Шепот|Шёпот|Шутник|Бред|Истерика)(?:\s|\(|$)/,
+];
+const isNovelty = (name: string): boolean => NOVELTY_VOICES.some((novelty) => novelty.test(name));
+
+/**
+ * The voice the coach speaks in: the best English voice this browser has, or null to leave it to the browser
+ * (no voices listed yet, or no English one). Left alone, Chrome on a Mac can read the coach as "Albert".
+ */
+export function pickVoice<V extends VoiceLike>(voices: readonly V[]): V | null {
+  const english = voices.filter((v) => /^en([-_]|$)/i.test(v.lang) && !isNovelty(v.name));
+  for (const preferred of PREFERRED_VOICES) {
+    const hit = english.find((v) => preferred.test(v.name));
+    if (hit) return hit;
+  }
+  const american = english.filter((v) => /^en[-_]US$/i.test(v.lang));
+  return american.find((v) => v.default) ?? american[0] ?? english[0] ?? null;
+}
