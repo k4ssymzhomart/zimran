@@ -1,24 +1,72 @@
 # PlayReps
 
+Five-minute play practice for parents, with a simulated four-year-old and rules that code every sentence.
+
 Live: https://playreps.vercel.app
 
 Track: Skills. Business Cup 2.0.
 
-PlayReps lets a parent practice the five-minute play skill that clinics teach, with Mia or Leo, a simulated four-year-old girl or boy.
-Every sentence the parent types or speaks is coded live by rules in `/lib`, Mia reacts to it, and three rings fill
-toward the clinic pace. After a 60-second round and a 30-second lesson, the parent plays again and sees their own before and after.
+PlayReps lets a parent practice the five-minute play skill that clinics teach, with Mia or Leo, a simulated
+four-year-old girl or boy. Every sentence the parent types or speaks is coded on the spot by rules in `lib/`, the
+child reacts to it, and three rings fill toward the clinic pace for praise, reflection and description. The first
+visit is free: a 60-second round, a 30-second lesson, a second round, and the parent's own before and after. A few
+questions then set up a 28-day plan, one skill a week, and a daily reminder the parent can add to their calendar. The
+daily session is five minutes.
 
 ## The three-minute path
 
-No login. The same guide is on the site at `/jury`.
+No login. Everything you do is kept in this browser. The site carries its own version of this guide at `/jury`.
 
-1. `/` — the landing page, with one button: "Start practicing".
-2. `/start` — pick Mia or Leo, then answer in your own words.
-3. `/play` — a 60-second round, a 30-second lesson, a second round, and the before and after. Type, or tap the
-   microphone in Chrome or Edge.
-4. `/dashboard` — the plan, the streak, the calm check-in and the 28-day demo.
-5. `/pricing` — the paywall and the Stripe test checkout (card `4242 4242 4242 4242`, any future date, any CVC).
-6. `/live` (beta, optional) — five minutes with your own child, spoken aloud. Needs Chrome or Edge and a microphone.
+1. `/`: the landing. Answer Mia in the field on the page; the rules code your sentence in the browser and show what
+   it counted. "Build my plan" carries it into the first visit.
+2. `/start`: the first visit, on one route. Pick Mia or Leo, "What do you say most in play?", one fact, your first
+   answer and how it was read, round one (60 seconds), its result with "Disagree?", a 30-second lesson, round two
+   (40 seconds, a new scene), your own before and after. Then the questions that set up the plan: name, age, hardest
+   moments, how often they happen (asked when a moment is picked), scene, when you play (with a calendar reminder);
+   then your plan from your answers and the 28 days. The first answer is typed; in the rounds and the lesson you can
+   also tap the microphone (voice works in Chrome and Edge).
+3. `/pricing`: the two plans and their price. No Stripe key is set for the hackathon, so no payment is taken:
+   "Continue" gives demo access at once, and `/unlocked` confirms it. With a Stripe test key on the server the same
+   button opens Stripe's test checkout instead (card `4242 4242 4242 4242`, any future date, any CVC), with "Jury:
+   unlock without paying (demo)" under it; `/jury` says which of the two the deployment runs.
+4. `/today`: your plan day, your week and your last session. Empty until you have played. The other tabs are
+   `/practice`, `/progress` and `/profile`.
+5. `/progress`: every session you played. Open one to read your sentences as they were coded.
+6. `/jury`: this path, sentences to type to try to break the rules, and what is real. Profile links to it.
+7. `/live` (beta, optional): five minutes with your own child, spoken aloud. Needs a microphone and a browser with
+   speech recognition, such as Chrome or Edge.
+
+## What is real, what is simulated, what is not built yet
+
+**Real**
+
+- The rules engine: plain TypeScript in `lib/`. Every sentence gets one code, and coding makes no network call.
+- The counts: set against the clinic numbers. A shorter round keeps the same pace.
+- Your before and after: computed per minute from the sentences of your own two rounds.
+- Your sessions: saved in this browser with every sentence (`localStorage`, key `playreps.sessions.v2`).
+- The plan: "Your plan, from your answers." shows what you chose and the first focus round one counted. The 28 days
+  are the same for every family: one skill a week, day 28 a skill check.
+- The calendar file: `/api/calendar` returns a five-minute event that repeats every day at the time you pick, for
+  the days left in the plan. The link carries no name, and nothing is stored.
+
+**Simulated, and labeled**
+
+- Mia and Leo: two simulated four-year-olds on one engine. Their reactions follow what the method teaches parents;
+  they are not a validated model of children.
+- The 28-day demo on the old `/dashboard`: a seeded synthetic parent played through the real engine, labeled
+  "DEMO DATA", kept in page state and never saved.
+
+**Not built yet**
+
+- Accounts: no login and no server database. Clearing this site's data erases your sessions.
+- Real payments: without a Stripe key no card is asked for and nothing is charged. With one, the three Stripe routes
+  accept only a test key, so no real card is charged.
+- Measured renewal: the code takes no real payment, so no renewal has been measured. The renewal rates below are
+  assumptions.
+- Results with real families: not measured. PlayReps has no real users yet.
+- Accuracy on real speech: not measured. The 72 of 80 below is typed text, and no certified coder has checked it.
+- Recordings and the AI summary: off by default (`lib/features.ts`) and not built. Nothing records audio and nothing
+  calls a language model.
 
 ## Run it
 
@@ -34,84 +82,126 @@ npm run dev
 npm test
 ```
 
-`npm run typecheck` runs `tsc --noEmit`.
+`npm run dev` serves the site at http://localhost:3000. `npm run typecheck` runs `tsc --noEmit`, and `npm run lint`
+runs ESLint.
 
 ## Architecture
 
 | Folder | What lives there |
 | --- | --- |
-| `app/` | Pages (client components) and two small API routes for the Stripe test checkout. |
-| `components/` | The screen kit (`ui.tsx`), the child portraits and the Mia/Leo choice (`child.tsx`), the rings, sentence chips. Design rules: `DESIGN.md`. |
-| `hooks/` | The browser side of the pure logic: `useRound` (round reducer + a real clock), `useJourney` (first visit + rounds + storage), `useSpeech` (speech recognition and the spoken coach), `useWakeLock` (screen stays on in live play). |
-| `client/` | Guest state in `localStorage`: progress and the paid flag. |
-| `lib/` | The engine. Pure TypeScript, no React, no network, no clock. All tests are here. |
+| `app/` | The routes: `/`, `/start`, `/pricing`, `/unlocked`, `/jury`, the four tabs and the session review in `app/(app)/`, and the earlier dark screens `/play`, `/dashboard`, `/live`. API routes in `app/api/`: `checkout`, `entitlement` and `cancel` (Stripe, test keys only), `calendar` and `ics` (calendar files). `/kit` and `app/preview/` are test benches for development; production answers 404 there. |
+| `components/` | `kit/` (the screen kit, every part on `/kit`), `shell/` (app shell, tab bar, rail, top bar), `first/` (the first visit, with its round screen in `first/round/`), `landing/`, `pricing/`, `jury/` (the guide's statements), `round/` (runs one round; `/live` uses it). `child.tsx` rewrites the engine's texts for Leo. The other files at the top of `components/`, with `dashboard/` and `play/`, belong to the earlier dark design; among them `RoundStage.tsx` still draws the rounds of `/play` and `/live`. |
+| `hooks/` | The browser side of the pure logic: `useRound` (round reducer plus a real clock), `useFirstVisit` (the first visit at `/start`), `useJourney` (the older first visit on `/play`), `useSpeech` (speech recognition and the spoken coach), `useWakeLock` (keeps the screen on in live play), and `useSessions`, `useProfile`, `useEntitlement` (the stores, for React). |
+| `client/` | What stays on the device, in `localStorage`: the sessions with their sentences (`sessionStore.ts`), the quiz answers (`profileStore.ts`), access (`entitlement.ts`), and the older progress the dark screens read (`progressStore.ts`). `firstAnswer.ts` carries the landing's answer to `/start` in `sessionStorage`. |
+| `lib/` | The engine. Pure TypeScript: no React, no network, no clock. Most tests are here. |
+| `docs/` | `docs/build/FOUNDATION.md` (the build guide, with the design rules), the Figma frames as images, the deck. |
 
 ### The engine, module by module
 
 | Module | One line |
 | --- | --- |
-| `lib/types.ts` | The contract between engine and screens: codes, buckets, child state, results. |
-| `lib/coding/classify.ts` | Splits a turn into sentences and gives each one code, in a fixed order of checks: criticism, command, question, praise, reflection, description, neutral. |
-| `lib/coding/examples.ts`, `heldout.ts`, `blindset.ts` | Labelled sentences the classifier is tested against. |
-| `lib/child/model.ts` | Mia. Deterministic: the same seed and the same parent moves give the same child. |
-| `lib/child/scenes.ts` | Scenes as data (blocks, drawing): what Mia does and says. |
+| `lib/types.ts` | The contract between engine and screens: codes, buckets, child state, results, the saved session and the profile. |
+| `lib/coding/classify.ts` | Splits a turn into sentences and gives each one code, in a fixed order of checks: criticism, command, question, praise, reflection, description, neutral. Unkind talk is criticism even in a praise frame ("Great job being a pain."); an order anywhere in a sentence, or one dressed as a question or a suggestion, is a command. |
+| `lib/coding/vocabulary.ts` | The words the coder knows: a ring needs a real word, and a sentence with almost no English in it is not coded. |
+| `lib/coding/safety.ts` | A short word filter for talk of hitting or hurting a child or oneself, or of not being able to go on: the sentence is not scored, and the rounds with Mia or Leo and the first answer show the 988 and Childhelp lines (live play does not yet). |
+| `lib/coding/examples.ts`, `heldout.ts`, `blindset.ts` | Labeled sentences the classifier is tested against. |
+| `lib/child/model.ts` | The simulated child, Mia or Leo. Deterministic: the same seed and the same parent moves give the same child. |
+| `lib/child/scenes.ts` | Scenes as data (blocks, drawing, kitchen, cleanup): what the child does and says. |
 | `lib/coach/policy.ts` | When the coach speaks and what it says: one line at a time, no criticism. |
-| `lib/round/session.ts` | One round as a pure reducer, `(state, event) -> state`. Time arrives as `tick` events. |
+| `lib/round/session.ts` | One round as a pure reducer, `(state, event) -> state`, with time arriving as `tick` events. It holds the repeat window, the cap of three counted sentences per turn, "Disagree?" and the early end. |
 | `lib/lesson/lesson.ts` | The 30-second lesson between rounds; every example in it is run through the real classifier in tests. |
+| `lib/lesson/days.ts` | A lesson for every day of the plan, each sentence run through the classifier in tests. No screen shows them yet. |
 | `lib/progress/targets.ts` | The clinic pace for any round length, counts, the round summary, the before and after. |
-| `lib/progress/history.ts` | Sessions over days: streak, trend, mastery, the calm check-in. Dates are passed in. |
-| `lib/progress/plan.ts` | The 28-day plan: Follow, Describe, Reflect, Praise, one week each. |
-| `lib/demo/simulate.ts` | The demo family: a seeded synthetic parent played through the real engine, always labelled as demo data. |
-| `lib/flow/journey.ts` | The first visit as a pure state machine: round, result, lesson, second round, before and after, setup, plan. |
+| `lib/progress/history.ts` | Progress over days: streak (one missed day in any seven is forgiven), trend, the calm check-in, and the older progress format the dark screens save. Dates are passed in. |
+| `lib/progress/plan.ts` | The 28-day plan: Follow, Describe, Reflect, Praise, one week each; day 28 is a skill check. |
+| `lib/progress/sessions.ts` | What the saved sessions say: streak, month calendar, week totals, plan day, the before and after, patterns in one session. |
+| `lib/progress/calendar.ts` | The daily reminder as a calendar file, served at `/api/calendar` and linked from the first visit. |
+| `lib/reminder/calendar.ts` | A second calendar file, for four fixed moments, served at `/api/ics`. No screen links to it now. |
+| `lib/demo/simulate.ts` | The demo on the old `/dashboard`: a seeded synthetic parent played through the real engine, labeled as demo data. |
+| `lib/flow/journey.ts` | The core of the first visit as a pure state machine: first answer, round one, result, lesson, round two, before and after, setup, plan. |
+| `lib/flow/visit.ts` | The first visit around the journey: the personalization screens before and after it, and the way back from each. |
 | `lib/speech/speech.ts` | Voice input, the pure part: microphone states, and which transcripts are passed on (repeats and the coach's own echo are dropped). |
+| `lib/routes.ts` | The paths the screens link to (`ROUTES`) and the four tabs. `/api/cancel` and `/api/ics` are not in it, and `quiz` (`/start/quiz`) and `plan` (`/plan`) name pages that do not exist; nothing links to them. |
+| `lib/features.ts` | The switches for recordings, the AI summary and live mode. |
 
-`lib/index.ts` re-exports the whole engine; a screen imports from it or from the module itself.
+`lib/index.ts` re-exports most of the engine; a screen imports from it or from the module itself.
 
 ## Why this is not a ChatGPT wrapper
 
-Rules in code decide every code, count, target and reaction. There is no LLM call anywhere in this build. The app's
-own network requests are the two Stripe routes. Voice input is optional and uses the browser's speech recognition,
-which in Chrome sends the audio to Google's speech service; PlayReps receives the text only and does not record or
-store audio. Because the engine is pure and deterministic, the same sentences always give the same round, and a
-parent can tap "Disagree?" next to a coded sentence (the last three during a round, every one in the round 1
-result) to take it out of the count.
+Rules in code decide every code, count, target and reaction. No language model is called anywhere in this build: no
+model SDK is among the dependencies, the only `fetch` calls in the code are the two in `client/entitlement.ts`, to
+the site's own Stripe routes, and at run time only the three Stripe routes call out from the server, to Stripe.
+Voice input is optional and uses the browser's speech recognition, which in Chrome sends the audio to Google's
+speech service; PlayReps receives the text only and keeps no audio. Because the engine is pure and deterministic,
+the same sentences at the same moments give the same round every time. The product is a path, not a chat: a first
+visit with two rounds and a lesson, the parent's own sessions over days, a 28-day plan and a daily reminder. A
+parent who disagrees with a code can tap "Disagree?" to take that sentence out of the count, at most three a round.
 
 ## Numbers we stand behind
 
-- **423 unit tests**: the rules engine in `lib/`, the stores in `client/` and the round hook. Run `npm test`.
-- **72 of 80 (90%)** on the first run of a blind set, before any rule was changed: 80 casual turns written by a
-  separate reviewer who had not seen the rules (`lib/coding/blindset.ts`). After generic fixes that set is 80 of 80,
-  so it is no longer blind. An earlier check set of 48 (`lib/coding/heldout.ts`) was 40 of 48 on its first run and
-  is 47 of 48 now. `npm test` prints both current numbers.
-- **The clinic norm used**: 10 specific praises, 10 reflections, 10 descriptions, and at most 3 questions, commands
-  and corrections in five minutes. Shorter rounds keep the same pace (`lib/progress/targets.ts`).
+- **1,939 unit tests** in 32 files: the count `npx vitest run` printed on 15 November 2026, the day of submission.
+  They cover the rules engine in `lib/`, the stores in `client/`, the round hook, the checkout route (with Stripe
+  replaced by a stand-in) and the pure parts of the screens, among them the jury guide's statements about the rules,
+  run against the engine (`components/jury/guide.test.ts`). Run `npm test`.
+- **72 of 80 (90%)** on the first run of a blind set, before any rule was changed (`lib/coding/blindset.ts`): 80
+  turns typed the way people type in a chat box, ten per main category, labeled from the category table alone
+  before the author had read the rules or the other example sets. The eight misses led to generic fixes in
+  `classify.ts`, and the set is now 80 of 80, so it is no longer blind: the 72 is the honest estimate for unseen
+  phrasing, and the 80 only guards against regressions. A check set of 48 casual turns written after the rules
+  (`lib/coding/heldout.ts`) was 40 of 48 on its first run and is 48 of 48 now. `npm test` prints both current
+  numbers. Neither set is validated against certified coders or on real speech.
+- **The clinic norm used**: 10 specific praises, 10 reflections and 10 descriptions in five minutes, with at most 3
+  questions, commands and corrections (PCIT protocol, Eyberg & Funderburk, 2011). Shorter rounds keep the same pace
+  (`lib/progress/targets.ts`).
 
 ## Dependencies
 
-Next.js, React, Tailwind, the Stripe SDK in test mode, and vitest. There is no database and no login: guest state
-lives in `localStorage` on the device.
+Next.js 16, React 19 and Tailwind CSS 4; the Stripe Node SDK, used only by the server routes and only with a test
+key; TypeScript, ESLint and Vitest for development. There is no database and no login: a visitor's sessions and
+answers stay in `localStorage` on their device.
 
 ## Environment variables
 
 | Name | Value |
 | --- | --- |
-| `STRIPE_SECRET_KEY` | A Stripe **test** key (`sk_test_...`). The checkout route refuses any other key. |
+| `STRIPE_SECRET_KEY` | Optional. A Stripe **test** key (`sk_test_...`). Without it the paywall runs in demo mode: no payment is taken and "Continue" gives demo access. With it, "Continue" opens Stripe's test checkout. The routes refuse any key that is not a test key. To set it locally, copy `.env.example` to `.env.local`. |
+| `NEXT_PUBLIC_FEATURE_LIVE` | Optional. `false` takes live mode off the Practice tab and the jury guide; the `/live` page and the old `/dashboard` link to it stay. On by default. |
+| `NEXT_PUBLIC_FEATURE_RECORDING`, `NEXT_PUBLIC_FEATURE_AI_SUMMARY` | Optional. Off unless set to `true` or `1`. Leave them off: the recorder and the summary are not built. |
 
-Without the key the site still runs; only the checkout is unavailable.
+`VERCEL_PROJECT_PRODUCTION_URL` is set by Vercel and gives link previews their address.
 
 ## Limits we state openly
 
-- The rules are written for plain English. They miss slang and long compound sentences.
-- A sentence in another script is shown as "Not coded"; a sentence in another language typed in Latin letters is
-  usually read as neutral talk.
-- Mia's reactions follow what the method teaches parents. They are not a validated model of children.
-- Leo is the same engine as Mia. The engine's texts are written about Mia; for Leo the screens rewrite the name and pronouns on display (`components/child.tsx`, tested in `components/child.test.ts`).
-- The demo family is simulated, and labelled as such wherever it appears.
-- Voice needs Chrome or Edge. One microphone cannot tell the parent's voice from the child's, so in live play a
-  clear sentence from the child may be counted as the parent's, and reflections are not counted there.
-- A round ended early is measured over the time it ran, but never over less than half its planned length.
-- The paywall is a Stripe test-mode subscription. There is no cancel control in this build.
-- The hook and the pages were built in 24 hours.
+- The rules are written for plain English. Each sentence gets one code, from the first check that matches, so a
+  sentence that does two things counts once, and slang and unusual phrasing can be misread.
+- A sentence in another script is not coded and moves no count. One in another language typed in Latin letters is
+  not coded when it has a common word of a language on a short list and fewer than half its words are English;
+  other languages can be misread. Made-up words fill no ring: "You're blahing the foo." is neutral talk.
+- The same skill sentence said again within 20 seconds fills no ring, and neither does a near-repeat (another
+  article, "Mia" or a pet name such as "honey" added, another praise word), so a parent who honestly repeats a praise
+  gets one count. Any other name added, "Leo" included, makes it a new sentence. One turn counts three skill
+  sentences at most, so a pasted paragraph of praise counts three; every question, command and correction in it
+  still counts.
+- A round ended early is measured over the time it ran, never under half its planned length; ended before half, it
+  gets no pace verdict. A reload in the middle of the first visit starts it over: its two rounds are saved together
+  once the before and after shows.
+- A sentence about hitting or hurting a child, or oneself, or about not being able to go on, is not scored. In the
+  rounds with Mia or Leo and on the first answer the screen then shows the 988 and Childhelp lines; live play
+  (`/live`) does not show them yet. The filter is a short word list, not an assessment, and it misses most ways of
+  saying these things.
+- Mia's reactions follow what the method teaches parents. They are not a validated model of children. Leo uses the
+  same engine: the engine's texts are written about Mia, and for Leo the screens rewrite the name and pronouns on
+  display (`components/child.tsx`, tested in `components/child.test.ts`).
+- Voice uses the browser's own speech recognition: the microphone shows only where the browser has it (Chrome and
+  Edge do), and typing works everywhere. One microphone cannot tell the parent's voice from the child's, so in live
+  play a clear sentence from the child may be counted as the parent's, and reflections are not counted there.
+- Access is saved on the device and locks nothing yet (`isLocked` in `client/entitlement.ts` is never called): the
+  daily session and live mode open without it, and the old `/dashboard` uses it only to choose between its
+  daily-session link and the plans. In demo mode the terms under the plans still name the day a paid plan would
+  renew. A route that stops the renewal of a Stripe test subscription exists (`app/api/cancel/route.ts`), but no
+  screen calls it, so there is no cancel control.
+- PlayReps was built during the hackathon. `/play`, `/dashboard` and `/live` are still in the earlier dark design
+  and stay until they are replaced. The round and daily-session buttons of the tabs open `/play`.
 
 ## Business model and sources
 
@@ -185,3 +275,7 @@ and more than tantrums: ages 7 to 12, Spanish, a second caregiver, then the same
 
 PlayReps is skill practice. It gives no diagnosis and makes no promise about a child's behavior. Families who want
 a certified therapist can find one at [pcit.org](https://www.pcit.org).
+
+In crisis, call or text 988. Childhelp: 1-800-422-4453.
+
+Not affiliated with or endorsed by PCIT International.

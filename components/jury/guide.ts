@@ -159,7 +159,7 @@ export const TRIALS: readonly Trial[] = [
  * The number `npx vitest run` printed on 15 November 2026, with the tests of this folder in it.
  * It is a count of the repository, so it cannot be computed on the page: read it again before a release.
  */
-export const UNIT_TESTS = 1359;
+export const UNIT_TESTS = 1939;
 
 export interface Figure {
   value: string;
