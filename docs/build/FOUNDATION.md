@@ -1,4 +1,4 @@
-# PlayReps build guide
+# Fammy build guide
 
 Read this whole file before writing code. It is shared by both developers and by every agent they start.
 The two task prompts are `docs/build/PROMPT-A-front-door-and-kit.md` and `docs/build/PROMPT-B-app-and-sessions.md`.
@@ -11,7 +11,7 @@ them means the work is not scored.
 
 | Time | What is true |
 |---|---|
-| 07:20 | Foundation is committed and pushed, production is live at https://playreps.vercel.app. Both developers start. |
+| 07:20 | Foundation is committed and pushed, production is live at https://fammy-app.vercel.app. Both developers start. |
 | 08:30 | Checkpoint 1. Each developer's first-priority screens render on real data. Merge, preview deploy. |
 | 09:45 | Checkpoint 2. The whole jury path works in the preview in the new design. Second priority starts. |
 | 10:30 | **Freeze.** No new screens. Walk the path in an incognito window at 390 and 1440 and on a real iPhone. |
@@ -279,7 +279,7 @@ No route string outside `ROUTES`.
 | "Clinics don't start with discipline. They start with five calm minutes of play a day." | Landing, and the before-and-after result screen |
 | "Mia is a simulated child. Real children vary." (Leo when Leo is chosen) | Where the child first appears, and the footer |
 | "Skill practice, not therapy." | Landing first screen or footer, paywall |
-| "On a waitlist? Stay on it. PlayReps is practice while you wait. In crisis: call or text 988. Childhelp: 1-800-422-4453." | Landing footer, Profile |
+| "On a waitlist? Stay on it. Fammy is practice while you wait. In crisis: call or text 988. Childhelp: 1-800-422-4453." | Landing footer, Profile |
 | "Not affiliated with or endorsed by PCIT International." | Landing footer, jury guide |
 | "Test mode. No real card is charged. Use 4242 4242 4242 4242, any future date, any CVC." | Paywall, beside the pay button |
 | "Renews every 4 weeks at $29. Cancel anytime: email <address>" with a real address, or a "Manage or cancel" link | Paywall and Profile |

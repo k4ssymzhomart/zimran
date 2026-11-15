@@ -17,7 +17,7 @@ export interface LogoMarkProps {
   className?: string;
 }
 
-/** The PlayReps mark: three bars, each shorter than the last, like lines of counted speech. */
+/** The Fammy mark: three bars, each shorter than the last, like lines of counted speech. */
 export function LogoMark({ tone = 'ink', size = 18, className }: LogoMarkProps) {
   const { bars, accent } = BARS[tone];
   return (
@@ -43,7 +43,7 @@ export function Logo({ tone = 'ink', className }: LogoProps) {
   return (
     <span className={cn('inline-flex items-center gap-[8px]', BARS[tone].word, className)}>
       <LogoMark tone={tone} />
-      <span className="text-lead font-semibold tracking-[-0.4px]">PlayReps</span>
+      <span className="text-lead font-semibold tracking-[-0.4px]">Fammy</span>
     </span>
   );
 }

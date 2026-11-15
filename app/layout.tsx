@@ -10,7 +10,7 @@ const origin = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.en
 
 export const metadata: Metadata = {
   metadataBase: new URL(origin),
-  title: 'PlayReps: practice tonight, use it tomorrow',
+  title: 'Fammy: practice tonight, use it tomorrow',
   description:
     'Practice with Mia or Leo, a simulated four-year-old. Every sentence you say is coded as you say it, and three rings fill toward the clinic pace.',
 };

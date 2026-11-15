@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/routes';
 // prerendered at build only while it reads nothing of the request. This one reads the query first, so it always
 // runs at request time, and the clock is read only after that.
 
-const TITLE = 'PlayReps: five minutes of play';
+const TITLE = 'Fammy: five minutes of play';
 
 /**
  * The daily reminder as a calendar file. The sheet links here with a plain link, so the browser itself takes the
@@ -39,7 +39,7 @@ export async function GET(req: Request) {
   return new Response(ics, {
     headers: {
       'content-type': 'text/calendar; charset=utf-8',
-      'content-disposition': 'attachment; filename="playreps-reminder.ics"',
+      'content-disposition': 'attachment; filename="fammy-reminder.ics"',
       'cache-control': 'no-store',
     },
   });

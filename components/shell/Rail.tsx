@@ -30,7 +30,7 @@ export function Rail({ current, className }: RailProps) {
         className,
       )}
     >
-      <Link href={ROUTES.home} aria-label="PlayReps home" className={cn('mb-[32px] rounded-[8px]', focusRing)}>
+      <Link href={ROUTES.home} aria-label="Fammy home" className={cn('mb-[32px] rounded-[8px]', focusRing)}>
         <LogoMark size={30} />
       </Link>
       <ul className="flex flex-1 flex-col gap-[6px]">

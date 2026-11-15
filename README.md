@@ -1,12 +1,12 @@
-# PlayReps
+# Fammy
 
 Five-minute play practice for parents, with a simulated four-year-old and rules that code every sentence.
 
-Live: https://playreps.vercel.app
+Live: https://fammy-app.vercel.app
 
 Track: Skills. Business Cup 2.0.
 
-PlayReps lets a parent practice the five-minute play skill that clinics teach, with Mia or Leo, a simulated
+Fammy lets a parent practice the five-minute play skill that clinics teach, with Mia or Leo, a simulated
 four-year-old girl or boy. Every sentence the parent types or speaks is coded on the spot by rules in `lib/`, the
 child reacts to it, and three rings fill toward the clinic pace for praise, reflection and description. The first
 visit is free: a 60-second round, a 30-second lesson, a second round, and the parent's own before and after. A few
@@ -62,7 +62,7 @@ No login. Everything you do is kept in this browser. The site carries its own ve
   test key, so no real card is charged.
 - Measured renewal: the code takes no real payment, so no renewal has been measured. The renewal rates below are
   assumptions.
-- Results with real families: not measured. PlayReps has no real users yet.
+- Results with real families: not measured. Fammy has no real users yet.
 - Accuracy on real speech: not measured. The 72 of 80 below is typed text, and no certified coder has checked it.
 - Recordings: off by default (`lib/features.ts`) and not built. Nothing records audio.
 - The AI summary of a session: built, off by default. When it is switched on and the parent agrees, the sentence
@@ -137,7 +137,7 @@ so the model suggests and the rules decide. Behind the same switch, "Why this la
 to say in plain words what made the rules give that label (`lib/ai/explain.ts`, `app/api/explain/route.ts`); the label
 never changes. With the switch off, the only calls out from the server are to Stripe.
 Voice input is optional and uses the browser's speech recognition, which in Chrome sends the audio to Google's
-speech service; PlayReps receives the text only and keeps no audio. Because the engine is pure and deterministic,
+speech service; Fammy receives the text only and keeps no audio. Because the engine is pure and deterministic,
 the same sentences at the same moments give the same round every time. The product is a path, not a chat: a first
 visit with two rounds and a lesson, the parent's own sessions over days, a 28-day plan and a daily reminder. A
 parent who disagrees with a code can tap "Disagree?" to take that sentence out of the count, at most three a round.
@@ -206,7 +206,7 @@ answers stay in `localStorage` on their device.
   live mode need it (`isLocked` in `client/entitlement.ts`); without it they open the plans page. In demo mode the
   terms under the plans still name the day a paid plan would renew. A route that stops the renewal of a Stripe test
   subscription exists (`app/api/cancel/route.ts`); no screen calls it.
-- PlayReps was built during the hackathon.
+- Fammy was built during the hackathon.
 
 ## Business model and sources
 
@@ -278,7 +278,7 @@ and more than tantrums: ages 7 to 12, Spanish, a second caregiver, then the same
 
 ## Not therapy
 
-PlayReps is skill practice. It gives no diagnosis and makes no promise about a child's behavior. Families who want
+Fammy is skill practice. It gives no diagnosis and makes no promise about a child's behavior. Families who want
 a certified therapist can find one at [pcit.org](https://www.pcit.org).
 
 In crisis, call or text 988. Childhelp: 1-800-422-4453.

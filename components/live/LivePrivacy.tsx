@@ -10,7 +10,7 @@ import { Art, Button, Icon, IconButton, PageScreen, Pattern } from '@/components
 const LINES = [
   'Chrome and Edge ask for the microphone. In other browsers you type what you say.',
   'Your browser turns speech into text. In Chrome that uses Google’s speech service.',
-  'PlayReps keeps the text on this device. It keeps no audio.',
+  'Fammy keeps the text on this device. It keeps no audio.',
   'One microphone cannot tell voices apart, so a clear sentence from your child may count as yours.',
   'The screen stays on where the browser allows it. If it locks, listening stops.',
 ];

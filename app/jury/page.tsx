@@ -20,8 +20,8 @@ import { Button, cn, focusRing } from '@/components/kit';
 import { ROUTES } from '@/lib/routes';
 
 export const metadata: Metadata = {
-  title: 'Jury guide: PlayReps in three minutes',
-  description: 'The three-minute path through PlayReps, what is real, what is simulated, what is not built, and how to try to break it.',
+  title: 'Jury guide: Fammy in three minutes',
+  description: 'The three-minute path through Fammy, what is real, what is simulated, what is not built, and how to try to break it.',
 };
 
 /** The guide is white from the top edge; the root layout sets the violet of the Split screens. */

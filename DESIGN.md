@@ -1,4 +1,4 @@
-# PlayReps — design system
+# Fammy — design system
 
 ## What the site is
 A parent practises a five-minute play skill with **Mia or Leo**, a simulated four-year-old girl or boy. Every
@@ -48,7 +48,7 @@ CSS classes in `app/globals.css` (inside `@layer components`, so utilities can o
 `.glow`, `.field`, motion `.enter` (+ `.d1`–`.d4`), `.pop`, `.breathe`, `.listening`. Shadows `shadow-card`,
 `shadow-float`, `shadow-violet`. Reduced motion is handled.
 
-## Assets (generated for PlayReps; transparent PNG unless noted)
+## Assets (generated for Fammy; transparent PNG unless noted)
 - `/mia/` and `/leo/`: `beaming`, `smiling`, `neutral`, `pouting`, `crying`, `away` (turned away), `leaning`
   (leaning in, delighted). Same 3D style, both in violet.
 - `/art/`: `duo` (Mia and Leo building blocks, the landing hero), `rings` (three violet rings), skills `praise`

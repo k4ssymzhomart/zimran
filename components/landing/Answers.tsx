@@ -51,7 +51,7 @@ const ANSWERS: Answer[] = [
           id: 'record',
           question: 'Do you record me?',
           answer:
-            'No. PlayReps keeps your sentences as text on this device and keeps no audio. If you use the microphone, your browser turns speech into text; in Chrome that happens on Google’s speech service.',
+            'No. Fammy keeps your sentences as text on this device and keeps no audio. If you use the microphone, your browser turns speech into text; in Chrome that happens on Google’s speech service.',
         },
       ]),
   // True while no language model is called: rules code each sentence (lib/coding/classify.ts) and move the child

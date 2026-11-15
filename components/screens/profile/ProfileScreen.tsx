@@ -265,7 +265,7 @@ export function ProfileScreen({ profile, update, sessions, entitlement, today }:
       <footer className="flex flex-col gap-[6px] px-[24px] pt-[28px] text-center text-small text-gray lg:px-[48px]">
         <p>Skill practice. Not therapy and not a diagnosis.</p>
         <p>
-          On a waitlist? Stay on it. PlayReps is practice while you wait. In crisis: call or text 988. Childhelp:{' '}
+          On a waitlist? Stay on it. Fammy is practice while you wait. In crisis: call or text 988. Childhelp:{' '}
           <span className="whitespace-nowrap">1-800-422-4453</span>.
         </p>
       </footer>

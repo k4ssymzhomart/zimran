@@ -4,8 +4,8 @@ import Stripe from 'stripe';
 
 /** One place for what is charged. The paywall page prints the same numbers. */
 const PLANS = {
-  four_weeks: { name: 'PlayReps, 4 weeks', amount: 2900, weeks: 4 },
-  twelve_weeks: { name: 'PlayReps, 12 weeks', amount: 6900, weeks: 12 },
+  four_weeks: { name: 'Fammy, 4 weeks', amount: 2900, weeks: 4 },
+  twelve_weeks: { name: 'Fammy, 12 weeks', amount: 6900, weeks: 12 },
 } as const;
 type PlanId = keyof typeof PLANS;
 

@@ -4,7 +4,7 @@
  * the sentences are coded by codeSentence, the child moves with tick and applyMove,
  * and the day's result comes from summarizeRound. No session result is written in by hand.
  * The parent's learning curve is invented, which is why DEMO_LABEL exists. Nothing is simulated about
- * tantrums at home: PlayReps makes no promise about them.
+ * tantrums at home: Fammy makes no promise about them.
  */
 import { applyMove, farewell, initialChild, tick } from '../child/model';
 import { BLOCKS, DRAWING } from '../child/scenes';

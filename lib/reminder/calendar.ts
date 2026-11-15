@@ -25,7 +25,7 @@ export const CALENDAR_LINK_TEXT = 'Add my five minutes to the calendar';
 /** The words of the second link, for a parent who keeps a Google calendar and no calendar app for files. */
 export const GOOGLE_CALENDAR_LINK_TEXT = 'Add to Google Calendar';
 
-const SUMMARY = 'PlayReps: five minutes of play';
+const SUMMARY = 'Fammy: five minutes of play';
 const SESSION_MINUTES = 5;
 /** One event a day for the days of the plan that are left: 28 at most, and 28 when nobody says. */
 const REMINDER_DAYS = 28;
@@ -109,7 +109,7 @@ export function buildCalendar(input: { anchor: string; today: string; stamp: str
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//PlayReps//Five minutes of play//EN',
+    'PRODID:-//Fammy//Five minutes of play//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

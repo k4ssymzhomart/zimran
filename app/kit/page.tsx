@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Gallery } from './Gallery';
 
-export const metadata: Metadata = { title: 'PlayReps kit' };
+export const metadata: Metadata = { title: 'Fammy kit' };
 
 /**
  * The kit gallery: every kit and shell component on one page, to check by eye against Figma.

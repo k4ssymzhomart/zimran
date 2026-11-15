@@ -5,7 +5,7 @@ Kazakh, Russian or English; the deck stays in English. Update the test count if 
 
 **1. Practice tonight. Use it tomorrow.**
 Your four-year-old holds up her blocks and says, "I made a tower!" What do you say back? Most of us say, "Good job!
-What is it?" In a clinic, that scores zero. We're PlayReps: a flight simulator for parents. Track: Skills.
+What is it?" In a clinic, that scores zero. We're Fammy: a flight simulator for parents. Track: Skills.
 
 **2. She has saved every script. She still says "Stop it."**
 It's 11 PM. Jess, thirty-four, a nurse in Ohio, yelled at bedtime again. Her son Noah is four and melts down every
@@ -53,7 +53,7 @@ caregiver, then the same engine for other hard conversations. That is a ladder, 
 **10. Open it. No sign-up. Three minutes.**
 The link is live and needs no sign-up. The jury page lists what is real, what is simulated, and ways to break it. We
 have zero users so far, and we say so. Next time a four-year-old says, "I made a tower," you'll know what to say.
-PlayReps: practice tonight, use it tomorrow.
+Fammy: practice tonight, use it tomorrow.
 
 ## Do not say
 

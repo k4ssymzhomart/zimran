@@ -209,10 +209,10 @@ export function reminderIcs({ title, startDate, time, days, durationMin, descrip
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//PlayReps//Daily five minutes//EN',
+    'PRODID:-//Fammy//Daily five minutes//EN',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
-    `UID:${day}T${clock}-${days}d-${fingerprint(`${durationMin}\n${title}\n${description}`)}@playreps.vercel.app`,
+    `UID:${day}T${clock}-${days}d-${fingerprint(`${durationMin}\n${title}\n${description}`)}@fammy-app.vercel.app`,
     // 2026-11-15T06:30:00.000Z becomes 20261115T063000Z.
     `DTSTAMP:${new Date(made).toISOString().replace(/[-:]|\.\d+/g, '')}`,
     `DTSTART:${day}T${clock}00`,

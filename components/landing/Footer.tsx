@@ -5,7 +5,7 @@ import { ROUTES } from '@/lib/routes';
 
 /**
  * The foot of the landing (Figma 66:1841 on phones, 64:605 from 1024px): the logo, the way to the jury guide,
- * and the lines that say what PlayReps is and is not.
+ * and the lines that say what Fammy is and is not.
  */
 export function Footer() {
   return (
@@ -22,7 +22,7 @@ export function Footer() {
           </Link>
         </div>
         <p className="text-small text-gray lg:min-w-0 lg:flex-1">
-          Skill practice. Not therapy and not a diagnosis. On a waitlist? Stay on it: PlayReps is practice while you wait. In
+          Skill practice. Not therapy and not a diagnosis. On a waitlist? Stay on it: Fammy is practice while you wait. In
           crisis, call or text 988. Childhelp: 1-800-422-4453. Not affiliated with or endorsed by PCIT International. Mia and
           Leo are simulated children. Real children vary.
         </p>

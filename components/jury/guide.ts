@@ -216,7 +216,7 @@ export function notBuilt(checkout: Checkout): Fact[] {
   return [
     { title: 'Accounts', detail: 'No login and no server database. Clearing this site’s data erases your sessions.' },
     { title: 'Real payments', detail: PAYMENTS[checkout] },
-    { title: 'Results with real families', detail: 'Not measured. PlayReps has no real users yet.' },
+    { title: 'Results with real families', detail: 'Not measured. Fammy has no real users yet.' },
     { title: 'Accuracy on real speech', detail: 'Not measured. The 72 of 80 is typed text, and no certified coder has checked it.' },
     {
       title: 'Speech to text of our own',

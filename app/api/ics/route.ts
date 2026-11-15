@@ -36,7 +36,7 @@ export async function GET(req: Request) {
   return new Response(body, {
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
-      'Content-Disposition': 'attachment; filename="playreps.ics"',
+      'Content-Disposition': 'attachment; filename="fammy.ics"',
       'Cache-Control': 'no-store',
     },
   });

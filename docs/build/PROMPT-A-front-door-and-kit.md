@@ -7,7 +7,7 @@ on the branch `redesign/premium-ui`.
 
 ultracode
 
-You are building half of PlayReps for a hackathon that closes **today, 15 November, at 12:00 Astana time**. Run
+You are building half of Fammy for a hackathon that closes **today, 15 November, at 12:00 Astana time**. Run
 `date` first and plan against the clock. I am developer A. Developer B is building the other half in parallel from
 `docs/build/PROMPT-B-app-and-sessions.md`; read that file once so you know what is not yours.
 
@@ -45,7 +45,7 @@ Not mine (developer B): `app/(app)/**`, `app/play/**`, `app/session/**`, `app/li
 
 ## Step 0: the safety net (done, keep it alive)
 
-Production is live at **https://playreps.vercel.app** (Vercel project `playreps`), deployed from this branch. Every
+Production is live at **https://fammy-app.vercel.app** (Vercel project `playreps`), deployed from this branch. Every
 route answers. The Stripe test checkout is not set up yet: I add the test key myself (`STRIPE_SECRET_KEY`, it must
 start with `sk_test_`; never print it, never commit it). Until then the paywall says so and the jury link works.
 

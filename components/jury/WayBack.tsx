@@ -12,7 +12,7 @@ interface WithNavigation {
 
 /**
  * The back arrow of the jury guide. It is a link to the landing, so it works before the page's script has loaded
- * and for a visitor who opened the guide directly. A visitor who came here from another page of PlayReps (the
+ * and for a visitor who opened the guide directly. A visitor who came here from another page of Fammy (the
  * landing's footer, Profile) goes back to that page instead, as the browser's own Back would take them.
  *
  * TODO kit: one way back for every pushed screen. components/first/useWayBack.ts follows the same rule.

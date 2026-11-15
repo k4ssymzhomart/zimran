@@ -9,7 +9,7 @@ opened in the repository root.
 
 ultracode
 
-You are building half of PlayReps for a hackathon that closes **today, 15 November, at 12:00 Astana time**. Run
+You are building half of Fammy for a hackathon that closes **today, 15 November, at 12:00 Astana time**. Run
 `date` first and plan against the clock. I am developer B. Developer A is building the other half in parallel from
 `docs/build/PROMPT-A-front-door-and-kit.md`; read that file once so you know what is not yours.
 

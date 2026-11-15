@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Paywall } from '@/components/pricing/Paywall';
 
-export const metadata: Metadata = { title: 'PlayReps: choose your plan' };
+export const metadata: Metadata = { title: 'Fammy: choose your plan' };
 
 /**
  * The paywall (story 16). The server decides how its one action works and tells the screen:

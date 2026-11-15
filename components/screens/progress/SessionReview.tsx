@@ -239,7 +239,7 @@ export function SessionReview({ session, previous }: SessionReviewProps) {
                 </Fragment>
               ))}
             </dl>
-            <p className="pt-[8px] text-small text-gray">Written by Anthropic&apos;s Claude. PlayReps keeps no copy on a server.</p>
+            <p className="pt-[8px] text-small text-gray">Written by Anthropic&apos;s Claude. Fammy keeps no copy on a server.</p>
           </Sheet>
         </div>
       </div>

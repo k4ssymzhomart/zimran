@@ -18,7 +18,7 @@ import {
 
 /** Sample values, for these tests only. */
 const EVENT: ReminderEvent = {
-  title: 'PlayReps: five minutes of play',
+  title: 'Fammy: five minutes of play',
   startDate: '2026-11-15',
   time: '18:30',
   days: 28,
@@ -217,7 +217,7 @@ describe('foldLine', () => {
   });
 
   it('unfolds to the line it was given', () => {
-    const line = `DESCRIPTION:${'Start today’s session: https://playreps.vercel.app/today '.repeat(6)}`;
+    const line = `DESCRIPTION:${'Start today’s session: https://fammy-app.vercel.app/today '.repeat(6)}`;
     expect(foldLine(line).replace(/\r\n /g, '')).toBe(line);
   });
 
@@ -278,9 +278,9 @@ describe('reminderIcs', () => {
   });
 
   it('escapes the title and the description', () => {
-    const ics = reminderIcs({ ...EVENT, title: 'Play; five, minutes \\ now', description: 'After dinner, with blocks.\nStart: https://playreps.vercel.app/today' });
+    const ics = reminderIcs({ ...EVENT, title: 'Play; five, minutes \\ now', description: 'After dinner, with blocks.\nStart: https://fammy-app.vercel.app/today' });
     expect(valueOf(ics, 'SUMMARY')).toBe('Play\\; five\\, minutes \\\\ now');
-    expect(valueOf(ics, 'DESCRIPTION')).toBe('After dinner\\, with blocks.\\nStart: https://playreps.vercel.app/today');
+    expect(valueOf(ics, 'DESCRIPTION')).toBe('After dinner\\, with blocks.\\nStart: https://fammy-app.vercel.app/today');
   });
 
   it('cannot be made to hold a second event by its text', () => {
@@ -291,7 +291,7 @@ describe('reminderIcs', () => {
   });
 
   it('folds a long description at 75 octets and loses nothing', () => {
-    const description = `After dinner. ${'Five minutes of play, every day. '.repeat(12)}Start: https://playreps.vercel.app/today`;
+    const description = `After dinner. ${'Five minutes of play, every day. '.repeat(12)}Start: https://fammy-app.vercel.app/today`;
     const ics = reminderIcs({ ...EVENT, description });
     const physical = ics.split('\r\n');
     for (const line of physical) expect(octets(line)).toBeLessThanOrEqual(75);

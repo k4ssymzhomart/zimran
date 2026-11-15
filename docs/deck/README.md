@@ -1,7 +1,7 @@
 # The pitch deck
 
 Ten slides, English, PDF, as the case rules ask (FAQ 53, 75, 76, 81). The source is `deck.html`; the file to submit
-is `PlayReps-deck.pdf`.
+is `Fammy-deck.pdf`.
 
 ```bash
 ./docs/deck/build.sh
@@ -42,5 +42,5 @@ is `PlayReps-deck.pdf`.
 | 9 | Beachhead: 1.3M US homes with daily tantrums. $100M takes three steps. | Business potential, 15% |
 | 10 | Open it. No sign-up. Three minutes. | Product and engineering, 40% |
 
-Every figure and its source come from `PlayReps business strategy.md`. Every slide is written to be understood
+Every figure and its source come from `Fammy business strategy.md`. Every slide is written to be understood
 without a speaker, because the top ten are chosen from the deck, the link and the repository alone (FAQ 77).

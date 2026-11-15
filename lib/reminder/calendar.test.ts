@@ -91,7 +91,7 @@ describe('buildCalendar', () => {
   it('repeats daily for the 28 days of the plan, with a reminder when it starts', () => {
     const lines = unfold(file('After dinner') ?? '');
     expect(lines).toContain('RRULE:FREQ=DAILY;COUNT=28');
-    expect(lines).toContain('SUMMARY:PlayReps: five minutes of play');
+    expect(lines).toContain('SUMMARY:Fammy: five minutes of play');
     expect(lines).toContain('TRIGGER:PT0M');
     // Changed by design: the reminder used to open /dashboard, one tap away from the session.
     expect(lines).toContain(`URL:${ORIGIN}${ROUTES.daily}`);
@@ -99,7 +99,7 @@ describe('buildCalendar', () => {
     expect(lines.join('\n')).not.toContain('/dashboard');
     // The reminder at the start of the event is still there.
     const alarm = lines.slice(lines.indexOf('BEGIN:VALARM'), lines.indexOf('END:VALARM') + 1);
-    expect(alarm).toEqual(['BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:PlayReps: five minutes of play', 'TRIGGER:PT0M', 'END:VALARM']);
+    expect(alarm).toEqual(['BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Fammy: five minutes of play', 'TRIGGER:PT0M', 'END:VALARM']);
     expect(lines.filter((l) => l === 'BEGIN:VEVENT')).toHaveLength(1);
     expect(lines[0]).toBe('BEGIN:VCALENDAR');
     expect(lines[lines.length - 2]).toBe('END:VCALENDAR');
@@ -147,7 +147,7 @@ describe('googleCalendarUrl', () => {
     expect(`${url.origin}${url.pathname}`).toBe('https://calendar.google.com/calendar/render');
     expect(Object.fromEntries(url.searchParams)).toEqual({
       action: 'TEMPLATE',
-      text: 'PlayReps: five minutes of play',
+      text: 'Fammy: five minutes of play',
       // Floating local time, like the file: no Z and no time zone.
       dates: '20261116T190000/20261116T190500',
       recur: 'RRULE:FREQ=DAILY;COUNT=28',
@@ -156,7 +156,7 @@ describe('googleCalendarUrl', () => {
   });
   it('is one safe address: nothing in it needs escaping twice', () => {
     expect(link('After daycare')).toBe(
-      'https://calendar.google.com/calendar/render?action=TEMPLATE&text=PlayReps%3A%20five%20minutes%20of%20play' +
+      'https://calendar.google.com/calendar/render?action=TEMPLATE&text=Fammy%3A%20five%20minutes%20of%20play' +
         '&dates=20261116T173000%2F20261116T173500&recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D28' +
         "&details=After%20daycare%3A%20five%20minutes%20of%20play%2C%20one%20small%20skill%20a%20day.%20Open%20today's%20session%20at%20" +
         'https%3A%2F%2Fplayreps.example%2Fdaily',

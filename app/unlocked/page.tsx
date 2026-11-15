@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Unlocked } from '@/components/pricing/Unlocked';
 
-export const metadata: Metadata = { title: 'PlayReps: your plan' };
+export const metadata: Metadata = { title: 'Fammy: your plan' };
 
 /**
  * Where the paywall leads. After a test checkout Stripe sends the visitor here with the session to confirm;
