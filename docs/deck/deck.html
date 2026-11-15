@@ -377,10 +377,10 @@ h2 { font-size: 72px; line-height: 78px; font-weight: 700; letter-spacing: -0.03
 <!-- 10 ─────────────────────────────────────────── -->
 <section class="slide" id="s10">
   <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>PlayReps</div>
-  <div style="position:absolute; left:96px; top:168px; width:1040px">
+  <div style="position:absolute; left:96px; top:140px; width:1040px">
     <h1 style="font-size:104px; line-height:102px">Open it.<br>No sign-up.</h1>
   </div>
-  <div class="row" style="position:absolute; left:96px; top:430px; gap:40px; align-items:center">
+  <div class="row" style="position:absolute; left:96px; top:410px; gap:40px; align-items:center">
     <div style="width:250px; height:250px; padding:14px; border-radius:32px; background:#fff; outline:2px solid var(--line); outline-offset:-2px"><img src="shots/qr.png" style="width:222px; height:222px; display:block; image-rendering:pixelated"></div>
     <div class="col" style="gap:14px; align-items:flex-start">
       <span class="pill ink" data-k="url"></span>
@@ -388,10 +388,7 @@ h2 { font-size: 72px; line-height: 78px; font-weight: 700; letter-spacing: -0.03
       <span class="pill mist" data-k="repo"></span>
     </div>
   </div>
-  <div class="row" style="position:absolute; left:96px; top:780px; gap:64px">
-    <div class="row" style="gap:22px; align-items:center"><span style="width:96px; height:96px; border-radius:50%; background:var(--violet); color:#fff; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:700" data-k="init1"></span><div><div style="font-size:32px; line-height:40px; font-weight:700; letter-spacing:-0.02em" data-k="member1"></div><div class="small gray" data-k="role1"></div></div></div>
-    <div class="row" style="gap:22px; align-items:center"><span style="width:96px; height:96px; border-radius:50%; background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:700" data-k="init2"></span><div><div style="font-size:32px; line-height:40px; font-weight:700; letter-spacing:-0.02em" data-k="member2"></div><div class="small gray" data-k="role2"></div></div></div>
-  </div>
+  <div class="row" style="position:absolute; left:96px; top:700px; gap:56px; align-items:flex-start" id="team"></div>
   <div class="src" style="right:900px">Skill practice, not therapy.</div>
   <div class="block" style="left:1220px; top:0; width:700px; height:1080px">
     <div class="pat pat-bars"><svg viewBox="0 0 113 100" style="width:1300px; left:-220px; top:-60px" fill="#6961FF"><use href="#mark"/></svg></div>
@@ -412,6 +409,19 @@ const text = {
   member1: team[0]?.name ?? '', role1: team[0]?.role ?? '', init1: initials(team[0]?.name),
   member2: team[1]?.name ?? '', role2: team[1]?.role ?? '', init2: initials(team[1]?.name),
 };
+// The team on slide 10: a photo when there is one, otherwise the initials.
+const teamEl = document.getElementById('team');
+if (teamEl) teamEl.innerHTML = team.map((m, i) => `
+  <div class="row" style="gap:28px; align-items:flex-start">
+    ${m.photo
+      ? `<img src="${m.photo}" style="width:150px; height:190px; border-radius:24px; object-fit:cover; display:block; flex:none">`
+      : `<span style="width:110px; height:110px; border-radius:50%; background:${i ? 'var(--ink)' : 'var(--violet)'}; color:#fff; display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:700; flex:none">${initials(m.name)}</span>`}
+    <div style="padding-top:4px">
+      <div style="font-size:34px; line-height:42px; font-weight:700; letter-spacing:-0.02em; white-space:nowrap">${m.name}</div>
+      <div style="font-size:24px; line-height:32px; color:var(--violet); font-weight:600; margin-top:2px">${m.role}</div>
+      ${(m.lines || []).map((l) => `<div class="small gray" style="margin-top:6px; white-space:nowrap">${l}</div>`).join('')}
+    </div>
+  </div>`).join('');
 document.querySelectorAll('[data-k]').forEach((el) => {
   const k = el.dataset.k;
   el.textContent = text[k] ?? '';

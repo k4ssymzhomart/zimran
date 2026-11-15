@@ -7,7 +7,12 @@ window.DECK = {
   tests: 1977,
   // The team on slide 10, as each person wants to be named.
   team: [
-    { name: 'Kassymzhomart', role: 'Product, design, web' },
-    { name: 'Alnur', role: 'App and engineering' },
+    {
+      name: 'Kassymzhomart Shubay',
+      role: 'Product, design, web',
+      photo: 'shots/team-kassymzhomart.png',
+      lines: ['Grand Prize, NURIS Hardware 5.0', 'SIC Graduate 2025, Java', '₸2M in prize money, 10 wins'],
+    },
+    { name: 'Alnur Kengesbay', role: 'App and engineering' },
   ],
 };
