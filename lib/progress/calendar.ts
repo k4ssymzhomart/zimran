@@ -68,14 +68,14 @@ export function reminderDays(daysLeft: number): number {
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-/** "6 December" from YYYY-MM-DD. Read from the string itself, so no time zone can move the day. */
+/** "December 6" (American order) from YYYY-MM-DD. Read from the string itself, so no time zone can move the day. */
 function dayAndMonth(date: string): string {
   const [, month, day] = date.split('-').map(Number);
-  return `${day} ${MONTHS[month - 1]}`;
+  return `${MONTHS[month - 1]} ${day}`;
 }
 
 /**
- * The value of the "Repeats" row: "Daily to 6 December". The last day is the first day plus `days` minus one.
+ * The value of the "Repeats" row: "Daily to December 6". The last day is the first day plus `days` minus one.
  * `today` is null until the device's own date is known; the row then says for how long instead of until when.
  */
 export function repeatsLabel(today: string | null, days: number): string {

@@ -57,10 +57,10 @@ export const perDayOf = (plan: Plan): string => `$${(plan.dollars / (plan.weeks 
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-/** "13 December 2026" from YYYY-MM-DD. Read from the string itself, so no time zone can move the day. */
+/** "December 13, 2026" (American order) from YYYY-MM-DD. Read from the string itself, so no time zone can move the day. */
 export function longDate(date: string): string {
   const [year, month, day] = date.split('-').map(Number);
-  return `${day} ${MONTHS[month - 1]} ${year}`;
+  return `${MONTHS[month - 1]} ${day}, ${year}`;
 }
 
 /** The day a term that starts today renews, as YYYY-MM-DD: today plus its weeks. */
@@ -69,12 +69,12 @@ export function renewalDay(today: string, plan: Plan): string {
 }
 
 /**
- * The terms under the plans: "$29 every 4 weeks. Renews 13 December 2026. Cancel anytime."
+ * The terms under the plans: "$29 every 4 weeks. Renews December 13, 2026. Cancel anytime in Profile."
  * `today` is the device's own date (YYYY-MM-DD); while it is not known the line names no day.
  */
 export function termsLine(plan: Plan, today: string | null): string {
   const every = `${priceOf(plan)} every ${lengthOf(plan)}.`;
-  return today === null ? `${every} Cancel anytime.` : `${every} Renews ${longDate(renewalDay(today, plan))}. Cancel anytime.`;
+  return today === null ? `${every} Cancel anytime in Profile.` : `${every} Renews ${longDate(renewalDay(today, plan))}. Cancel anytime in Profile.`;
 }
 
 /** What the child plays with in each scene, as the line below says it. A scene not listed here goes by its title. */
