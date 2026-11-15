@@ -1407,7 +1407,7 @@ describe('a round ended early has no pace verdict (E6)', () => {
   const end: RoundEvent = { type: 'end' };
 
   it('five sentences pasted at 0 s, one more at 7 s, ended at 8 s of 60', () => {
-    expect(SHORT_ROUND_NOTE).toBe('This round ended early, so it has no pace verdict.');
+    expect(SHORT_ROUND_NOTE).toBe('This round ended before its halfway mark, so it cannot meet the clinic pace.');
     const s = run([
       ONE_MINUTE,
       say('You made a tower. You are stacking the blocks. Great job stacking so gently. You put the red one on top. Nice job waiting your turn.'),

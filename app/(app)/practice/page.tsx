@@ -18,7 +18,14 @@ export default function PracticePage() {
 
   const partner = CHILDREN[profile.partner];
   return (
-    <PageScreen embedded title="Practice">
+    <PageScreen
+      embedded
+      title="Practice"
+      // From 1024px the page is the split of 54:221, with the partner in the violet panel. Phones keep the plain page.
+      rest="bottom"
+      pattern={<Pattern kind="reps" size={1440} />}
+      picture={<Portrait partner={profile.partner} pose="body-waving" size={420} alt="" className="size-[min(420px,52dvh)]" />}
+    >
       <div className="flex w-full max-w-[480px] flex-col gap-[12px] pt-[4px]">
         <div className="relative flex h-[196px] items-end justify-between overflow-clip rounded-[28px] bg-violet pl-[20px] pr-[6px] pt-[18px] text-white">
           <Pattern kind="reps" size={720} />

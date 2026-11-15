@@ -4,7 +4,8 @@
  */
 import { addDays } from '../../../lib/progress/history';
 import { beforeAfter, bestStreakOf, weekNumbers } from '../../../lib/progress/sessions';
-import { BUCKET, type SavedSession } from '../../../lib/types';
+import { changeRows, type ChangeRow } from '../../../lib/progress/targets';
+import { BUCKET, type RoundResult, type SavedSession } from '../../../lib/types';
 
 export const FIVE_MINUTES = 300;
 /** Ten of each skill in five minutes. */
@@ -102,7 +103,7 @@ export function trendLine(sessions: readonly SavedSession[], today: string): str
   return 'A steady pace';
 }
 
-/** One ring of Trends: the latest session's count, and the change since the session before it. */
+/** One ring of Trends: the latest session's count, and the change since the session before it when that was as long. */
 export interface TrendStat {
   value: number | null;
   delta?: string;
@@ -112,7 +113,9 @@ export function latestStats(sessions: readonly SavedSession[]): { praise: TrendS
   const last = sessions.at(-1);
   if (!last) return null;
   const now = paceOf(last);
-  const prev = sessions.length > 1 ? paceOf(sessions[sessions.length - 2]) : null;
+  // Only a session of the same length compares, as in the review: a five-minute daily is not set against a 40-second round.
+  const before = sessions.at(-2);
+  const prev = before && before.durationSec === last.durationSec ? paceOf(before) : null;
   const stat = (value: number | null, before: number | null | undefined): TrendStat => ({
     value: value === null ? null : Math.round(value),
     delta: value === null || before === null || before === undefined ? undefined : signed(Math.round(value) - Math.round(before)),
@@ -125,17 +128,14 @@ export function latestStats(sessions: readonly SavedSession[]): { praise: TrendS
   };
 }
 
-/** The first visit, before and after the lesson, per minute. Null until both rounds are saved. */
-export function firstVisitRows(sessions: readonly SavedSession[]): Array<{ delta: string; label: string }> | null {
+/** A saved round as the result it was saved from, for the comparisons in lib/progress/targets.ts. */
+const asResult = (s: SavedSession): RoundResult => ({ seconds: s.durationSec, counts: s.counts, targets: s.targets, met: s.met, lever: null, leverText: null });
+
+/** The first visit, round two against round one, per minute: the same rows as its Before and after. Null until both rounds are saved. */
+export function firstVisitRows(sessions: readonly SavedSession[]): ChangeRow[] | null {
   const { before, after } = beforeAfter(sessions);
   if (!before || !after) return null;
-  const perMinute = (s: SavedSession, n: number) => (n * 60) / Math.max(s.durationSec, 1);
-  const change = (pick: (s: SavedSession) => number) => signed(perMinute(after, pick(after)) - perMinute(before, pick(before)));
-  return [
-    { delta: change((s) => s.counts.reflection), label: 'reflections per minute' },
-    { delta: change((s) => s.counts.specific_praise), label: 'specific praise per minute' },
-    { delta: change((s) => s.counts.question + s.counts.command), label: 'questions and commands per minute' },
-  ];
+  return changeRows(asResult(before), asResult(after));
 }
 
 export interface Milestone {
@@ -185,16 +185,21 @@ export function reviewRows(session: SavedSession): Array<{ label: string; value:
   const top = [...openers.entries()].reduce<[string, number] | null>((best, next) => (!best || next[1] > best[1] ? next : best), null);
   if (top && top[1] >= 2) rows.push({ label: 'Most questions began with', value: `“${capital(top[0])}”` });
 
-  if (questions.length > 0 && session.durationSec > 0) {
-    const marks = [0, ...questions.map((q) => q.startSec), session.durationSec];
+  // A round ended before half is saved at half its planned length (lib/round/session.ts), not at the time it was
+  // played, so it ends at its last sentence. The planned length is read back from the targets: ten in five minutes.
+  const planned = (session.targets.specific_praise * FIVE_MINUTES) / CLINIC_PACE;
+  const end = 2 * session.durationSec <= planned ? said.reduce((last, s) => Math.max(last, s.atSec), 0) : session.durationSec;
+
+  if (questions.length > 0 && end > 0) {
+    const marks = [0, ...questions.map((q) => q.startSec), end];
     const longest = marks.slice(1).reduce((best, at, i) => Math.max(best, at - marks[i]), 0);
     const seconds = Math.round(longest);
     rows.push({ label: 'Longest run without a question', value: `${seconds} ${seconds === 1 ? 'second' : 'seconds'}` });
   }
 
   const swaps = said.filter((s) => BUCKET[s.code] === 'avoid');
-  if (swaps.length >= 2 && session.durationSec >= 60) {
-    const firstHalf = swaps.filter((s) => s.startSec < session.durationSec / 2).length;
+  if (swaps.length >= 2 && end >= 60) {
+    const firstHalf = swaps.filter((s) => s.startSec < end / 2).length;
     rows.push({ label: 'To swap, first half then second', value: `${firstHalf}, then ${swaps.length - firstHalf}` });
   }
   return rows;

@@ -49,13 +49,18 @@ describe('Progress numbers', () => {
 
   it('shows a short round as it was played, the same numbers as its review, and keeps reflections out of live play', () => {
     const stats = latestStats([
-      session({ counts: counts({ specific_praise: 5 }) }),
+      session({ durationSec: 60, counts: counts({ specific_praise: 5 }) }),
       session({ durationSec: 60, kind: 'live', counts: counts({ specific_praise: 2, question: 1 }) }),
     ]);
     // Two praises in one minute are two, not ten.
     expect(stats?.praise).toEqual({ value: 2, delta: '−3' });
     expect(stats?.reflect.value).toBeNull();
     expect(stats?.swap).toEqual({ value: 1, delta: '+1' });
+  });
+
+  it('shows a change only against a session before of the same length, as the review does', () => {
+    const stats = latestStats([session({ durationSec: 40, counts: counts({ specific_praise: 2 }) }), session({ counts: counts({ specific_praise: 1 }) })]);
+    expect(stats?.praise).toEqual({ value: 1, delta: undefined });
   });
 
   it('scales a session longer than five minutes down to the five-minute scale', () => {
@@ -74,7 +79,20 @@ describe('Progress numbers', () => {
     const before = session({ kind: 'first_before', durationSec: 60, startedAt: '2026-11-01T10:00:00Z', counts: counts({ question: 4, command: 1 }) });
     const after = session({ kind: 'first_after', durationSec: 60, startedAt: '2026-11-01T10:10:00Z', counts: counts({ reflection: 4, specific_praise: 1, question: 2, command: 1 }) });
     expect(firstVisitRows([before])).toBeNull();
-    expect(firstVisitRows([before, after])?.map((r) => r.delta)).toEqual(['+4', '+1', '−2']);
+    expect(firstVisitRows([before, after])).toEqual([
+      { key: 'reflection', value: '+4', label: 'reflections per minute', good: true },
+      { key: 'specific_praise', value: '+1', label: 'specific praise per minute', good: true },
+      { key: 'avoid', value: '−2', label: 'questions and commands per minute', good: true },
+    ]);
+  });
+
+  it('shows the first visit as its Before and after does: no rise for the same count over a shorter round, a fall in gray', () => {
+    const before = session({ kind: 'first_before', durationSec: 60, startedAt: '2026-11-01T10:00:00Z', counts: counts({ specific_praise: 1, reflection: 2 }) });
+    const after = session({ kind: 'first_after', durationSec: 30, startedAt: '2026-11-01T10:10:00Z', counts: counts({ specific_praise: 1, description: 1 }) });
+    expect(firstVisitRows([before, after])).toEqual([
+      { key: 'description', value: '+2', label: 'descriptions per minute', good: true },
+      { key: 'reflection', value: '−2', label: 'reflections per minute', good: false },
+    ]);
   });
 
   it('counts the milestones from what was played', () => {
@@ -106,5 +124,14 @@ describe('Session review numbers', () => {
       { label: 'To swap, first half then second', value: '2, then 1' },
     ]);
     expect(reviewRows(session())).toEqual([]);
+  });
+
+  it('ends a round ended before half at its last sentence, not at the half length it is saved with', () => {
+    // A five-minute daily ended after about ten seconds is saved at 150.
+    const early = session({
+      durationSec: 150,
+      sentences: [said('You are stacking the red one.', 'description', 1), said('What are you building?', 'question', 4.5), said('Nice gentle stacking.', 'specific_praise', 7.5)],
+    });
+    expect(reviewRows(early)).toEqual([{ label: 'Longest run without a question', value: '5 seconds' }]);
   });
 });

@@ -2,11 +2,11 @@
 import { addDays } from '@/lib/progress/history';
 import type { SavedSession } from '@/lib/types';
 
-/** "Tue 10 Nov" from a saved YYYY-MM-DD day. Midday keeps the date from slipping across time zones. */
+/** "Tue, Nov 10" from a saved YYYY-MM-DD day. Midday keeps the date from slipping across time zones. */
 export function dayLabel(date: string): string {
   const day = new Date(`${date}T12:00:00`);
   const part = (options: Intl.DateTimeFormatOptions) => day.toLocaleDateString('en-US', options);
-  return `${part({ weekday: 'short' })} ${day.getDate()} ${part({ month: 'short' })}`;
+  return `${part({ weekday: 'short' })}, ${part({ month: 'short' })} ${day.getDate()}`;
 }
 
 /** "Today", "Yesterday", or the day itself. */

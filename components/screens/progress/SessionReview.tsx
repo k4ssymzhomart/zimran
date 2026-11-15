@@ -16,11 +16,11 @@ import { reviewHeadline, reviewRows, signed } from './numbers';
 /** Sentences shown before "Show all". */
 const FIRST_SHOWN = 5;
 
-/** "Tuesday 10 November", from the saved day. Midday keeps the date from slipping across time zones. */
+/** "Tuesday, November 10", from the saved day. Midday keeps the date from slipping across time zones. */
 function longDay(date: string): string {
   const day = new Date(`${date}T12:00:00`);
   const part = (options: Intl.DateTimeFormatOptions) => day.toLocaleDateString('en-US', options);
-  return `${part({ weekday: 'long' })} ${day.getDate()} ${part({ month: 'long' })}`;
+  return `${part({ weekday: 'long' })}, ${part({ month: 'long' })} ${day.getDate()}`;
 }
 
 const KIND: Record<SavedSession['kind'], string> = {
@@ -107,19 +107,23 @@ export function SessionReview({ session, previous }: SessionReviewProps) {
             <h1 className="text-title">{headline}</h1>
           </div>
 
-          <Rings
-            praise={ring(counts.specific_praise, targets.specific_praise, same?.counts.specific_praise)}
-            // Reflections are not measured in live play: a dash, never a zero.
-            reflect={
-              session.kind === 'live'
-                ? { value: '–', progress: 0 }
-                : ring(counts.reflection, targets.reflection, same && same.kind !== 'live' ? same.counts.reflection : undefined)
-            }
-            describe={ring(counts.description, targets.description, same?.counts.description)}
-            swap={{ value: counts.avoid, delta: change(counts.avoid, same?.counts.avoid) }}
-            size={60}
-            className="justify-between"
-          />
+          <div className="flex flex-col gap-[12px]">
+            <Rings
+              praise={ring(counts.specific_praise, targets.specific_praise, same?.counts.specific_praise)}
+              // Reflections are not measured in live play: a dash, never a zero.
+              reflect={
+                session.kind === 'live'
+                  ? { value: '–', progress: 0 }
+                  : ring(counts.reflection, targets.reflection, same && same.kind !== 'live' ? same.counts.reflection : undefined)
+              }
+              describe={ring(counts.description, targets.description, same?.counts.description)}
+              swap={{ value: counts.avoid, delta: change(counts.avoid, same?.counts.avoid) }}
+              size={60}
+              className="justify-between"
+            />
+            {/* The target follows the planned length, so the same count fills a short round's ring further. */}
+            <p className="text-small text-gray">A full ring is the clinic pace for this length: {targets.specific_praise} of each skill.</p>
+          </div>
 
           <section className="flex flex-col gap-[8px]">
             <h2 className="text-heading">Your sentences</h2>

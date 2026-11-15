@@ -1,8 +1,8 @@
 'use client';
 
 import { Button, Pattern, SplitScreen, cn } from '@/components/kit';
-import { compareRounds } from '@/lib/progress/targets';
-import type { Counts, RoundChange } from '@/lib/types';
+import { changeRows } from '@/lib/progress/targets';
+import type { Counts } from '@/lib/types';
 import { Goodbye } from './RoundOneResult';
 import type { BeforeAfterProps } from './types';
 
@@ -10,53 +10,15 @@ import type { BeforeAfterProps } from './types';
  * Round one against round two, per minute, because the two rounds differ in length. Mobile 24:477; there is no
  * desktop frame, so from 1024px it takes the split of the round-one result (32:164).
  * A number that went the other way is shown in calm gray and in the same words: it is a count, not a verdict.
- * Every number comes from the two results: `change` when the flow has it, compareRounds otherwise.
+ * Every number comes from the two results: `change` when the flow has it, compareRounds otherwise. Progress shows
+ * the same rows (changeRows).
  */
-
-type Measure = keyof RoundChange['perMinute'];
-
-interface Row {
-  key: Measure;
-  /** The change with its sign: "+4", "−1.5". */
-  value: string;
-  label: string;
-  /** More of a skill, or fewer sentences to swap. */
-  good: boolean;
-}
-
-const SKILLS: ReadonlyArray<{ key: Exclude<Measure, 'avoid'>; label: string }> = [
-  { key: 'reflection', label: 'reflections per minute' },
-  { key: 'specific_praise', label: 'specific praise per minute' },
-  { key: 'description', label: 'descriptions per minute' },
-];
-
-const signed = (perMinute: number): string => `${perMinute > 0 ? '+' : '−'}${Math.round(Math.abs(perMinute) * 10) / 10}`;
 
 /** Everything a parent said that the rules could read. */
 const saidIn = (counts: Counts): number => counts.target + counts.avoid + counts.general_praise + counts.neutral;
 
-/**
- * Best news first, as the frame orders it: the skills that grew, the largest first, then fewer sentences to swap.
- * What went the other way comes last. A measure that did not move has no row.
- */
-function rowsOf(perMinute: RoundChange['perMinute'], swapLabel: string): Row[] {
-  const skill = (s: (typeof SKILLS)[number], good: boolean): Row => ({ key: s.key, value: signed(perMinute[s.key]), label: s.label, good });
-  const swap = (good: boolean): Row => ({ key: 'avoid', value: signed(perMinute.avoid), label: swapLabel, good });
-  const grew = SKILLS.filter((s) => perMinute[s.key] > 0).sort((a, b) => perMinute[b.key] - perMinute[a.key]);
-  const fell = SKILLS.filter((s) => perMinute[s.key] < 0);
-  return [
-    ...grew.map((s) => skill(s, true)),
-    ...(perMinute.avoid < 0 ? [swap(true)] : []),
-    ...fell.map((s) => skill(s, false)),
-    ...(perMinute.avoid > 0 ? [swap(false)] : []),
-  ];
-}
-
 export function BeforeAfter({ before, after, change, partner = 'mia', farewell, onNext, onAgain }: BeforeAfterProps) {
-  const { perMinute } = change ?? compareRounds(before, after);
-  // "To swap" is questions and commands, and corrections when either round had one.
-  const corrected = before.counts.criticism + after.counts.criticism > 0;
-  const rows = rowsOf(perMinute, corrected ? 'questions, commands and corrections per minute' : 'questions and commands per minute');
+  const rows = changeRows(before, after, change);
   const silent = saidIn(before.counts) + saidIn(after.counts) === 0;
 
   return (

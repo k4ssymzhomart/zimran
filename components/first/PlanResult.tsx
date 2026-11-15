@@ -38,7 +38,7 @@ function takeFocus(heading: HTMLElement | null) {
 }
 
 /**
- * A day of the plan is done and the 28 days are laid out. Phones are Figma 24:568, from 1024px it is 32:272;
+ * A day of the plan starts and the 28 days are laid out. Phones are Figma 24:568, from 1024px it is 32:272;
  * the daily moment sits in the mist card that 49:1651 keeps it in.
  *
  * Everything shown comes from `day`, `anchor` and the plan in lib/progress/plan.ts: the weeks and their skills,
@@ -80,7 +80,7 @@ export function PlanResult({ partner, anchor, day, onNext, onOpenPlan }: PlanRes
     >
       <div className="flex flex-col gap-[12px] pt-[4px] lg:pt-0">
         <h1 ref={takeFocus} tabIndex={-1} className="text-title outline-none">
-          Day {done} of {PLAN_DAYS} is done.
+          Day {done} of {PLAN_DAYS} starts now.
         </h1>
 
         <ol aria-label="The weeks of your plan" className="flex flex-col">

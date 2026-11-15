@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useSyncExternalStore } from 'react';
-import { clock, countsLine, dayLabel, whenLabel } from '@/app/(app)/labels';
+import { countsLine, dayLabel, whenLabel } from '@/app/(app)/labels';
 import { isLocked } from '@/client/entitlement';
 import { todayISO } from '@/client/progressStore';
 import {
@@ -29,6 +29,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useSessions } from '@/hooks/useSessions';
 import { FEATURES } from '@/lib/features';
 import { streakOf, weekNumbers } from '@/lib/progress/sessions';
+import type { ChangeRow } from '@/lib/progress/targets';
 import { ROUTES } from '@/lib/routes';
 import type { SavedSession, SessionKind } from '@/lib/types';
 import {
@@ -63,7 +64,7 @@ const FILTERS: ReadonlyArray<ChipOption<Filter>> = [
 
 const KIND: Record<SessionKind, string> = {
   first_before: 'First round',
-  first_after: 'Round two',
+  first_after: 'Second round',
   daily: 'Daily session',
   practice: 'Practice',
   live: 'Live',
@@ -79,15 +80,9 @@ function tagOf(session: SavedSession): { label: string; tone: TagTone } | undefi
 function detailOf(session: SavedSession): string {
   const counts = countsLine(session);
   if (session.kind === 'first_before') return `First round. ${counts}`;
-  if (session.kind === 'first_after') return `Round two. ${counts}`;
+  if (session.kind === 'first_after') return `Second round. ${counts}`;
   if (session.kind === 'live') return `${counts}. Reflections not counted`;
   return session.input === 'typed' ? `Typed. ${counts}` : counts;
-}
-
-/** The kind column of the desktop table: a typed practice reads "Typed", as drawn. */
-function kindOf(session: SavedSession): string {
-  if ((session.kind === 'daily' || session.kind === 'practice') && session.input === 'typed') return 'Typed';
-  return KIND[session.kind];
 }
 
 /** Newest first, under "This week", "Last week" and "Earlier". */
@@ -163,6 +158,8 @@ export function ProgressScreen() {
   };
   const line = trendLine(sessions, today);
   const weeks = fourWeeks(sessions, today);
+  // The chart starts once two weeks have sessions: one week alone is a single column of dots.
+  const trend = weeks.filter((w) => w.pace).length > 1;
   const firstVisit = firstVisitRows(sessions);
   const milestones = milestonesOf(sessions);
   const shown = filter === 'live' ? sessions.filter((s) => s.kind === 'live') : sessions;
@@ -171,7 +168,8 @@ export function ProgressScreen() {
   const month = today.slice(0, 7);
   const played = [...new Set(sessions.map((s) => s.date))];
   const metDays = [...new Set(sessions.filter((s) => s.met).map((s) => s.date))];
-  const caption = `${whenLabel(last.date, today)}. A full ring is the clinic pace: ten in five minutes. A shorter round is not stretched to five.`;
+  const compared = stats?.praise.delta === undefined ? '' : ' Under each ring, the change since the session before.';
+  const caption = `${whenLabel(last.date, today)}. A full ring is the clinic pace: ten in five minutes. A shorter round is not stretched to five.${compared}`;
   const chips = FEATURES.live && <ChipGroup<Filter> label="Show sessions" options={FILTERS} value={filter} onChange={setFilter} />;
   const noneShown = shown.length === 0 && <p className="py-[24px] text-body text-gray">No live sessions yet.</p>;
 
@@ -187,11 +185,13 @@ export function ProgressScreen() {
               {rings && <Rings {...rings} size={60} className="justify-between" />}
               <p className="text-small text-gray">{caption}</p>
             </section>
-            <section className="flex flex-col gap-[16px]">
-              <h2 className="text-heading">Four weeks</h2>
-              <WeekChart weeks={weeks} />
-              <Legend note="Dashed: clinic norm" />
-            </section>
+            {trend && (
+              <section className="flex flex-col gap-[16px]">
+                <h2 className="text-heading">Four weeks</h2>
+                <WeekChart weeks={weeks} />
+                <Legend note="Dashed: clinic norm" />
+              </section>
+            )}
             {firstVisit && (
               <section className="flex flex-col gap-[14px]">
                 <h2 className="text-heading">First visit</h2>
@@ -254,15 +254,22 @@ export function ProgressScreen() {
         <section className={CARD}>
           <header className="flex flex-wrap items-center justify-between gap-[12px]">
             <h2 className="text-heading">Four weeks</h2>
-            <Legend />
+            {trend && <Legend />}
           </header>
-          <WeekChart weeks={weeks} />
-          <p className="text-small text-gray">The dashed line is the clinic pace.</p>
+          {/* The card stays when there is no chart yet, so the cards keep their places in the grid. */}
+          {trend ? (
+            <>
+              <WeekChart weeks={weeks} />
+              <p className="text-small text-gray">Each dot is a week’s mean per session. The dashed line is the clinic pace.</p>
+            </>
+          ) : (
+            <p className="text-body text-gray">Your weeks compare here once two of them have sessions.</p>
+          )}
         </section>
 
         <section className={CARD}>
           <h2 className="text-heading">First visit</h2>
-          {firstVisit ? <FirstVisit rows={firstVisit} /> : <p className="text-body text-gray">The first round and round two compare here once both are played.</p>}
+          {firstVisit ? <FirstVisit rows={firstVisit} /> : <p className="text-body text-gray">The first and second rounds compare here once both are played.</p>}
         </section>
 
         <section className={CARD}>
@@ -285,13 +292,17 @@ export function ProgressScreen() {
 
 const CARD = 'flex min-w-0 flex-col gap-[20px] rounded-[36px] border border-line p-[28px]';
 
-/** The weekly mean of each skill on the five-minute scale (a shorter round is not stretched), with the clinic pace dashed across. TODO kit: a trend chart. */
+/**
+ * The weekly mean of each skill on the five-minute scale (a shorter round is not stretched), with the clinic pace
+ * dashed across and each week named under its column. TODO kit: a trend chart.
+ */
 function WeekChart({ weeks }: { weeks: Week[] }) {
   const W = 560;
   const H = 160;
   const values = weeks.flatMap((w) => (w.pace ? [w.pace.praise, w.pace.reflect ?? 0, w.pace.describe] : []));
   const top = Math.max(CLINIC_PACE + 2, Math.ceil(Math.max(0, ...values)) + 1);
-  const x = (i: number) => 8 + (i * (W - 16)) / (weeks.length - 1);
+  // Each week sits in the middle of its own column, so the names under the chart line up with it at any width.
+  const x = (i: number) => ((i + 0.5) * W) / weeks.length;
   const y = (v: number) => H - 8 - (v * (H - 16)) / top;
   const series: Array<{ name: string; className: string; pick: (w: Week) => number | null }> = [
     { name: 'Describe', className: 'stroke-faint fill-faint', pick: (w) => w.pace?.describe ?? null },
@@ -303,24 +314,32 @@ function WeekChart({ weeks }: { weeks: Week[] }) {
     .join('; ');
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Each skill per five minutes, by week. ${said}. Clinic pace: ${CLINIC_PACE}.`} className="h-auto w-full">
-      <line x1={0} x2={W} y1={y(CLINIC_PACE)} y2={y(CLINIC_PACE)} className="stroke-faint" strokeWidth={1.5} strokeDasharray="4 6" />
-      <line x1={0} x2={W} y1={H - 1} y2={H - 1} className="stroke-line" strokeWidth={1} />
-      {series.map((s) => {
-        const points = weeks.flatMap((w, i) => {
-          const v = s.pick(w);
-          return v === null ? [] : [{ x: x(i), y: y(v) }];
-        });
-        return (
-          <g key={s.name} className={s.className}>
-            {points.length > 1 && <polyline points={points.map((p) => `${p.x},${p.y}`).join(' ')} fill="none" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />}
-            {points.map((p) => (
-              <circle key={p.x} cx={p.x} cy={p.y} r={3.5} strokeWidth={0} />
-            ))}
-          </g>
-        );
-      })}
-    </svg>
+    <div className="flex flex-col gap-[8px]">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Each skill per five minutes, by week. ${said}. Clinic pace: ${CLINIC_PACE}.`} className="h-auto w-full">
+        <line x1={0} x2={W} y1={y(CLINIC_PACE)} y2={y(CLINIC_PACE)} className="stroke-faint" strokeWidth={1.5} strokeDasharray="4 6" />
+        <line x1={0} x2={W} y1={H - 1} y2={H - 1} className="stroke-line" strokeWidth={1} />
+        {series.map((s) => {
+          const points = weeks.flatMap((w, i) => {
+            const v = s.pick(w);
+            return v === null ? [] : [{ x: x(i), y: y(v) }];
+          });
+          return (
+            <g key={s.name} className={s.className}>
+              {points.length > 1 && <polyline points={points.map((p) => `${p.x},${p.y}`).join(' ')} fill="none" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />}
+              {points.map((p) => (
+                <circle key={p.x} cx={p.x} cy={p.y} r={3.5} strokeWidth={0} />
+              ))}
+            </g>
+          );
+        })}
+      </svg>
+      {/* fourWeeks gives four weeks, one column each. The svg already names them for screen readers. */}
+      <div aria-hidden="true" className="grid grid-cols-4 text-center text-small text-gray">
+        {weeks.map((w) => (
+          <span key={w.from}>{w.label}</span>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -341,13 +360,15 @@ function Legend({ note }: { note?: string }) {
   );
 }
 
-function FirstVisit({ rows }: { rows: Array<{ delta: string; label: string }> }) {
+/** The rows of the first visit's Before and after: a change that went the other way is gray, as it is there. */
+function FirstVisit({ rows }: { rows: ChangeRow[] }) {
+  if (rows.length === 0) return <p className="text-body text-gray">The same pace in both rounds.</p>;
   return (
     <ul className="flex flex-col gap-[14px]">
       {rows.map((row) => (
-        <li key={row.label} className="flex items-start gap-[16px]">
-          <span className="w-[48px] shrink-0 text-heading text-violet">{row.delta}</span>
-          <span className="pt-[2px] text-body">{row.label}</span>
+        <li key={row.key} className="flex items-start gap-[16px]">
+          <span className={cn('w-[48px] shrink-0 text-heading', row.good ? 'text-violet' : 'text-faint')}>{row.value}</span>
+          <span className={cn('pt-[2px] text-body', row.good ? 'text-ink' : 'text-gray')}>{row.label}</span>
         </li>
       ))}
     </ul>
@@ -379,7 +400,6 @@ function SessionTable({ sessions }: { sessions: SavedSession[] }) {
         <tr>
           <th scope="col" className={head}>Date</th>
           <th scope="col" className={head}>Kind</th>
-          <th scope="col" className={head}>Length</th>
           <th scope="col" className={head}>Praise</th>
           <th scope="col" className={head}>Reflect</th>
           <th scope="col" className={head}>Describe</th>
@@ -399,11 +419,10 @@ function SessionTable({ sessions }: { sessions: SavedSession[] }) {
             </td>
             <td>
               <span className="flex items-center gap-[8px]">
-                {kindOf(s)}
+                {KIND[s.kind]}
                 {s.kind === 'live' ? <Tag tone="quiet">Beta</Tag> : s.met && <Tag tone="skill">Pace met</Tag>}
               </span>
             </td>
-            <td>{clock(s.durationSec)}</td>
             <td>{s.counts.specific_praise}</td>
             <td>{s.kind === 'live' ? '–' : s.counts.reflection}</td>
             <td>{s.counts.description}</td>

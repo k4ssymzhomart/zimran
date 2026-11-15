@@ -7,8 +7,8 @@ const PAID: Entitlement = { paid: true, plan: 'four_weeks', demo: true, startedA
 const TODAY = '2026-11-14';
 
 /** Only the fields the state reads; the rest of a saved session does not matter here. */
-const session = (id: string, date: string, kind: SessionKind = 'daily'): SavedSession =>
-  ({ id, date, kind, startedAt: `${date}T18:00:00.000Z` }) as unknown as SavedSession;
+const session = (id: string, date: string, kind: SessionKind = 'daily', durationSec = 300): SavedSession =>
+  ({ id, date, kind, durationSec, startedAt: `${date}T18:00:00.000Z` }) as unknown as SavedSession;
 
 describe('todayState', () => {
   it('is empty with nothing saved, paid or not', () => {
@@ -24,6 +24,12 @@ describe('todayState', () => {
   it('is done when a daily session was saved today, and opens the latest one', () => {
     const sessions = [session('a', '2026-11-13'), session('b', TODAY), session('c', TODAY), session('d', TODAY, 'practice')];
     expect(todayState(sessions, TODAY, PAID)).toEqual({ kind: 'done', session: sessions[2] });
+  });
+
+  it('is not done for a daily ended before half, which is saved at half its length', () => {
+    expect(todayState([session('a', TODAY, 'daily', 150)], TODAY, PAID)).toEqual({ kind: 'today' });
+    const sessions = [session('a', TODAY, 'daily', 210), session('b', TODAY, 'daily', 150)];
+    expect(todayState(sessions, TODAY, PAID)).toEqual({ kind: 'done', session: sessions[0] });
   });
 
   it('is not done for a practice round or a first visit today', () => {

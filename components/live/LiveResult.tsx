@@ -8,7 +8,7 @@ import { ROUTES } from '@/lib/routes';
 /** What a live session cannot count: one microphone does not tell the parent from the child (27:931). */
 const NO_REFLECTIONS = 'Reflections are not counted in live play.';
 /** SHORT_ROUND_NOTE of lib/round/session.ts, in the words of a live session. */
-const SHORT_NOTE = 'This session ended early, so it has no pace verdict.';
+const SHORT_NOTE = 'This session ended before its halfway mark, so it cannot meet the clinic pace.';
 
 /** The result takes no tap for this long: a tap meant for the session as its clock ran out is not a choice made here. */
 const QUIET_MS = 500;

@@ -113,7 +113,7 @@ export const TURN_CAP_NOTE = 'One turn counts up to three sentences.';
 /** "Disagree?" sets aside at most this many sentences a round, so it corrects the coding and does not replace it. */
 export const MAX_DISPUTES = 3;
 /** Shown with a result marked `short`. */
-export const SHORT_ROUND_NOTE = 'This round ended early, so it has no pace verdict.';
+export const SHORT_ROUND_NOTE = 'This round ended before its halfway mark, so it cannot meet the clinic pace.';
 const REPEAT_COACH = 'That one is already counted. Say something new you see.';
 /** Shown when "Disagree?" is tapped with all MAX_DISPUTES places taken. */
 export const DISPUTES_USED_NOTE = 'Three sentences are set aside in this round. Tap “Count it” on one to free a place.';

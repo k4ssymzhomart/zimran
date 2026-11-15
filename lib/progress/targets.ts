@@ -195,6 +195,44 @@ export function compareRounds(before: RoundResult, after: RoundResult): RoundCha
   return { perMinute: perMinuteShown, lines: [...good, ...flat], improved, verdict };
 }
 
+/** One line of a before-and-after: "+4 specific praise per minute". */
+export interface ChangeRow {
+  key: keyof RoundChange['perMinute'];
+  /** The change with its sign: "+4", "−1.5". */
+  value: string;
+  label: string;
+  /** More of a skill, or fewer sentences to swap. */
+  good: boolean;
+}
+
+const CHANGE_SKILLS = [
+  { key: 'reflection', label: 'reflections per minute' },
+  { key: 'specific_praise', label: 'specific praise per minute' },
+  { key: 'description', label: 'descriptions per minute' },
+] as const;
+
+/**
+ * Round two against round one, as the first visit's Before and after and Progress both show it, from compareRounds.
+ * Best news first: the skills that grew, the largest first, then fewer sentences to swap. What went the other way
+ * comes last. A measure that did not move has no row.
+ */
+export function changeRows(before: RoundResult, after: RoundResult, change?: RoundChange | null): ChangeRow[] {
+  const { perMinute } = change ?? compareRounds(before, after);
+  // "To swap" is questions and commands, and corrections when either round had one.
+  const swapLabel = before.counts.criticism + after.counts.criticism > 0 ? 'questions, commands and corrections per minute' : 'questions and commands per minute';
+  const value = (n: number): string => `${n > 0 ? '+' : '−'}${round1(Math.abs(n))}`;
+  const skill = (s: (typeof CHANGE_SKILLS)[number], good: boolean): ChangeRow => ({ key: s.key, value: value(perMinute[s.key]), label: s.label, good });
+  const swap = (good: boolean): ChangeRow => ({ key: 'avoid', value: value(perMinute.avoid), label: swapLabel, good });
+  const grew = CHANGE_SKILLS.filter((s) => perMinute[s.key] > 0).sort((a, b) => perMinute[b.key] - perMinute[a.key]);
+  const fell = CHANGE_SKILLS.filter((s) => perMinute[s.key] < 0);
+  return [
+    ...grew.map((s) => skill(s, true)),
+    ...(perMinute.avoid < 0 ? [swap(true)] : []),
+    ...fell.map((s) => skill(s, false)),
+    ...(perMinute.avoid > 0 ? [swap(false)] : []),
+  ];
+}
+
 /**
  * How many of the parent's sentences were one of the skills, out of everything they said:
  * "5 of your 7 sentences were specific praise, reflection or description."

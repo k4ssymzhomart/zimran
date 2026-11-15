@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, use } from 'react';
-import { Button, Icon, IconButton, PageScreen } from '@/components/kit';
+import { Button, Icon, IconButton, PageScreen, Pattern } from '@/components/kit';
 import { SessionReview } from '@/components/screens/progress/SessionReview';
 import { useSessions } from '@/hooks/useSessions';
 import { ROUTES } from '@/lib/routes';
@@ -31,6 +31,8 @@ function Review({ params }: { params: Params }) {
     return (
       <PageScreen
         embedded
+        // The violet half of the review this screen stands in for.
+        pattern={<Pattern kind="sentences" size={1440} />}
         bar={
           <IconButton href={ROUTES.progress} label="Back to Progress">
             <Icon name="back" />

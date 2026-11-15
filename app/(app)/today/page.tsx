@@ -97,7 +97,7 @@ export default function TodayPage() {
     case 'empty':
       action = isLocked('daily', entitlement) ? (
         <Button href={ROUTES.start} fullWidth>
-          Start a round
+          Play your first round
         </Button>
       ) : (
         <Button href={ROUTES.daily} fullWidth>
