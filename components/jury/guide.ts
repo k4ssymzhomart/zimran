@@ -1,15 +1,17 @@
 /**
- * Every word of the jury guide (app/jury/page.tsx), kept next to the code that makes it true.
+ * Every statement of the jury guide (app/jury/page.tsx), kept next to the code that makes it true.
  *
  * Nothing here is a sample of anyone's data: these are statements about the product. The ones about the rules are
  * checked against the real engine in ./guide.test.ts, so a change to the rules that makes a line here untrue fails
- * `npm test`. The engine's own numbers (the clinic pace, the length of round one) are read from lib/, not typed.
+ * `npm test`. The engine's own numbers (the clinic pace, the length of round one, the repeat window, the caps) are
+ * read from lib/, not typed.
  *
  * Relative imports, not '@/': vitest runs this file without the Next path alias.
  */
 import { FEATURES } from '../../lib/features';
 import { ROUND1 } from '../../lib/flow/journey';
 import { MAX_AVOID_5MIN, NORM_PER_SKILL } from '../../lib/progress/targets';
+import { MAX_COUNTED_PER_TURN, MAX_DISPUTES, REPEAT_WINDOW_SEC } from '../../lib/round/session';
 import { ROUTES } from '../../lib/routes';
 import type { Code } from '../../lib/types';
 
@@ -80,7 +82,7 @@ export interface Trial {
   typed?: ReadonlyArray<readonly [sentence: string, code: Code]>;
 }
 
-/** A sentence in another language, typed in Latin letters. The test checks how the English rules read it. */
+/** A sentence in another language, typed in Latin letters. The test checks that the rules leave it uncoded. */
 export const LATIN_LETTERS = 'Qué torre tan bonita';
 
 export const TRIALS: readonly Trial[] = [
@@ -108,10 +110,19 @@ export const TRIALS: readonly Trial[] = [
     ],
   },
   {
+    title: '“Great job stacking, now give me the red one.”',
+    detail: 'A command. An order anywhere in the sentence outweighs the praise.',
+    typed: [['Great job stacking, now give me the red one.', 'command']],
+  },
+  {
     title: '“Какая красивая башня”',
-    detail:
-      'Another script is not coded: no count moves. Another language in Latin letters is read by the English rules, usually as neutral talk.',
+    detail: 'Another script is not coded: no count moves. Another language in Latin letters is usually not coded either.',
     typed: [['Какая красивая башня', 'unknown']],
+  },
+  {
+    title: '“You’re blahing the foo.”',
+    detail: 'Neutral talk. A ring needs a real word.',
+    typed: [['You’re blahing the foo.', 'neutral']],
   },
   {
     title: 'An empty answer',
@@ -119,8 +130,12 @@ export const TRIALS: readonly Trial[] = [
   },
   {
     title: 'One sentence, ten times',
-    detail:
-      'Every copy counts. Typed repeats are not filtered, so ten copies of one praise are ten praises. The pace still takes all three skills.',
+    detail: `The first copy counts. Said again within ${REPEAT_WINDOW_SEC} seconds it fills no ring, and one turn counts ${MAX_COUNTED_PER_TURN} skill sentences at most.`,
+  },
+  {
+    // lib/coding/safety.ts.
+    title: 'A sentence about hitting or hurting',
+    detail: 'Not scored: it fills no ring, and the screen shows where to find support. A short word list, not an assessment.',
   },
   {
     // hooks/useFirstVisit.ts: a round lives in the page, and both rounds are stored when the before and after shows.
@@ -129,11 +144,12 @@ export const TRIALS: readonly Trial[] = [
   },
   {
     title: 'End a round early',
-    detail: 'The counts stand. Rates are measured over the time played, never over less than half the planned length.',
+    detail:
+      'The counts stand, measured over the time played and never under half the planned length. Ended before half, a round cannot meet the pace.',
   },
   {
     title: 'Disagree?',
-    detail: 'Takes that sentence out of the count. A second tap puts it back.',
+    detail: `Takes that sentence out of the count. A second tap puts it back. At most ${MAX_DISPUTES} sentences a round.`,
   },
 ];
 
@@ -143,15 +159,18 @@ export const TRIALS: readonly Trial[] = [
  * The number `npx vitest run` printed on 15 November 2026, with the tests of this folder in it.
  * It is a count of the repository, so it cannot be computed on the page: read it again before a release.
  */
-export const UNIT_TESTS = 552;
+export const UNIT_TESTS = 1359;
 
 export interface Figure {
   value: string;
   caption: string;
 }
 
+/** A count in the thousands reads with its comma: "1,359". */
+const grouped = (n: number): string => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
 export const NUMBERS: readonly Figure[] = [
-  { value: String(UNIT_TESTS), caption: 'unit tests' },
+  { value: grouped(UNIT_TESTS), caption: 'unit tests' },
   {
     // README.md, "Numbers we stand behind": lib/coding/blindset.ts on its first run, before any rule was changed.
     value: '72 of 80',

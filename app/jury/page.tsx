@@ -55,8 +55,8 @@ function Facts({ items }: { items: readonly Fact[] }) {
 
 /**
  * The jury guide (Figma 27:973 on phones, 33:315 from 1024px): the path to walk in three minutes, what to type to
- * test the rules, and which parts are real. It is a page of statements, with no data of anyone on it; every word is
- * in components/jury/guide.ts, and the statements about the rules are run against the engine in its test.
+ * test the rules, and which parts are real. It is a page of statements, with no data of anyone on it; every statement
+ * is in components/jury/guide.ts, and the ones about the rules are run against the engine in its test.
  *
  * Phones read one column in the order of the frame. From 1024px the page is three columns: the path with what is
  * not built under it, the ways to break it, the numbers with what is real and what is simulated.
