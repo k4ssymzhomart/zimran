@@ -10,8 +10,6 @@
 :root {
   --white: #fff; --ink: #0B0B0F; --gray: #76767E; --faint: #A9A9B2; --line: #E8E8ED; --mist: #F5F5F7;
   --violet: #5B52FF; --press: #4B42E6; --tint: #6961FF; --lilac: #EEEDFF; --lilac2: #DCDAFF;
-  /* the phone: iPhone Pro Max proportions, a burgundy titanium band */
-  --burgundy: #5C1A28; --burgundy-edge: #7E2B3E; --burgundy-btn: #4A1420;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: #d9d9de; }
@@ -53,22 +51,28 @@ h2 { font-size: 72px; line-height: 78px; font-weight: 700; letter-spacing: -0.03
 .col { display: flex; flex-direction: column; }
 .step { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: var(--violet); color: #fff; font-size: 28px; font-weight: 700; flex: none; }
 
-/*
-  The phone. Width comes from --w; everything else follows it. The screen shows a real screenshot of the app
-  (390 x 844 layout) under a status bar in the color of the screen's top.
-*/
-.iphone { position: absolute; width: var(--w); height: calc(var(--w) * 2.11); }
-.iphone .band { position: absolute; inset: 0; border-radius: calc(var(--w) * 0.155); background: var(--burgundy); box-shadow: inset 0 0 0 calc(var(--w) * 0.005) var(--burgundy-edge); padding: calc(var(--w) * 0.024); }
-.iphone .bezel { width: 100%; height: 100%; border-radius: calc(var(--w) * 0.132); background: #050507; padding: calc(var(--w) * 0.022); }
-.iphone .screen { position: relative; width: 100%; height: 100%; border-radius: calc(var(--w) * 0.112); overflow: hidden; background: var(--top, var(--violet)); }
-.iphone .screen img { position: absolute; left: 0; top: calc(var(--w) * 0.085); width: 100%; display: block; }
-.iphone .status { position: absolute; left: 0; right: 0; top: 0; height: calc(var(--w) * 0.085); display: flex; align-items: center; justify-content: space-between; padding: calc(var(--w) * 0.012) calc(var(--w) * 0.085) 0; font-size: calc(var(--w) * 0.038); font-weight: 600; letter-spacing: -0.01em; color: var(--status, #fff); z-index: 2; }
-.iphone .status svg { height: calc(var(--w) * 0.03); width: auto; fill: currentColor; }
-.iphone .island { position: absolute; left: 50%; top: calc(var(--w) * 0.058); transform: translateX(-50%); width: calc(var(--w) * 0.27); height: calc(var(--w) * 0.074); border-radius: 999px; background: #000; z-index: 3; }
-.iphone .key { position: absolute; width: calc(var(--w) * 0.014); background: var(--burgundy-btn); }
-.iphone .key.l { left: calc(var(--w) * -0.009); border-radius: 3px 0 0 3px; }
-.iphone .key.r { right: calc(var(--w) * -0.009); border-radius: 0 3px 3px 0; }
-.iphone.light { --top: #fff; --status: var(--ink); }
+/* The phones: a rendered burgundy iPhone 18 Pro Max with the real screenshot composited in (phones/README.md). */
+.phone { position: absolute; display: block; height: auto; filter: drop-shadow(0 28px 36px rgba(11, 11, 15, .28)); }
+
+/* Slide 6: the comparison table, filled from CMP in the script. Marks: y yes, p partly or unclear, n no. */
+.cmp { position: absolute; left: 96px; right: 96px; top: 336px; display: grid; grid-template-columns: 430px repeat(6, 1fr); }
+.cmp .h { height: 92px; display: flex; align-items: flex-end; justify-content: center; text-align: center; padding: 0 12px 16px; font-size: 21px; line-height: 26px; font-weight: 600; color: var(--gray); }
+.cmp .c { height: 76px; display: flex; align-items: center; justify-content: center; border-top: 2px solid var(--line); }
+.cmp .who { justify-content: flex-start; gap: 18px; padding-left: 18px; }
+.cmp .us { background: var(--lilac); border-top-color: transparent; }
+.cmp .us.who { border-radius: 22px 0 0 22px; }
+.cmp .us.end { border-radius: 0 22px 22px 0; }
+.cmp .us + .c:not(.us), .cmp .after { border-top-color: transparent; }
+.cmp .lg { width: 48px; height: 48px; border-radius: 12px; background: #fff; box-shadow: inset 0 0 0 2px var(--line); flex: none; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.cmp .lg img { width: 36px; height: 36px; object-fit: contain; display: block; }
+.cmp .lg span { font-size: 18px; font-weight: 700; color: var(--gray); }
+.cmp .nm { font-size: 26px; line-height: 30px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; }
+.cmp .nt { font-size: 18px; line-height: 22px; color: var(--gray); white-space: nowrap; }
+.mark { width: 42px; height: 42px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.mark.y { background: #16A34A; } .mark.p { background: #F5B300; } .mark.n { background: #E5484D; }
+.mark svg { width: 24px; height: 24px; display: block; }
+.legend { display: inline-flex; align-items: center; gap: 10px; margin-right: 28px; color: var(--ink); font-weight: 500; }
+.legend .mark { width: 26px; height: 26px; } .legend .mark svg { width: 16px; height: 16px; }
 </style>
 </head>
 <body>
@@ -86,8 +90,6 @@ h2 { font-size: 72px; line-height: 78px; font-weight: 700; letter-spacing: -0.03
       <rect y="40.5" width="82.8" height="26" rx="13" fill="currentColor"/>
       <rect y="75" width="52.6" height="25" rx="12.5" fill="var(--accent, #5B52FF)"/>
     </symbol>
-    <symbol id="sig" viewBox="0 0 54 18"><rect x="0" y="12" width="5" height="6" rx="1.5"/><rect x="8" y="8" width="5" height="10" rx="1.5"/><rect x="16" y="4" width="5" height="14" rx="1.5"/><rect x="24" y="0" width="5" height="18" rx="1.5"/><path d="M41 4.2a10.5 10.5 0 0 1 13 0l-1.6 1.9a8 8 0 0 0-9.8 0Zm2.6 3.1a6.5 6.5 0 0 1 7.8 0l-1.6 1.9a4 4 0 0 0-4.6 0ZM47.5 11.5l1.9 2.3-1.9 2.2-1.9-2.2Z" transform="translate(-6 1)"/></symbol>
-    <symbol id="bat" viewBox="0 0 30 14"><rect x="0.75" y="0.75" width="24.5" height="12.5" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".45"/><rect x="2.6" y="2.6" width="20.8" height="8.8" rx="2"/><rect x="27" y="4.5" width="2" height="5" rx="1" opacity=".45"/></symbol>
     <pattern id="reps" width="170" height="130" patternUnits="userSpaceOnUse">
       <use href="#mark" x="12" y="14" width="76" height="67" fill="#6961FF"/>
       <use href="#mark" x="97" y="79" width="76" height="67" fill="#6961FF"/>
@@ -106,16 +108,14 @@ h2 { font-size: 72px; line-height: 78px; font-weight: 700; letter-spacing: -0.03
 </svg>
 
 <!-- 1 ─────────────────────────────────────────── -->
-<section class="slide" id="s1">
-  <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>Fammy</div>
-  <div style="position:absolute; left:96px; top:300px; width:930px">
-    <h1 style="font-size:112px; line-height:108px; white-space:nowrap">Practice tonight.<br>Use it tomorrow.</h1>
-    <p class="lead" style="margin-top:40px; width:820px">Rehearse the five-minute play skill clinics teach, with a simulated four-year-old.</p>
-    <div style="margin-top:48px"><span class="pill ink" data-k="url"></span></div>
-  </div>
-  <div class="block" style="left:1060px; top:0; width:860px; height:1080px">
-    <div class="pat pat-bars"><svg viewBox="0 0 113 100" style="width:1500px; left:-170px; top:-110px" fill="#6961FF"><use href="#mark"/></svg></div>
-    <div class="iphone" data-phone="1-answer" style="--w:440px; left:210px; top:76px"></div>
+<section class="slide" id="s1" style="background:#184C37; color:#fff">
+  <!-- two burgundy iPhone 18 Pro Max on green, the first answer screen composited in (phones/README.md) -->
+  <img src="phones/hero.jpg" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block">
+  <div class="logo"><svg viewBox="0 0 113 100" style="--accent:rgba(255,255,255,.55)"><use href="#mark2"/></svg>Fammy</div>
+  <div style="position:absolute; left:96px; top:300px; width:820px">
+    <h1 style="font-size:108px; line-height:104px; white-space:nowrap">Practice tonight.<br>Use it tomorrow.</h1>
+    <p class="lead" style="margin-top:40px; width:700px; color:rgba(255,255,255,.86)">Rehearse the five-minute play skill clinics teach, with a simulated four-year-old.</p>
+    <div style="margin-top:48px"><span class="pill white" data-k="url"></span></div>
   </div>
 </section>
 
@@ -200,9 +200,9 @@ h2 { font-size: 72px; line-height: 78px; font-weight: 700; letter-spacing: -0.03
   <!-- arrows between the phones, on the violet band -->
   <svg style="position:absolute; left:560px; top:568px" width="200" height="60" viewBox="0 0 200 60" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 30H180M152 6l28 24-28 24"/></svg>
   <svg style="position:absolute; left:1160px; top:568px" width="200" height="60" viewBox="0 0 200 60" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 30H180M152 6l28 24-28 24"/></svg>
-  <div class="iphone" data-phone="1-answer" style="--w:300px; left:240px; top:262px"></div>
-  <div class="iphone" data-phone="2-round" style="--w:300px; left:810px; top:262px"></div>
-  <div class="iphone" data-phone="3-before-after" style="--w:300px; left:1380px; top:262px"></div>
+  <img class="phone" src="phones/1-answer.png" alt="" style="width:300px; left:240px; top:283px">
+  <img class="phone" src="phones/2-round.png" alt="" style="width:300px; left:810px; top:283px">
+  <img class="phone" src="phones/3-before-after.png" alt="" style="width:300px; left:1380px; top:283px">
   <div class="row" style="position:absolute; left:96px; right:96px; top:922px">
     <div class="row" style="flex:1; gap:20px; align-items:center; justify-content:center"><span class="step">1</span><span style="font-size:32px; line-height:40px; font-weight:600; letter-spacing:-0.02em">Mia speaks. You answer.</span></div>
     <div class="row" style="flex:1; gap:20px; align-items:center; justify-content:center"><span class="step">2</span><span style="font-size:32px; line-height:40px; font-weight:600; letter-spacing:-0.02em">Every sentence is scored.</span></div>
@@ -232,40 +232,13 @@ h2 { font-size: 72px; line-height: 78px; font-weight: 700; letter-spacing: -0.03
 <!-- 6 ─────────────────────────────────────────── -->
 <section class="slide" id="s6">
   <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>Fammy</div>
-  <div style="position:absolute; left:96px; top:168px; width:1560px">
+  <div style="position:absolute; left:96px; top:150px; width:1560px">
     <h2>Everyone tells parents what to say. We let them practice it, with a score.</h2>
   </div>
-  <div style="position:absolute; left:96px; top:404px; width:1010px; height:560px">
-    <div style="position:absolute; left:64px; top:0; right:0; bottom:60px; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:12px">
-      <div class="card" style="border-radius:32px; padding:26px; display:flex; flex-wrap:wrap; gap:12px; align-content:flex-start">
-        <span class="pill white" style="height:52px; font-size:23px">Good Inside</span><span class="pill white" style="height:52px; font-size:23px">ChatGPT</span><span class="pill white" style="height:52px; font-size:23px">ChildMind AI</span>
-      </div>
-      <div class="block" style="position:relative; border-radius:32px; padding:26px">
-        <svg class="pat" width="100%" height="100%"><rect width="100%" height="100%" fill="url(#reps)"/></svg>
-        <span class="pill white" style="position:relative; height:64px; font-size:28px; gap:12px"><svg viewBox="0 0 113 100" style="height:24px"><use href="#mark2"/></svg>Fammy</span>
-        <div style="position:relative; color:#fff; font-size:25px; line-height:33px; margin-top:16px; font-weight:500">Scored practice with a simulated child, then live with your own.</div>
-      </div>
-      <div class="card" style="border-radius:32px; padding:26px"></div>
-      <div class="card" style="border-radius:32px; padding:26px; display:flex; flex-wrap:wrap; gap:12px; align-content:flex-start">
-        <span class="pill white" style="height:52px; font-size:23px">Clinic (PCIT)</span><span class="pill white" style="height:52px; font-size:23px">Happypillar</span>
-      </div>
-    </div>
-    <div style="position:absolute; left:64px; right:0; bottom:8px; display:flex; justify-content:space-around; font-size:24px; font-weight:600"><span>Tells you</span><span>Trains you</span></div>
-    <div style="position:absolute; left:0; top:0; bottom:60px; width:44px; display:flex; flex-direction:column; justify-content:space-around; align-items:center; font-size:24px; font-weight:600">
-      <span style="writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap">Works after bedtime</span>
-      <span style="writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap">Needs the child</span>
-    </div>
-  </div>
-  <div style="position:absolute; left:1170px; top:404px; width:654px">
-    <div style="border-left:6px solid var(--violet); padding-left:28px">
-      <div style="font-size:34px; line-height:44px; font-weight:600; letter-spacing:-0.02em">Therapists train on “a 5-minute role-play with an adult portraying a child”.</div>
-      <div class="small gray" style="margin-top:12px">PCIT International</div>
-    </div>
-    <div class="body" style="margin-top:40px; font-size:32px; line-height:42px">We give parents that role-play.</div>
-  </div>
+  <div class="cmp" id="cmp"></div>
+  <div class="src" style="right:200px; display:flex; align-items:center"><span class="legend"><span class="mark y" data-mark="y"></span>Yes</span><span class="legend"><span class="mark p" data-mark="p"></span>Partly or unclear</span><span class="legend"><span class="mark n" data-mark="n"></span>No</span>Product pages, app stores and press, November 2026.</div>
   <div class="page">6</div>
 </section>
-
 <!-- 7 ─────────────────────────────────────────── -->
 <section class="slide" id="s7">
   <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>Fammy</div>
@@ -280,14 +253,14 @@ h2 { font-size: 72px; line-height: 78px; font-weight: 700; letter-spacing: -0.03
   <div class="row" style="position:absolute; left:96px; bottom:96px; gap:20px; align-items:center">
     <div style="border:3px solid var(--ink); border-radius:32px; padding:20px 32px; width:300px"><div class="num" style="font-size:76px; line-height:80px">$29</div><div style="font-size:24px; font-weight:600">every 4 weeks</div></div>
     <div style="border:2px solid var(--line); border-radius:32px; padding:20px 32px; width:300px"><div class="num" style="font-size:76px; line-height:80px">$69</div><div style="font-size:24px; font-weight:600">every 12 weeks</div></div>
-    <div style="padding-left:12px"><div class="body">Cancel anytime.</div><div class="small gray" style="margin-top:6px">Next: one family plan for two or more children.</div></div>
+    <div style="padding-left:12px; width:236px"><div class="body">Cancel anytime.</div><div class="small gray" style="margin-top:6px">Next: one family plan for two or more children.</div></div>
   </div>
   <div class="block" style="left:1000px; top:0; width:920px; height:1080px">
     <svg class="pat" width="920" height="1080"><rect width="920" height="1080" fill="url(#reps)"/></svg>
     <img class="art" src="../../public/scene/mum-mia.png" style="position:absolute; left:220px; top:360px; width:720px; height:720px">
     <img class="art" src="../../public/art/earbud.png" style="position:absolute; left:776px; top:548px; width:112px; height:112px; transform:rotate(-8deg)">
     <div style="position:absolute; left:250px; top:300px; width:540px; background:#fff; border-radius:40px 40px 10px 40px; padding:26px 34px; font-size:30px; line-height:39px; font-weight:600; letter-spacing:-0.02em">“Let your child lead for now. Say what they chose to do.”</div>
-    <div class="iphone" data-phone="live" style="--w:250px; left:24px; top:500px; transform:rotate(-6deg)"></div>
+    <img class="phone" src="phones/live.png" alt="" style="width:250px; left:24px; top:518px; transform:rotate(-6deg)">
   </div>
 </section>
 
@@ -392,7 +365,7 @@ h2 { font-size: 72px; line-height: 78px; font-weight: 700; letter-spacing: -0.03
   <div class="src" style="right:900px">Skill practice, not therapy.</div>
   <div class="block" style="left:1220px; top:0; width:700px; height:1080px">
     <div class="pat pat-bars"><svg viewBox="0 0 113 100" style="width:1300px; left:-220px; top:-60px" fill="#6961FF"><use href="#mark"/></svg></div>
-    <div class="iphone" data-phone="landing" style="--w:420px; left:140px; top:97px"></div>
+    <img class="phone" src="phones/landing.png" alt="" style="width:420px; left:140px; top:126px">
   </div>
 </section>
 
@@ -427,23 +400,40 @@ document.querySelectorAll('[data-k]').forEach((el) => {
   el.textContent = text[k] ?? '';
   if (k === 'url' && !C.url) el.className = 'pill todo';
 });
-// The phones: a status bar, the island, the side keys, and a real screenshot from shots/.
-const LIGHT_TOP = new Set(['today']);
-const status = '<span>9:41</span><span style="display:flex; gap:0.35em; align-items:center"><svg viewBox="0 0 54 18" style="height:0.8em"><use href="#sig"/></svg><svg viewBox="0 0 30 14" style="height:0.8em"><use href="#bat"/></svg></span>';
-document.querySelectorAll('[data-phone]').forEach((p) => {
-  const name = p.dataset.phone;
-  if (LIGHT_TOP.has(name)) p.classList.add('light');
-  p.innerHTML = `
-    <span class="key l" style="top:19%; height:4.4%"></span>
-    <span class="key l" style="top:27%; height:7.5%"></span>
-    <span class="key l" style="top:36.5%; height:7.5%"></span>
-    <span class="key r" style="top:29%; height:11%"></span>
-    <span class="key r" style="top:55%; height:6.5%"></span>
-    <div class="band"><div class="bezel"><div class="screen">
-      <div class="status">${status}</div><div class="island"></div>
-      <img src="shots/${name}.png" alt="">
-    </div></div></div>`;
-});
+// Slide 6. One letter per column: y yes, p partly or unclear, n no. Evidence for every mark: competitors.md.
+const CMP = {
+  cols: ['Practice without your child', 'Scores every sentence', 'Against the clinic targets', 'Same score every time', 'Coaches you live with your child', 'Open today, no waitlist'],
+  rows: [
+    { name: 'Fammy', note: 'Scored practice, then live', us: true, marks: 'yyyypy' },
+    { name: 'PCIT clinic', note: 'Therapist, 12–20 weekly sessions', logo: 'logos/pcit.png', marks: 'nyypyn' },
+    { name: 'Happypillar', note: 'Scored play with your child', logo: 'logos/happypillar.png', marks: 'nyypnn' },
+    { name: 'Vipo.AI', note: 'Boston University research', logo: 'logos/vipo.png', marks: 'yppnnn' },
+    { name: 'ChildMind AI', note: 'Chat with a virtual child', logo: 'logos/childmind.png', marks: 'ynnnny' },
+    { name: 'Good Inside', note: 'Videos, scripts, a chatbot', logo: 'logos/goodinside.png', marks: 'nnnnny' },
+    { name: 'ChatGPT', note: 'Can play a child if asked', logo: 'logos/chatgpt.png', marks: 'pnnnny' },
+  ],
+};
+const MARK = {
+  y: '<svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  p: '<svg viewBox="0 0 24 24"><path d="M9.2 9.3a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.1-1.5 2.1v.6" fill="none" stroke="#0B0B0F" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="18.6" r="1.5" fill="#0B0B0F"/></svg>',
+  n: '<svg viewBox="0 0 24 24"><path d="M7.5 7.5l9 9M16.5 7.5l-9 9" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/></svg>',
+};
+const cmp = document.getElementById('cmp');
+if (cmp) {
+  const brand = '<svg viewBox="0 0 113 100" style="width:32px; height:auto"><use href="#mark2"/></svg>';
+  let html = '<div class="h"></div>' + CMP.cols.map((c) => `<div class="h">${c}</div>`).join('');
+  let afterUs = false;
+  for (const r of CMP.rows) {
+    const us = r.us ? ' us' : '';
+    const after = afterUs ? ' after' : '';
+    const logo = r.us ? brand : `<img src="${r.logo}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'), { textContent: '${r.name.slice(0, 1)}' }))">`;
+    html += `<div class="c who${us}${after}"><span class="lg">${logo}</span><span><div class="nm">${r.name}</div><div class="nt">${r.note}</div></span></div>`;
+    html += [...r.marks].map((m, i) => `<div class="c${us}${after}${i === r.marks.length - 1 ? ' end' : ''}"><span class="mark ${m}">${MARK[m]}</span></div>`).join('');
+    afterUs = !!r.us;
+  }
+  cmp.innerHTML = html;
+}
+document.querySelectorAll('[data-mark]').forEach((el) => { el.innerHTML = MARK[el.dataset.mark]; });
 </script>
 </body>
 </html>

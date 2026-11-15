@@ -20,7 +20,7 @@ You are building half of Fammy for a hackathon that closes **today, 15 November,
    `node_modules/next/dist/docs/` before using a Next API.
 3. `docs/figma/frames/`: every frame of the design as an image, named by its Figma node id. And
    `docs/figma/round-5-spec.md` for the written spec of each screen.
-4. Open `/kit` in the dev server (config `playreps` in `.claude/launch.json`) to see every component that exists.
+4. Open `/kit` in the dev server (config `fammy` in `.claude/launch.json`) to see every component that exists.
 
 The design is finished in Figma (file key `pAxPxb3CU2ZQv0NK90auWe`). Build what is drawn. Do not redesign, do not add
 captions, do not change the Figma file.
@@ -45,7 +45,7 @@ Not mine (developer B): `app/(app)/**`, `app/play/**`, `app/session/**`, `app/li
 
 ## Step 0: the safety net (done, keep it alive)
 
-Production is live at **https://fammy-app.vercel.app** (Vercel project `playreps`), deployed from this branch. Every
+Production is live at **https://fammy-app.vercel.app** (Vercel project `fammy`), deployed from this branch. Every
 route answers. The Stripe test checkout is not set up yet: I add the test key myself (`STRIPE_SECRET_KEY`, it must
 start with `sk_test_`; never print it, never commit it). Until then the paywall says so and the jury link works.
 
@@ -54,7 +54,7 @@ Rules for production from now on:
 - It changes only when a newer build has passed `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` and
   a walk of the jury path in an incognito window. The redesign goes to preview deployments until the freeze check.
 - Deploy from a clean checkout of a pushed commit, never from a working tree with uncommitted files:
-  `git worktree add --detach <dir> <commit>`, `vercel link --yes --project playreps` in it once, then
+  `git worktree add --detach <dir> <commit>`, `vercel link --yes --project fammy` in it once, then
   `vercel deploy --prod --yes` (without `--prod` for a preview).
 - Ask me before every production deploy and before every push to `main`. Pushing to `redesign/premium-ui` is fine.
 

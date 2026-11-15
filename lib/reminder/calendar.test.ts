@@ -6,7 +6,7 @@ import {
 } from './calendar';
 
 const STAMP = '20261115T120000Z';
-const ORIGIN = 'https://playreps.example';
+const ORIGIN = 'https://fammy.example';
 const file = (anchor: string, today = '2026-11-15', days?: number) => buildCalendar({ anchor, today, stamp: STAMP, origin: ORIGIN, days });
 /** A folded file back as logical lines. */
 const unfold = (text: string): string[] => text.replace(/\r\n /g, '').split('\r\n');
@@ -159,7 +159,7 @@ describe('googleCalendarUrl', () => {
       'https://calendar.google.com/calendar/render?action=TEMPLATE&text=Fammy%3A%20five%20minutes%20of%20play' +
         '&dates=20261116T173000%2F20261116T173500&recur=RRULE%3AFREQ%3DDAILY%3BCOUNT%3D28' +
         "&details=After%20daycare%3A%20five%20minutes%20of%20play%2C%20one%20small%20skill%20a%20day.%20Open%20today's%20session%20at%20" +
-        'https%3A%2F%2Fplayreps.example%2Fdaily',
+        'https%3A%2F%2Ffammy.example%2Fdaily',
     );
   });
   it('starts tomorrow at the anchor\'s time and repeats for the plan days left', () => {

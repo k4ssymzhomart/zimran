@@ -113,7 +113,7 @@ export function buildCalendar(input: { anchor: string; today: string; stamp: str
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
-    `UID:playreps-${event.day}-${slug}@${host}`,
+    `UID:fammy-${event.day}-${slug}@${host}`,
     `DTSTAMP:${input.stamp}`,
     `DTSTART:${event.start}`,
     `DTEND:${event.end}`,

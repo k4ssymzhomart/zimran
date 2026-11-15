@@ -22,7 +22,7 @@ You are building half of Fammy for a hackathon that closes **today, 15 November,
    `node_modules/next/dist/docs/` before using a Next API.
 3. `ARCHITECTURE.md` for the engine, `docs/figma/frames/` (every frame of the design as an image, named by its
    Figma node id), and `docs/figma/round-5-spec.md` for the written spec of each screen.
-4. Open `/kit` in the dev server (config `playreps` in `.claude/launch.json`) to see every component that exists.
+4. Open `/kit` in the dev server (config `fammy` in `.claude/launch.json`) to see every component that exists.
 
 The design is finished in Figma (file key `pAxPxb3CU2ZQv0NK90auWe`). Build what is drawn. Do not redesign, do not add
 captions, do not change the Figma file.
