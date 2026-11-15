@@ -1,15 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Shell } from '@/components/Bits';
-import { Mia } from '@/components/Mia';
+import { useRouter } from 'next/navigation';
+import { ArrowRight } from '@/components/Icons';
+import { MiaCard } from '@/components/pricing/MiaCard';
+import { ActionLink, Art, Heading, Screen } from '@/components/ui';
 import { confirmCheckout } from '@/client/entitlement';
 
 type Status = 'confirming' | 'paid' | 'not_paid';
 
+/** What a screen reader hears when the status changes; the screens are swapped whole. */
+const ANNOUNCE: Record<Status, string> = {
+  confirming: 'Confirming your test payment.',
+  paid: 'You’re in. Your plan is unlocked on this device.',
+  not_paid: 'The payment was not completed. Nothing was charged.',
+};
+
 /** Stripe sends the visitor here with ?session_id=... The server confirms it; only then we unlock. */
 export default function UnlockedPage() {
+  const { bfcacheId } = useRouter();
+  return <Unlocked key={bfcacheId} />;
+}
+
+function Unlocked() {
   const [status, setStatus] = useState<Status>('confirming');
 
   useEffect(() => {
@@ -26,47 +39,48 @@ export default function UnlockedPage() {
   }, []);
 
   return (
-    <Shell>
-      <section className="rise sticker bg-[#fffaf0] px-5 pb-6 pt-5 text-center" aria-live="polite">
-        <div className="flex justify-center">
-          <Mia
-            face={status === 'paid' ? 'beaming' : status === 'confirming' ? 'smiling' : 'neutral'}
-            posture={status === 'paid' ? 'leaning_in' : 'at_toy'}
-            size={130}
-          />
-        </div>
-
-        {status === 'confirming' && (
-          <>
-            <h1 className="mt-3 font-display text-2xl font-semibold">Confirming your test payment…</h1>
-            <p className="mt-2 text-sm text-ink-soft">This takes a moment. Mia is setting out the blocks.</p>
-          </>
-        )}
-
-        {status === 'paid' && (
-          <div className="pop">
-            <h1 className="mt-3 font-display text-3xl font-semibold">
-              You are <span className="italic text-tomato">in</span>.
-            </h1>
-            <p className="mt-2 text-sm text-ink-soft">
-              Your plan is unlocked on this device. Test mode, so no real charge was made.
-            </p>
-            <Link href="/dashboard" className="btn btn-primary mt-5 w-full text-lg">
-              Go to your plan
-            </Link>
+    <>
+      {status === 'confirming' && (
+        <Screen>
+          <MiaCard face="smiling" priority />
+          <Heading title="Confirming your test payment…" lede="This takes a moment." />
+          <div className="enter d3 mt-8 flex justify-center" aria-hidden="true">
+            <span className="h-7 w-7 animate-spin rounded-full border-[3px] border-violet/25 border-t-violet motion-reduce:animate-none" />
           </div>
-        )}
+        </Screen>
+      )}
 
-        {status === 'not_paid' && (
-          <>
-            <h1 className="mt-3 font-display text-2xl font-semibold">The payment was not completed</h1>
-            <p className="mt-2 text-sm text-ink-soft">Nothing was charged. The plans are still there whenever you are ready.</p>
-            <Link href="/pricing" className="btn btn-plain mt-5">
-              Back to plans
-            </Link>
-          </>
-        )}
-      </section>
-    </Shell>
+      {status === 'paid' && (
+        <Screen
+          action={
+            <ActionLink href="/dashboard">
+              Go to your plan
+              <ArrowRight size={20} />
+            </ActionLink>
+          }
+        >
+          <Art src="/art/party.png" priority />
+          <Heading
+            title="You’re in."
+            lede={
+              <>
+                Your plan is unlocked on this device. <span className="whitespace-nowrap">Test mode,</span> so no real charge was made.
+              </>
+            }
+          />
+        </Screen>
+      )}
+
+      {status === 'not_paid' && (
+        <Screen action={<ActionLink href="/pricing">Back to plans</ActionLink>}>
+          <Art src="/art/replay.png" priority />
+          <Heading title="The payment was not completed" lede="Nothing was charged." />
+        </Screen>
+      )}
+
+      <p className="sr-only" role="status" aria-live="polite">
+        {ANNOUNCE[status]}
+      </p>
+    </>
   );
 }

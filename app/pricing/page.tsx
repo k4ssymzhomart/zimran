@@ -1,22 +1,26 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Shell, DemoBadge } from '@/components/Bits';
-import { Mia } from '@/components/Mia';
+import { DemoBadge } from '@/components/Bits';
+import { Check } from '@/components/Icons';
+import { MiaCard } from '@/components/pricing/MiaCard';
+import { Heading, Pill, Screen } from '@/components/ui';
 import { demoUnlock, startCheckout, type PlanId } from '@/client/entitlement';
+import { useChild } from '@/components/child';
 
 /** The same numbers as PLANS in app/api/checkout/route.ts, which is what Stripe really charges. */
-const PLANS: { id: PlanId; title: string; weeks: number; price: string; perDay: string; note: string }[] = [
-  { id: 'twelve_weeks', title: '12 weeks', weeks: 12, price: '$69', perDay: '$0.82 a day', note: 'The usual length of a clinic programme' },
-  { id: 'four_weeks', title: '4 weeks', weeks: 4, price: '$29', perDay: '$1.04 a day', note: 'The 28-day plan' },
+const PLANS: { id: PlanId; title: string; weeks: number; price: string; perDay: string; best: boolean }[] = [
+  { id: 'twelve_weeks', title: '12 weeks', weeks: 12, price: '$69', perDay: '$0.82 a day', best: true },
+  { id: 'four_weeks', title: '4 weeks', weeks: 4, price: '$29', perDay: '$1.04 a day', best: false },
 ];
 
 const INCLUDED = [
-  { dot: 'bg-sun', text: 'Five minutes a day: every sentence coded as you say it, and a coach line when it helps' },
-  { dot: 'bg-leaf', text: 'The 28-day plan, one skill a week' },
-  { dot: 'bg-sky', text: 'Your progress toward the clinic numbers' },
-  { dot: 'bg-tomato', text: 'After day 28: the same five minutes a day, to keep the habit' },
+  'A coach line when it helps',
+  'The 28-day plan, one skill a week',
+  'Progress toward the clinic numbers',
+  'After day 28, keep the habit going',
 ];
 
 function dateInWeeks(weeks: number): string {
@@ -26,6 +30,17 @@ function dateInWeeks(weeks: number): string {
 }
 
 export default function PricingPage() {
+  // A link back here starts the paywall fresh; the browser's Back button still restores it as it was.
+  const { bfcacheId } = useRouter();
+  return <Paywall key={bfcacheId} />;
+}
+
+/**
+ * The paywall, built like the Coursiv and Jobescape ones: the plans, the terms and the one button fit on the first
+ * screen; what both plans include sits under the action for anyone who scrolls.
+ */
+function Paywall() {
+  const { child } = useChild();
   const router = useRouter();
   const [planId, setPlanId] = useState<PlanId>('twelve_weeks');
   const [busy, setBusy] = useState(false);
@@ -62,93 +77,121 @@ export default function PricingPage() {
   }
 
   return (
-    <Shell>
-      <section className="rise flex items-end gap-3">
-        <div className="shrink-0">
-          <Mia face="beaming" posture="leaning_in" size={96} />
-        </div>
-        <div className="pb-2">
-          <h1 className="font-display text-3xl font-semibold leading-tight">
-            Keep going with <span className="italic text-tomato">Mia</span>
-          </h1>
-          <p className="mt-1 text-sm text-ink-soft">Practise with Mia every day, five minutes at a time.</p>
-        </div>
-      </section>
+    <Screen
+      action={
+        <div className="flex flex-col">
+          {/* The terms in full, right above the button. Reads as a whole sentence before the date is known.
+              Nothing is said about cancelling: this build has no cancel control yet, and the checkout is test mode only. */}
+          <p className="mx-auto max-w-[400px] text-[14px] leading-relaxed text-fg-soft" aria-live="polite">
+            <strong className="font-semibold text-fg">{plan.price} today.</strong> It renews at the same {plan.price}{' '}
+            <span className="whitespace-nowrap">every {plan.weeks} weeks</span>
+            {renewsOn ? (
+              <>
+                , <span className="whitespace-nowrap">next on {renewsOn[planId]}</span>.
+              </>
+            ) : (
+              `, next in ${plan.weeks} weeks.`
+            )}
+          </p>
 
-      <ul className="rise delay-1 sticker mt-5 space-y-2.5 bg-[#fffaf0] p-4 text-sm">
-        {INCLUDED.map((item) => (
-          <li key={item.text} className="flex items-start gap-3">
-            <span aria-hidden="true" className={`mt-1 h-3 w-3 shrink-0 rounded-[4px] border-2 border-ink ${item.dot}`} />
-            <span>{item.text}</span>
-          </li>
-        ))}
-      </ul>
+          <button type="button" onClick={pay} disabled={busy} aria-busy={busy} className="btn btn-primary btn-block mt-4">
+            {busy ? 'Opening checkout…' : `Continue with ${plan.price}`}
+          </button>
+
+          {/* Only words in the live region; the demo button sits outside it so it is not read out as an announcement. */}
+          <div role="status" aria-live="polite">
+            {cancelled && !error && <p className="mt-4 text-[14px] text-fg-soft">Checkout was closed. Nothing was charged.</p>}
+            {error && (
+              <p className="pop mx-auto mt-5 max-w-[400px] text-[14px] leading-relaxed text-fg-2">
+                {error} <span className="whitespace-nowrap">Nothing was charged.</span>
+              </p>
+            )}
+          </div>
+          {error && (
+            <div className="pop mt-3 flex flex-col items-center gap-2.5">
+              <button type="button" onClick={unlockDemo} className="btn btn-secondary btn-block">
+                Unlock in demo mode instead
+              </button>
+              <DemoBadge>Demo unlock, no payment</DemoBadge>
+            </div>
+          )}
+
+          <div className="mt-4 flex items-center gap-3 rounded-2xl bg-surface-2 px-4 py-3 text-left">
+            <Image src="/art/lock.png" alt="" width={32} height={32} className="h-8 w-8 shrink-0" />
+            <p className="text-[13px] leading-snug text-fg-2">
+              <strong className="block font-semibold text-fg">Test mode.</strong> Use card{' '}
+              <span className="whitespace-nowrap font-semibold tabular-nums text-fg">4242 4242 4242 4242</span>, any future date,
+              any CVC. No real charge.
+            </p>
+          </div>
+
+          <section aria-labelledby="included-title" className="mt-12 text-left">
+            <h2 id="included-title" className="text-[20px] font-extrabold tracking-[-0.03em] text-fg">
+              Both plans include
+            </h2>
+            <ul className="mt-4 space-y-3">
+              {INCLUDED.map((text) => (
+                <li key={text} className="flex items-start gap-3 text-[16px] leading-snug tracking-[-0.01em] text-fg-2">
+                  <span aria-hidden="true" className="mt-px grid h-5 w-5 shrink-0 place-items-center rounded-full bg-violet/16 text-lilac">
+                    <Check size={12} strokeWidth={3} />
+                  </span>
+                  {text}
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      }
+    >
+      <MiaCard face="beaming" posture="leaning_in" size="sm" priority />
+      <Heading
+        title={`Keep practising with ${child.name}`}
+        lede={
+          <>
+            Five minutes a day, every sentence coded <span className="whitespace-nowrap">as you say it.</span>
+          </>
+        }
+      />
 
       {/* Real radio buttons inside labels: arrow keys, screen readers and tapping the card all work. */}
-      <fieldset className="rise delay-2 mt-6">
-        <legend className="font-display text-lg font-semibold">Choose your plan</legend>
-        <div className="mt-3 space-y-3">
-          {PLANS.map((p) => (
+      <div role="radiogroup" aria-label="Choose your plan" className="enter d2 mt-8 space-y-3 text-left">
+        {PLANS.map((p) => {
+          const selected = p.id === planId;
+          return (
             <label
               key={p.id}
-              className={`sticker-sm flex cursor-pointer items-center gap-3 p-4 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-sun/70 ${
-                p.id === planId ? 'bg-sun/35' : 'bg-[#fffdf8]'
+              className={`relative flex cursor-pointer items-center gap-4 rounded-2xl px-4 py-4 transition-[box-shadow,background-color] duration-200 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-violet/50 ${
+                selected ? 'bg-violet/10 shadow-[0_0_0_2px_var(--color-violet)]' : 'bg-surface shadow-card hover:bg-surface-2'
               }`}
             >
               <input
                 type="radio"
                 name="plan"
                 value={p.id}
-                checked={p.id === planId}
+                checked={selected}
                 onChange={() => setPlanId(p.id)}
-                className="h-5 w-5 shrink-0 accent-tomato"
+                className="sr-only"
               />
-              <span className="min-w-0 flex-1">
-                <span className="block font-display text-lg font-semibold leading-tight">{p.title}</span>
-                <span className="block text-sm text-ink-soft">
-                  {p.perDay} · {p.note}
-                </span>
+              <span
+                aria-hidden="true"
+                className={`grid h-6 w-6 shrink-0 place-items-center rounded-full transition-colors ${
+                  selected ? 'bg-violet text-white' : 'border-2 border-stroke'
+                }`}
+              >
+                {selected && <Check size={14} strokeWidth={3} />}
               </span>
-              <span className="font-display text-2xl font-semibold">{p.price}</span>
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="text-[18px] font-bold tracking-[-0.02em] text-fg">{p.title}</span>
+                  {p.best && <Pill>Best value</Pill>}
+                </span>
+                <span className="mt-0.5 block text-[14px] tabular-nums text-fg-soft">{p.perDay}</span>
+              </span>
+              <span className="text-[26px] font-extrabold tabular-nums tracking-[-0.04em] text-fg">{p.price}</span>
             </label>
-          ))}
-        </div>
-      </fieldset>
-
-      {/* The terms in full, right above the button. Reads as a whole sentence before the date is known.
-          Nothing is said about cancelling: this build has no cancel control yet, and the checkout is test mode only. */}
-      <p className="rise delay-3 mt-5 text-sm leading-relaxed" aria-live="polite">
-        <strong>{plan.price} today.</strong> It renews at the same {plan.price} every {plan.weeks} weeks
-        {renewsOn ? `, next on ${renewsOn[planId]}` : `, next in ${plan.weeks} weeks`}.
-      </p>
-
-      <button onClick={pay} disabled={busy} className="btn btn-primary rise delay-3 mt-4 w-full text-lg">
-        {busy ? 'Opening checkout…' : `Continue — ${plan.price}`}
-      </button>
-
-      <p className="rise delay-4 sticker-sm mt-5 bg-sun px-4 py-3 text-sm leading-snug">
-        <strong>Test mode.</strong> Use card <strong className="whitespace-nowrap">4242 4242 4242 4242</strong>, any
-        future date, any CVC. No real charge.
-      </p>
-
-      <div role="status" aria-live="polite">
-        {cancelled && !error && (
-          <p className="mt-4 text-sm text-ink-soft">Checkout was closed and nothing was charged. Pick up whenever you like.</p>
-        )}
-        {error && (
-          <div className="pop sticker-sm mt-5 bg-[#fffaf0] p-4">
-            <p className="text-sm leading-snug">
-              {error} Nothing was charged. You can still look around:
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <button onClick={unlockDemo} className="btn btn-plain">
-                Unlock in demo mode instead
-              </button>
-              <DemoBadge>Demo unlock · no payment</DemoBadge>
-            </div>
-          </div>
-        )}
+          );
+        })}
       </div>
-    </Shell>
+    </Screen>
   );
 }

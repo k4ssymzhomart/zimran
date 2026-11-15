@@ -2,7 +2,7 @@
 
 Live: <add the Vercel URL here>
 
-PlayReps lets a parent practise the five-minute play skill that clinics teach, with Mia, a simulated four-year-old.
+PlayReps lets a parent practise the five-minute play skill that clinics teach, with Mia or Leo, a simulated four-year-old girl or boy.
 Every sentence the parent types or speaks is coded live by rules in `/lib`, Mia reacts to it, and three rings fill
 toward the clinic pace. After a 60-second round and a 30-second lesson, the parent plays again and sees their own before and after.
 
@@ -10,12 +10,13 @@ toward the clinic pace. After a 60-second round and a 30-second lesson, the pare
 
 No login. The same guide is on the site at `/jury`.
 
-1. `/` — answer Mia in your own words.
-2. `/play` — a 60-second round, a 30-second lesson, a second round, and the before and after. Type, or tap
-   "Speak instead" in Chrome or Edge.
-3. `/dashboard` — the plan, the streak, the calm check-in and the 28-day demo.
-4. `/pricing` — the paywall and the Stripe test checkout (card `4242 4242 4242 4242`, any future date, any CVC).
-5. `/live` (beta, optional) — five minutes with your own child, spoken aloud. Needs Chrome or Edge and a microphone.
+1. `/` — the landing page, with one button: "Start practising".
+2. `/start` — pick Mia or Leo, then answer in your own words.
+3. `/play` — a 60-second round, a 30-second lesson, a second round, and the before and after. Type, or tap the
+   microphone in Chrome or Edge.
+4. `/dashboard` — the plan, the streak, the calm check-in and the 28-day demo.
+5. `/pricing` — the paywall and the Stripe test checkout (card `4242 4242 4242 4242`, any future date, any CVC).
+6. `/live` (beta, optional) — five minutes with your own child, spoken aloud. Needs Chrome or Edge and a microphone.
 
 ## Run it
 
@@ -38,7 +39,7 @@ npm test
 | Folder | What lives there |
 | --- | --- |
 | `app/` | Pages (client components) and two small API routes for the Stripe test checkout. |
-| `components/` | Shared pieces: Mia, the rings, the page frame, sentence chips. |
+| `components/` | The screen kit (`ui.tsx`), the child portraits and the Mia/Leo choice (`child.tsx`), the rings, sentence chips. Design rules: `DESIGN.md`. |
 | `hooks/` | The browser side of the pure logic: `useRound` (round reducer + a real clock), `useJourney` (first visit + rounds + storage), `useSpeech` (speech recognition and the spoken coach), `useWakeLock` (screen stays on in live play). |
 | `client/` | Guest state in `localStorage`: progress and the paid flag. |
 | `lib/` | The engine. Pure TypeScript, no React, no network, no clock. All tests are here. |
@@ -102,6 +103,7 @@ Without the key the site still runs; only the checkout is unavailable.
 - A sentence in another script is shown as "Not coded"; a sentence in another language typed in Latin letters is
   usually read as neutral talk.
 - Mia's reactions follow what the method teaches parents. They are not a validated model of children.
+- Leo is the same engine as Mia. The engine's texts are written about Mia; for Leo the screens rewrite the name and pronouns on display (`components/child.tsx`, tested in `components/child.test.ts`).
 - The demo family is simulated, and labelled as such wherever it appears.
 - Voice needs Chrome or Edge. One microphone cannot tell the parent's voice from the child's, so in live play a
   clear sentence from the child may be counted as the parent's, and reflections are not counted there.

@@ -1,6 +1,7 @@
 /**
- * Skill trend, one point per day, drawn in plain SVG. Values are counts on the five-minute scale
- * (a shorter round is not scaled up); the dashed line is the clinic norm of 10.
+ * Skill trend, one point per day. Values are counts on the five-minute scale (a shorter round is not scaled
+ * up); the dashed line is the clinic norm of 10. The lines are drawn in a stretched SVG with strokes that do
+ * not scale, and the dots and labels are plain HTML on top, so text stays crisp at every width.
  */
 
 export interface TrendPoint {
@@ -12,82 +13,101 @@ export interface TrendPoint {
 }
 
 const SERIES = [
-  { key: 'specific_praise', label: 'Praise', stroke: 'stroke-sun', fill: 'fill-sun' },
-  { key: 'reflection', label: 'Reflect', stroke: 'stroke-sky', fill: 'fill-sky' },
-  { key: 'description', label: 'Describe', stroke: 'stroke-leaf', fill: 'fill-leaf' },
+  { key: 'specific_praise', label: 'Praise', color: 'var(--color-violet)' },
+  { key: 'reflection', label: 'Reflect', color: 'var(--color-reflect)' },
+  { key: 'description', label: 'Describe', color: 'var(--color-describe)' },
 ] as const;
 
-const W = 320;
-const H = 150;
-const PAD = { left: 26, right: 10, top: 10, bottom: 20 };
+const PLOT_HEIGHT = 168;
 const CLINIC_NORM = 10; // of each skill in five minutes
 
 /** `span` is how many days the x axis leaves room for, so a short history starts at the left and grows. */
 export function TrendChart({ points, span = 7 }: { points: TrendPoint[]; span?: number }) {
   const days = Math.max(span, points.length, 2);
-  const top = Math.max(CLINIC_NORM + 2, ...points.flatMap((p) => SERIES.map((s) => p[s.key] ?? 0)));
-  const x = (i: number) => PAD.left + (i * (W - PAD.left - PAD.right)) / (days - 1);
-  const y = (v: number) => H - PAD.bottom - (v * (H - PAD.top - PAD.bottom)) / top;
+  // A little headroom above the highest reading, so a line never runs along the top edge.
+  const top = Math.max(CLINIC_NORM + 2, ...points.flatMap((p) => SERIES.map((s) => (p[s.key] ?? 0) * 1.1)));
+  const x = (i: number) => (i * 100) / (days - 1);
+  const y = (v: number) => 100 - (v * 100) / top;
+  const normAt = `${y(CLINIC_NORM)}%`;
   const latest = points.at(-1);
   const summary = latest
     ? `Latest day, in five minutes: praise ${latest.specific_praise}, reflections ${latest.reflection ?? 'not counted in live play'}, descriptions ${latest.description}. The clinic norm is ${CLINIC_NORM} of each.`
     : 'No days yet.';
 
+  const lines = SERIES.map((s) => ({
+    ...s,
+    // A day without a reading for this skill is left out of its line, not drawn at zero.
+    dots: points.flatMap((p, i) => {
+      const v = p[s.key];
+      return v === null ? [] : [{ i, v, date: p.date }];
+    }),
+  }));
+
   return (
     <figure>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={`Skill trend over ${points.length} day${points.length === 1 ? '' : 's'}. ${summary}`}>
-        {/* frame and scale */}
-        <line x1={PAD.left} y1={y(0)} x2={W - PAD.right} y2={y(0)} className="stroke-ink" strokeWidth="2" strokeLinecap="round" />
-        {[0, CLINIC_NORM, top].map((v) => (
-          <text key={v} x={PAD.left - 6} y={y(v) + 4} textAnchor="end" className="fill-ink-soft text-[10px] font-semibold">
-            {Math.round(v * 10) / 10}
-          </text>
-        ))}
-        <line x1={PAD.left} y1={y(CLINIC_NORM)} x2={W - PAD.right} y2={y(CLINIC_NORM)} className="stroke-ink" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.6" />
-        <text x={W - PAD.right} y={y(CLINIC_NORM) - 5} textAnchor="end" className="fill-ink-soft text-[10px] font-semibold">
-          clinic norm · 10 in five minutes
-        </text>
-        <text x={PAD.left} y={H - 5} className="fill-ink-soft text-[10px]">day 1</text>
-        <text x={W - PAD.right} y={H - 5} textAnchor="end" className="fill-ink-soft text-[10px]">day {days}</text>
+      <div role="img" aria-label={`Skill trend over ${points.length} day${points.length === 1 ? '' : 's'}. ${summary}`} className="flex gap-2.5">
+        {/* y axis: only the two values that matter */}
+        <div aria-hidden="true" className="relative w-5 shrink-0 text-right text-[11px] font-medium tabular-nums text-fg-faint" style={{ height: PLOT_HEIGHT }}>
+          <span className="absolute right-0 -translate-y-1/2" style={{ top: normAt }}>
+            {CLINIC_NORM}
+          </span>
+          <span className="absolute right-0 -translate-y-1/2" style={{ top: '100%' }}>
+            0
+          </span>
+        </div>
 
-        {SERIES.map((s) => {
-          // A day without a reading for this skill is left out of its line, not drawn at zero.
-          const dots = points.flatMap((p, i) => {
-            const v = p[s.key];
-            return v === null ? [] : [{ i, v, date: p.date }];
-          });
-          return (
-            <g key={s.key}>
-              {dots.length > 1 && (
+        <div aria-hidden="true" className="relative min-w-0 flex-1" style={{ height: PLOT_HEIGHT }}>
+          <div className="absolute inset-x-0 bottom-0 h-px bg-stroke" />
+          <div className="absolute inset-x-0 border-t border-dashed border-fg-faint/60" style={{ top: normAt }} />
+          {/* Labelled at the start, where a family's early days sit well under it, so the lines rarely cross the words. */}
+          <span className="absolute left-0 -translate-y-full pb-1 text-[11px] font-medium text-fg-faint" style={{ top: normAt }}>
+            clinic norm
+          </span>
+
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible">
+            {lines.map((s) =>
+              s.dots.length > 1 ? (
                 <polyline
-                  points={dots.map((d) => `${x(d.i)},${y(d.v)}`).join(' ')}
+                  key={s.key}
+                  points={s.dots.map((d) => `${x(d.i)},${y(d.v)}`).join(' ')}
                   fill="none"
-                  className={s.stroke}
-                  strokeWidth="3"
+                  stroke={s.color}
+                  strokeWidth="2"
                   strokeLinejoin="round"
                   strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
                 />
-              )}
-              {/* Every reading on a short history; on a long one, only the newest reading of this skill. */}
-              {dots.map((d) =>
-                points.length <= 10 || d.i === dots[dots.length - 1].i ? (
-                  <circle key={d.date} cx={x(d.i)} cy={y(d.v)} r="4" className={`${s.fill} stroke-ink`} strokeWidth="1.5" />
-                ) : null,
-              )}
-            </g>
-          );
-        })}
-      </svg>
-      <figcaption className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-soft">
+              ) : null,
+            )}
+          </svg>
+
+          {/* Every reading on a short history; on a long one, only the newest reading of each skill. */}
+          {lines.map((s) =>
+            s.dots.map((d) =>
+              points.length <= 10 || d.i === s.dots[s.dots.length - 1].i ? (
+                <span
+                  key={`${s.key}-${d.date}`}
+                  className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-surface"
+                  style={{ left: `${x(d.i)}%`, top: `${y(d.v)}%`, background: s.color }}
+                />
+              ) : null,
+            ),
+          )}
+        </div>
+      </div>
+
+      <div aria-hidden="true" className="mt-2 flex justify-between pl-[30px] text-[11px] font-medium text-fg-faint">
+        <span>Day 1</span>
+        <span>Day {days}</span>
+      </div>
+
+      <figcaption className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[13px] font-medium text-fg-2">
         {SERIES.map((s) => (
-          <span key={s.key} className="inline-flex items-center gap-1.5 font-semibold">
-            <svg width="10" height="10" aria-hidden="true">
-              <circle cx="5" cy="5" r="4" className={`${s.fill} stroke-ink`} strokeWidth="1.5" />
-            </svg>
+          <span key={s.key} className="inline-flex items-center gap-2">
+            <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ background: s.color }} />
             {s.label}
           </span>
         ))}
-        <span>sentences in five minutes; a shorter round is not scaled up</span>
       </figcaption>
     </figure>
   );

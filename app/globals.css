@@ -1,197 +1,334 @@
 @import "tailwindcss";
 
-/* Wooden-toy palette: cream paper, dark ink outlines, four block colours. */
+/*
+ * PlayReps in the Zimran house style (Finelo, Coursiv): a near-black canvas, white Inter set heavy and tight,
+ * and one violet. Everything colourful is a shade of that violet: buttons, rings, tags, 3D objects.
+ * Never yellow, never red: sentences to swap are calm grey.
+ */
 @theme {
-  --color-paper: #fbf3e4;
-  --color-rug: #f1e2c3;
-  --color-ink: #211c17;
-  --color-ink-soft: #5d544a;
-  --color-tomato: #e2553a;
-  --color-sun: #f4b63a;
-  --color-leaf: #3f8f5f;
-  --color-sky: #4a7fb5;
-  --color-sand: #d9c9a8;
-  --color-plum: #7a5c80;
-  --color-skin: #f6c9a0;
+  /* canvas and surfaces */
+  --color-canvas: #09081b;
+  --color-surface: #13112b;
+  --color-surface-2: #1b1838;
+  --color-surface-3: #252249;
+  --color-stroke: #ffffff17;
+  --color-stroke-2: #ffffff29;
+  --color-night: #09081b;
+
+  /* text */
+  --color-fg: #ffffff;
+  --color-fg-2: #dad9ea;
+  --color-fg-soft: #a3a1bd;
+  --color-fg-faint: #6e6c8d;
+
+  /* the one colour */
+  --color-violet: #6c63ff;
+  --color-violet-400: #8a83ff;
+  --color-violet-600: #5a50f2;
+  --color-lilac: #b7b3ff;
+  --color-lilac-2: #e0deff;
+
+  /* the three skills, one violet family from deep to light */
+  --color-praise: #6c63ff;
+  --color-reflect: #a39eff;
+  --color-describe: #dcdaff;
+
+  --radius-card: 1.25rem;
+  --radius-art: 1.75rem;
+
+  --shadow-card: inset 0 0 0 1px rgb(255 255 255 / 0.07), 0 18px 44px -30px rgb(0 0 0 / 0.9);
+  --shadow-float: inset 0 0 0 1px rgb(255 255 255 / 0.09), 0 28px 70px -30px rgb(0 0 0 / 0.95);
+  --shadow-violet: 0 14px 34px -12px rgb(108 99 255 / 0.75);
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  --animate-enter: enter 560ms var(--ease-out-quint) both;
+  --animate-pop: pop 420ms var(--ease-spring) both;
 }
 
 @theme inline {
-  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
-  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-html {
-  background: var(--color-paper);
-}
-
-body {
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  /* paper grain: two offset dot grids */
-  background-color: var(--color-paper);
-  background-image:
-    radial-gradient(rgb(33 28 23 / 0.05) 1px, transparent 1px),
-    radial-gradient(rgb(33 28 23 / 0.035) 1px, transparent 1px);
-  background-size: 22px 22px, 31px 31px;
-  background-position: 0 0, 11px 17px;
-}
-
-/* A card that looks like a sticker or a wooden block: dark outline, hard offset shadow. */
-.sticker {
-  border: 2.5px solid var(--color-ink);
-  border-radius: 1.25rem;
-  box-shadow: 4px 4px 0 var(--color-ink);
-}
-.sticker-sm {
-  border: 2px solid var(--color-ink);
-  border-radius: 0.9rem;
-  box-shadow: 3px 3px 0 var(--color-ink);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border: 2.5px solid var(--color-ink);
-  border-radius: 999px;
-  padding: 0.8rem 1.4rem;
-  font-weight: 700;
-  line-height: 1.1;
-  box-shadow: 4px 4px 0 var(--color-ink);
-  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
-  cursor: pointer;
-}
-.btn:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0 var(--color-ink);
-}
-.btn:active {
-  transform: translate(3px, 3px);
-  box-shadow: 1px 1px 0 var(--color-ink);
-}
-.btn:disabled {
-  opacity: 0.55;
-  cursor: default;
-  transform: none;
-  box-shadow: 4px 4px 0 var(--color-ink);
-}
-.btn-primary {
-  background: var(--color-tomato);
-  color: #fff;
-}
-.btn-sun {
-  background: var(--color-sun);
-  color: var(--color-ink);
-}
-.btn-plain {
-  background: #fffaf0;
-  color: var(--color-ink);
-}
-.btn-quiet {
-  border-width: 2px;
-  box-shadow: 2px 2px 0 var(--color-ink);
-  padding: 0.5rem 0.9rem;
-  font-size: 0.875rem;
-  background: #fffaf0;
-}
-
-.field {
-  width: 100%;
-  border: 2.5px solid var(--color-ink);
-  border-radius: 1rem;
-  background: #fffdf8;
-  padding: 0.85rem 1rem;
-  font-size: 1rem;
-  outline: none;
-}
-.field:focus {
-  box-shadow: 0 0 0 4px rgb(244 182 58 / 0.55);
-}
-
-/* The rug Mia sits on: stitched edge. */
-.rug {
-  background: var(--color-rug);
-  border-radius: 1.5rem;
-  outline: 2px dashed rgb(33 28 23 / 0.35);
-  outline-offset: -8px;
-}
-
-@keyframes rise {
+@keyframes enter {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
+
 @keyframes pop {
   0% {
-    transform: scale(0.6);
     opacity: 0;
+    transform: scale(0.92);
   }
-  70% {
-    transform: scale(1.08);
+  100% {
     opacity: 1;
-  }
-  100% {
-    transform: scale(1);
+    transform: none;
   }
 }
-@keyframes wobble {
+
+@keyframes breathe {
   0%,
   100% {
-    transform: rotate(-1.5deg);
+    transform: translateY(0);
   }
   50% {
-    transform: rotate(1.5deg);
+    transform: translateY(-6px);
   }
 }
-@keyframes glow {
-  0%,
+
+@keyframes listen {
+  0% {
+    box-shadow: 0 0 0 0 rgb(108 99 255 / 0.55);
+  }
   100% {
-    box-shadow: 0 0 0 0 rgb(244 182 58 / 0);
-  }
-  50% {
-    box-shadow: 0 0 0 10px rgb(244 182 58 / 0.35);
+    box-shadow: 0 0 0 14px rgb(108 99 255 / 0);
   }
 }
-.rise {
-  animation: rise 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+html {
+  background: var(--color-canvas);
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+  scrollbar-gutter: stable;
 }
-.pop {
-  animation: pop 320ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
-.wobble {
-  animation: wobble 3.2s ease-in-out infinite;
-  transform-origin: 50% 90%;
+
+::selection {
+  background: rgb(108 99 255 / 0.45);
 }
-.glow {
-  animation: glow 1.4s ease-in-out infinite;
-}
-.delay-1 {
-  animation-delay: 90ms;
-}
-.delay-2 {
-  animation-delay: 180ms;
-}
-.delay-3 {
-  animation-delay: 270ms;
-}
-.delay-4 {
-  animation-delay: 360ms;
+
+@layer components {
+  /* Headlines: Inter heavy and tight, the way Finelo and Coursiv set them. */
+  .title {
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.06;
+    text-wrap: balance;
+  }
+
+  .lede {
+    color: var(--color-fg-soft);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+
+  /* ---------- buttons ---------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3.5rem;
+    padding: 0 1.5rem;
+    border-radius: 1rem;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition:
+      transform 180ms var(--ease-out-quint),
+      background-color 180ms ease,
+      box-shadow 180ms ease,
+      color 180ms ease,
+      filter 180ms ease;
+  }
+  .btn:active {
+    transform: scale(0.98);
+  }
+  .btn:focus-visible {
+    outline: 3px solid rgb(108 99 255 / 0.55);
+    outline-offset: 3px;
+  }
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: default;
+    transform: none;
+  }
+
+  /* The violet button, with the soft gloss Finelo puts on its buttons. */
+  .btn-primary {
+    background:
+      linear-gradient(165deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0) 52%, rgb(20 16 60 / 0.18)),
+      var(--color-violet);
+    color: #fff;
+    box-shadow:
+      var(--shadow-violet),
+      inset 0 1px 0 rgb(255 255 255 / 0.25);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.08);
+  }
+
+  .btn-secondary {
+    background: rgb(255 255 255 / 0.07);
+    color: var(--color-fg);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  }
+  .btn-secondary:hover {
+    background: rgb(255 255 255 / 0.11);
+  }
+
+  /* White button, for violet or photographic surfaces. */
+  .btn-light {
+    background: #fff;
+    color: #17133f;
+  }
+  .btn-light:hover {
+    background: var(--color-lilac-2);
+  }
+
+  /* Quiet text action: a secondary choice that should not compete with the one primary action. */
+  .btn-ghost {
+    min-height: 2.75rem;
+    padding: 0 0.875rem;
+    border-radius: 0.75rem;
+    background: transparent;
+    color: var(--color-fg-soft);
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+  .btn-ghost:hover {
+    color: var(--color-fg);
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  /* Small rounded control for secondary moves inside a screen. */
+  .btn-chip {
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.07);
+    color: var(--color-fg-2);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .btn-chip:hover {
+    background: rgb(108 99 255 / 0.2);
+    color: var(--color-lilac-2);
+  }
+  .btn-chip[aria-pressed="true"] {
+    background: rgb(108 99 255 / 0.28);
+    color: #fff;
+  }
+
+  .btn-block {
+    width: 100%;
+  }
+
+  /* ---------- surfaces ---------- */
+
+  .card {
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0)),
+      var(--color-surface);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* The art card: a 3D object or a portrait resting in a pool of violet light. */
+  .art {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-art);
+    background:
+      radial-gradient(85% 75% at 50% 108%, rgb(108 99 255 / 0.62), transparent 70%),
+      radial-gradient(60% 50% at 50% 0%, rgb(255 255 255 / 0.05), transparent 70%),
+      linear-gradient(180deg, #17143c, #0e0c26);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.08),
+      0 30px 60px -36px rgb(108 99 255 / 0.55);
+  }
+
+  /* The violet aura at the top of every screen. */
+  .glow {
+    background:
+      radial-gradient(60% 42% at 50% -8%, rgb(108 99 255 / 0.3), transparent 72%),
+      radial-gradient(35% 28% at 100% 0%, rgb(108 99 255 / 0.12), transparent 70%),
+      var(--color-canvas);
+  }
+
+  .field {
+    width: 100%;
+    min-height: 3.5rem;
+    border-radius: 1rem;
+    border: 1px solid rgb(255 255 255 / 0.09);
+    background: rgb(255 255 255 / 0.055);
+    padding: 0 1.125rem;
+    font-size: 1.0625rem;
+    color: var(--color-fg);
+    transition:
+      border-color 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+  .field::placeholder {
+    color: var(--color-fg-faint);
+  }
+  .field:focus {
+    outline: none;
+    background: rgb(255 255 255 / 0.08);
+    border-color: var(--color-violet);
+    box-shadow: 0 0 0 4px rgb(108 99 255 / 0.22);
+  }
+
+  /* ---------- motion ---------- */
+
+  .enter {
+    animation: var(--animate-enter);
+  }
+  .pop {
+    animation: var(--animate-pop);
+  }
+  .breathe {
+    animation: breathe 5s ease-in-out infinite;
+  }
+  .listening {
+    animation: listen 1.3s ease-out infinite;
+  }
+  .d1 {
+    animation-delay: 70ms;
+  }
+  .d2 {
+    animation-delay: 140ms;
+  }
+  .d3 {
+    animation-delay: 210ms;
+  }
+  .d4 {
+    animation-delay: 280ms;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rise,
+  .enter,
   .pop,
-  .wobble,
-  .glow {
+  .breathe,
+  .listening {
     animation: none;
   }
-  .btn {
+  .btn,
+  .field {
     transition: none;
   }
 }

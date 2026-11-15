@@ -1,30 +1,39 @@
 import type { Metadata, Viewport } from 'next';
-import { Figtree, Fraunces } from 'next/font/google';
+import { Inter } from 'next/font/google';
+import { ChildProvider } from '@/components/child';
 import './globals.css';
 
-const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-fraunces', axes: ['SOFT', 'WONK', 'opsz'] });
-const figtree = Figtree({ subsets: ['latin'], variable: '--font-figtree' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+
+// Link previews need an absolute origin: the Vercel production domain when deployed, localhost otherwise.
+const origin = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000';
 
 export const metadata: Metadata = {
-  title: 'PlayReps — practise the five-minute play skill clinics teach',
+  metadataBase: new URL(origin),
+  title: 'PlayReps — practise the five minutes of play clinics teach',
   description:
-    'Rehearse with a simulated four-year-old, get every sentence coded live, and see how close you are to the clinic numbers.',
+    'Practise with Mia or Leo, a simulated four-year-old. Every sentence you say is coded as you say it, and three rings fill toward the clinic pace.',
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#fbf3e4',
+  viewportFit: 'cover',
+  // On Android the keyboard shrinks the layout, so the round screen keeps Mia and the input in view together.
+  interactiveWidget: 'resizes-content',
+  themeColor: '#09081b',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${figtree.variable} h-full antialiased`}>
+    <html lang="en" className={`${inter.variable} h-full`}>
       <body className="flex min-h-full flex-col">
-        <div className="flex-1">{children}</div>
-        <footer className="mx-auto w-full max-w-[460px] px-5 pb-8 pt-6 text-center text-xs leading-relaxed text-ink-soft">
-          Skill practice for parents. Not therapy and not a diagnosis. Mia is a simulated child for practice; real
-          children vary. Worried about your child? Talk to your paediatrician.
+        <ChildProvider>
+          <div className="flex-1">{children}</div>
+        </ChildProvider>
+        <footer className="mx-auto w-full max-w-[520px] px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-8 text-center text-[12px] leading-relaxed text-fg-faint">
+          Skill practice for parents. Not therapy and not a diagnosis. Mia and Leo are simulated children; real children vary. Worried
+          about your child? Talk to your paediatrician.
         </footer>
       </body>
     </html>

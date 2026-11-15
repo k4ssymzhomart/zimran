@@ -1,23 +1,25 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { SentenceChip, Shell } from '@/components/Bits';
-import { Mia } from '@/components/Mia';
+import { Check, Sparkle } from '@/components/Icons';
+import { useChild } from '@/components/child';
+import { journeyProgress } from '@/components/journey';
+import { ChangeRow, MiaCard, ResultStats, SentenceDisclosure, SkillRow, Takeaway } from '@/components/play/parts';
 import { RoundStage } from '@/components/RoundStage';
+import { SayField } from '@/components/SayField';
+import { ActionLink, Art, Heading, Option, Screen, TopBar } from '@/components/ui';
 import { loadProgress, saveProgress, todayISO } from '@/client/progressStore';
 import { useJourney } from '@/hooks/useJourney';
 import { useRound } from '@/hooks/useRound';
-import { activeTask, lastTry, lessonDone, ROUND1, ROUND2 } from '@/lib/flow/journey';
+import { activeTask, lastTry, lessonDone, ROUND2 } from '@/lib/flow/journey';
 import { addSession, dayNumber } from '@/lib/progress/history';
 import { planDay, PLAN, PLAN_DAYS } from '@/lib/progress/plan';
-import type { RoundResult } from '@/lib/types';
 
 /**
  * /play            the first visit: round 1 -> result -> lesson -> round 2 -> before and after -> setup -> plan
  * /play?daily=1    one daily five-minute session, saved to the parent's progress
- * Reference screens: every decision is made in lib/flow/journey.ts and lib/round/session.ts.
+ * Every decision is made in lib/flow/journey.ts and lib/round/session.ts. Each phase is one screen with one action.
  */
 export default function PlayPage() {
   // Next keeps a page alive after you leave it. A link back here must start it fresh, not show the old last screen;
@@ -35,238 +37,254 @@ function Play() {
     return () => clearTimeout(id);
   }, []);
 
-  return <Shell>{mode === null ? <p className="text-sm text-ink-soft">Getting the blocks out…</p> : mode === 'daily' ? <Daily /> : <FirstVisit />}</Shell>;
+  if (mode === null) {
+    return (
+      <Screen>
+        <p className="enter pt-24 text-[15px] text-fg-faint" role="status">
+          Getting the blocks out…
+        </p>
+      </Screen>
+    );
+  }
+  return mode === 'daily' ? <Daily /> : <FirstVisit />;
 }
 
-/** Counts against targets, as a small table. */
-function ResultTable({ result }: { result: RoundResult }) {
-  const rows = [
-    ['Specific praise', result.counts.specific_praise, result.targets.specific_praise],
-    ['Reflections', result.counts.reflection, result.targets.reflection],
-    ['Descriptions', result.counts.description, result.targets.description],
-  ] as const;
-  return (
-    <table className="w-full text-sm">
-      <caption className="sr-only">Your round against the clinic pace</caption>
-      <thead>
-        <tr className="text-left text-ink-soft">
-          <th className="py-1 font-semibold">Skill</th>
-          <th className="py-1 font-semibold">You</th>
-          <th className="py-1 font-semibold">Clinic pace</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map(([label, count, target]) => (
-          <tr key={label} className="border-t border-ink/15">
-            <td className="py-1.5">{label}</td>
-            <td className="py-1.5 font-display text-base font-semibold tabular-nums">{count}</td>
-            <td className="py-1.5 tabular-nums">{target}</td>
-          </tr>
-        ))}
-        <tr className="border-t border-ink/15">
-          <td className="py-1.5">To swap (questions, commands, corrections)</td>
-          <td className="py-1.5 font-display text-base font-semibold tabular-nums">{result.counts.avoid}</td>
-          <td className="py-1.5 tabular-nums">at most {result.targets.maxAvoid}</td>
-        </tr>
-      </tbody>
-    </table>
-  );
-}
+const ANCHORS = [
+  { label: 'After breakfast', icon: '/art/breakfast.png' },
+  { label: 'After daycare', icon: '/art/daycare.png' },
+  { label: 'After dinner', icon: '/art/dinner.png' },
+  { label: 'Before bath', icon: '/art/bath.png' },
+] as const;
 
 function FirstVisit() {
   const j = useJourney('ready1');
   const { state, round } = j;
-  const [answer, setAnswer] = useState('');
+  const { child, t } = useChild();
+  const top = <TopBar progress={journeyProgress(state.phase)} />;
+
+  // Each phase is a new screen: it opens at the top, not where the last one was scrolled to.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [state.phase]);
+
+  if (state.phase === 'round1' || state.phase === 'round2') {
+    return <RoundStage round={round} title={state.phase === 'round1' ? 'Round 1 of 2' : 'Round 2 of 2'} />;
+  }
 
   if (state.phase === 'ready1') {
     return (
-      <section className="space-y-4">
-        <h1 className="font-display text-3xl font-semibold">One minute with Mia</h1>
-        <p className="text-sm">
-          She plays, you talk. Three things fill your rings: praise for something exact, her own words said back, and a
-          description of what she is doing. Questions and orders go to a tray to swap later.
-        </p>
-        <button className="btn btn-primary w-full" onClick={j.beginRound1}>
-          Start the round
-        </button>
-      </section>
+      <Screen
+        top={top}
+        action={
+          <button type="button" className="btn btn-primary btn-block" onClick={j.beginRound1}>
+            Start the round
+          </button>
+        }
+      >
+        <Art src="/art/timer.png" priority />
+        <Heading
+          title={`One minute with ${child.name}`}
+          lede={`Praise something exact, say ${child.their} words back, describe what ${child.they} does. Each one fills a ring.`}
+        />
+        <SkillRow />
+      </Screen>
     );
   }
 
-  if (state.phase === 'round1' || state.phase === 'round2') {
-    const first = state.phase === 'round1';
-    return <RoundStage round={round} title={first ? `Round 1 · ${ROUND1.seconds} seconds` : `Round 2 · ${ROUND2.seconds} seconds`} />;
-  }
-
   if (state.phase === 'result1' && state.round1) {
+    const result = state.round1;
     return (
-      <section className="space-y-4">
-        <h1 className="font-display text-3xl font-semibold">Round 1</h1>
-        {round.state.farewell && <p className="text-sm italic">{round.state.farewell}</p>}
-        <div className="sticker-sm bg-[#fffaf0] p-3">
-          <ResultTable result={state.round1} />
-        </div>
-        {state.round1.leverText && (
-          <div className="sticker-sm bg-sun p-3">
-            <p className="text-xs font-bold uppercase tracking-wide">Your biggest lever</p>
-            <p className="mt-1 font-display text-lg font-semibold">{state.round1.leverText}</p>
-          </div>
+      <Screen
+        top={top}
+        action={
+          <button type="button" className="btn btn-primary btn-block" onClick={j.beginLesson}>
+            Start the 30-second lesson
+          </button>
+        }
+      >
+        <MiaCard face={result.met ? 'beaming' : 'smiling'} posture={result.met ? 'leaning_in' : 'at_toy'} />
+        <Heading title="Round 1 done" lede={t(round.state.farewell ?? '')} />
+        <ResultStats result={result} className="mt-7" />
+        {result.leverText && (
+          <Takeaway label="Your biggest lever" className="mt-3">
+            {t(result.leverText)}
+          </Takeaway>
         )}
-        <details>
-          <summary className="cursor-pointer text-sm font-semibold">Every sentence and how it was read</summary>
-          <ul className="mt-2 space-y-2">
-            {round.state.sentences.map((s, i) => (
-              <SentenceChip key={i} sentence={s} disputed={s.disputed} onDispute={() => round.dispute(i)} />
-            ))}
-          </ul>
-        </details>
-        <button className="btn btn-primary w-full" onClick={j.beginLesson}>
-          Thirty-second lesson
-        </button>
-      </section>
+        <SentenceDisclosure sentences={round.state.sentences} onDispute={round.dispute} className="mt-3" />
+      </Screen>
     );
   }
 
   if (state.phase === 'lesson' && state.lesson) {
+    const { lesson } = state;
     const task = activeTask(state);
     const last = lastTry(state);
     const done = lessonDone(state);
     return (
-      <section className="space-y-4">
-        <h1 className="font-display text-3xl font-semibold">{state.lesson.title}</h1>
-        <p className="text-sm">{state.lesson.why}</p>
-        <ul className="space-y-2">
-          {state.lesson.pairs.map((p, i) => (
-            <li key={i} className="sticker-sm bg-[#fffaf0] p-3 text-sm">
-              {p.childSaid && <p className="text-ink-soft">Mia: “{p.childSaid}”</p>}
-              <p>
-                Instead of <span className="italic">“{p.insteadOf}”</span>
-              </p>
-              <p className="font-semibold">say “{p.say}”</p>
+      <Screen
+        top={top}
+        action={
+          done ? (
+            <button type="button" className="btn btn-primary btn-block" onClick={j.beginRound2}>
+              Start round two
+            </button>
+          ) : (
+            <button type="button" className="btn btn-ghost self-center" onClick={j.beginRound2}>
+              Skip to round two
+            </button>
+          )
+        }
+      >
+        <Art src="/art/lightbulb.png" size="sm" />
+        <Heading title={t(lesson.title)} lede={t(lesson.why)} />
+
+        <ul className="card enter d2 mt-7 divide-y divide-stroke text-left" aria-label="Examples">
+          {lesson.pairs.map((p, i) => (
+            <li key={i} className="px-4 py-3.5">
+              {p.childSaid && <p className="text-[14px] text-fg-soft">{child.name}: “{p.childSaid}”</p>}
+              <p className="text-[14px] text-fg-faint">Instead of “{p.insteadOf}”</p>
+              <p className="mt-0.5 text-[16px] font-semibold leading-snug tracking-[-0.01em] text-fg">“{p.say}”</p>
             </li>
           ))}
         </ul>
 
-        {last && (
-          <p className="text-sm" aria-live="polite">
-            {last.feedback}
-          </p>
-        )}
-
-        {task && (
-          <form
-            className="space-y-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!answer.trim()) return;
-              j.answerTask(answer);
-              setAnswer('');
-            }}
-          >
-            <p className="text-sm font-semibold">
-              Your turn ({state.taskIndex + 1} of {state.lesson.tasks.length}). {task.situation}
+        {task ? (
+          <div className="card enter d3 mt-4 p-4 text-left">
+            <p className="text-[13px] font-semibold text-lilac">
+              Your turn, {state.taskIndex + 1} of {lesson.tasks.length}
             </p>
-            {task.childSaid && <p className="text-sm">Mia: “{task.childSaid}”</p>}
-            <p className="text-sm text-ink-soft">Instead of “{task.insteadOf}”, you say:</p>
-            <div className="flex gap-2">
-              <label htmlFor="task" className="sr-only">
-                Your sentence
-              </label>
-              <input id="task" className="field" value={answer} onChange={(e) => setAnswer(e.target.value)} autoComplete="off" maxLength={600} />
-              <button className="btn btn-primary" type="submit">
-                Check
-              </button>
+            <p className="mt-1.5 text-[15px] leading-snug text-fg-2">{t(task.situation)}</p>
+            {task.childSaid && <p className="title mt-1.5 text-[22px] text-fg">“{task.childSaid}”</p>}
+            <p className="mt-3 text-[15px] leading-snug text-fg-soft">Instead of “{task.insteadOf}”, you say:</p>
+            <SayField id="task" label="Your sentence" placeholder="Your sentence" submitLabel="Check" onSay={j.answerTask} className="mt-2.5" />
+            {last && (
+              <p className="mt-3 text-[14px] leading-snug text-lilac" aria-live="polite">
+                {t(last.feedback)}
+              </p>
+            )}
+          </div>
+        ) : (
+          last && (
+            <div className="pop mt-4 flex items-start gap-3 rounded-[1.25rem] bg-violet/10 px-4 py-3.5 text-left" aria-live="polite">
+              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-violet text-white">
+                {last.ok ? <Check size={14} strokeWidth={3} /> : <Sparkle size={13} strokeWidth={2.4} />}
+              </span>
+              <p className="text-[15px] leading-snug text-lilac">{t(last.feedback)}</p>
             </div>
-          </form>
+          )
         )}
-
-        <button className={`btn w-full ${done ? 'btn-primary' : 'btn-plain'}`} onClick={j.beginRound2}>
-          {done ? 'Round two' : 'Skip to round two'}
-        </button>
-      </section>
+      </Screen>
     );
   }
 
   if (state.phase === 'change' && state.round2) {
+    const change = state.change;
+    const improved = change?.improved ?? false;
+    // The engine lists good news first: skills that rose, then fewer sentences to swap.
+    const goodCount = change
+      ? (['description', 'reflection', 'specific_praise'] as const).filter((k) => change.perMinute[k] > 0).length +
+        (change.perMinute.avoid < 0 ? 1 : 0)
+      : 0;
     return (
-      <section className="space-y-4">
-        <h1 className="font-display text-3xl font-semibold">Before and after</h1>
-        <div className="flex justify-center">
-          <Mia face={state.change?.improved ? 'beaming' : 'smiling'} posture={state.change?.improved ? 'leaning_in' : 'at_toy'} size={130} />
-        </div>
-        {round.state.farewell && <p className="text-center text-sm italic">{round.state.farewell}</p>}
-        <ul className="sticker-sm space-y-1 bg-[#fffaf0] p-3 font-display text-lg font-semibold" aria-live="polite">
-          {(state.change?.lines.length ? state.change.lines : ['About the same as round 1. The plan takes it one skill at a time.']).map((l) => (
-            <li key={l}>{l}</li>
-          ))}
-        </ul>
-        <div className="sticker-sm bg-[#fffaf0] p-3">
-          <ResultTable result={state.round2} />
-        </div>
-        <button className="btn btn-primary w-full" onClick={j.next}>
-          See the 28-day plan
-        </button>
-        <button className="btn btn-plain w-full" onClick={j.restart}>
-          Play again
-        </button>
-      </section>
+      <Screen
+        top={top}
+        action={
+          <>
+            <button type="button" className="btn btn-primary btn-block" onClick={j.next}>
+              See my 28-day plan
+            </button>
+            <button type="button" className="btn btn-ghost self-center" onClick={j.restart}>
+              Play again
+            </button>
+          </>
+        }
+      >
+        <MiaCard size="sm" face={improved ? 'beaming' : 'smiling'} posture={improved ? 'leaning_in' : 'at_toy'} />
+        <Heading title="Before and after" lede={t(round.state.farewell ?? '')} />
+        {change && change.lines.length > 0 ? (
+          <ul className="card enter d2 mt-7 divide-y divide-stroke text-left" aria-label="What changed since round 1" aria-live="polite">
+            {change.lines.map((l, i) => (
+              <ChangeRow key={l} text={l} good={i < goodCount} />
+            ))}
+          </ul>
+        ) : (
+          <p className="enter d2 mt-7 rounded-[1.25rem] bg-surface-2 px-5 py-4 text-[15px] leading-snug text-fg-2" aria-live="polite">
+            About the same as round 1. The plan takes it one skill at a time.
+          </p>
+        )}
+        <ResultStats result={state.round2} caption={`Round 2, ${ROUND2.seconds} seconds`} className="mt-6" />
+      </Screen>
     );
   }
 
   if (state.phase === 'setup') {
     const { setup } = state;
     return (
-      <section className="space-y-5">
-        <h1 className="font-display text-3xl font-semibold">One quick question</h1>
-        <p className="text-sm">The plan is the same 28 days for every family. Your answer sets when your five minutes happen.</p>
-        <Choice label="When can you play for five minutes?" options={['After breakfast', 'After daycare', 'After dinner', 'Before bath']} value={setup.anchor} onPick={(v) => j.setSetup({ anchor: v })} />
-        <button className="btn btn-primary w-full" onClick={j.finishSetup}>
-          Show my plan
-        </button>
-      </section>
+      <Screen
+        top={top}
+        action={
+          <button type="button" className="btn btn-primary btn-block" onClick={j.finishSetup}>
+            Show my plan
+          </button>
+        }
+      >
+        <Heading title="When can you play for five minutes?" lede="The plan is the same for every family. This sets your moment." />
+        <div role="radiogroup" aria-label="When can you play for five minutes?" className="enter d2 mt-8 flex flex-col gap-3">
+          {ANCHORS.map((a) => (
+            <Option key={a.label} label={a.label} icon={a.icon} selected={setup.anchor === a.label} onSelect={() => j.setSetup({ anchor: a.label })} />
+          ))}
+        </div>
+      </Screen>
     );
   }
 
+  if (state.phase !== 'plan') return null;
+
   // plan: the day comes from the saved progress, so a replay on day 5 does not say "Day 1"
   const day = j.day ?? 1;
+  const today = planDay(day);
   const weeks = [1, 2, 3, 4].map((w) => PLAN.find((d) => d.week === w)!);
   return (
-    <section className="space-y-4">
-      <h1 className="font-display text-3xl font-semibold">{day <= PLAN_DAYS ? `Day ${day} of ${PLAN_DAYS} is done` : `Day ${day} is done`}</h1>
-      <p className="text-sm">
-        Five minutes a day{state.setup.anchor ? `, ${state.setup.anchor.toLowerCase()}` : ''}. One skill a week, and on day 28 a full
-        five minutes against the clinic numbers.
-      </p>
-      <ol className="space-y-2">
-        {weeks.map((d) => (
-          <li key={d.week} className="sticker-sm bg-[#fffaf0] p-3 text-sm">
-            <span className="font-bold">Week {d.week} · {d.theme}.</span> {d.title}
-          </li>
-        ))}
+    <Screen
+      top={top}
+      action={
+        <>
+          <ActionLink href="/dashboard">See my plan</ActionLink>
+          <ActionLink href="/pricing" variant="secondary">
+            Unlock daily sessions
+          </ActionLink>
+        </>
+      }
+    >
+      <Art src="/art/plan.png" />
+      <Heading
+        title={day <= PLAN_DAYS ? `Day ${day} of ${PLAN_DAYS} is done` : `Day ${day} is done`}
+        lede={`Five minutes a day${state.setup.anchor ? ` ${state.setup.anchor.toLowerCase()}` : ''}. One skill a week.`}
+      />
+      <ol className="card enter d2 mt-7 divide-y divide-stroke text-left" aria-label="Your four weeks">
+        {weeks.map((d) => {
+          const current = d.week === today.week;
+          return (
+            <li key={d.week} className="flex items-center gap-3.5 px-4 py-3" aria-current={current ? 'step' : undefined}>
+              <span
+                className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-[15px] font-bold tabular-nums ${
+                  current ? 'bg-violet text-white shadow-violet' : 'bg-surface-2 text-fg-soft'
+                }`}
+              >
+                <span className="sr-only">Week </span>
+                {d.week}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15px] font-semibold tracking-[-0.01em] text-fg">{d.theme}</span>
+                <span className="block text-[14px] leading-snug text-fg-soft">{t(d.title)}</span>
+              </span>
+              {current && <span className="shrink-0 text-[13px] font-semibold text-lilac">This week</span>}
+            </li>
+          );
+        })}
       </ol>
-      <p className="text-sm font-semibold">{planDay(day).teaser}</p>
-      <Link href="/dashboard" className="btn btn-primary w-full">
-        See my plan
-      </Link>
-      <Link href="/pricing" className="btn btn-plain w-full">
-        Unlock daily sessions
-      </Link>
-    </section>
-  );
-}
-
-function Choice({ label, options, value, onPick }: { label: string; options: string[]; value: string | null; onPick: (v: string) => void }) {
-  return (
-    <fieldset>
-      <legend className="mb-2 text-sm font-semibold">{label}</legend>
-      <div className="flex flex-wrap gap-2">
-        {options.map((o) => (
-          <button key={o} type="button" aria-pressed={value === o} onClick={() => onPick(o)} className={`btn btn-quiet ${value === o ? '!bg-sun' : ''}`}>
-            {o}
-          </button>
-        ))}
-      </div>
-    </fieldset>
+      <p className="enter d3 mt-5 text-[15px] leading-snug text-fg-2">{t(today.teaser)}</p>
+    </Screen>
   );
 }
 
@@ -274,6 +292,7 @@ function Choice({ label, options, value, onPick }: { label: string; options: str
 function Daily() {
   const round = useRound();
   const { state, start } = round;
+  const { t } = useChild();
   const [day, setDay] = useState<number | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -292,35 +311,43 @@ function Daily() {
     return () => clearTimeout(id);
   }, [state.phase, state.result, saved]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [state.phase]);
+
   if (state.phase === 'idle') {
     return (
-      <section className="space-y-4">
-        <h1 className="font-display text-3xl font-semibold">Today&apos;s five minutes</h1>
-        <p className="text-sm">A full session against the clinic numbers: 10 specific praises, 10 reflections, 10 descriptions.</p>
-        <button className="btn btn-primary w-full" onClick={begin}>
-          Start
-        </button>
-      </section>
+      <Screen
+        action={
+          <button type="button" className="btn btn-primary btn-block" onClick={begin}>
+            Start
+          </button>
+        }
+      >
+        <Art src="/art/timer.png" priority />
+        <Heading
+          title="Today’s five minutes"
+          lede="A full session against the clinic numbers: 10 specific praises, 10 reflections, 10 descriptions."
+        />
+      </Screen>
     );
   }
 
   if (state.phase === 'running') {
-    return <RoundStage round={round} title={day ? `Day ${day} · five minutes · ${planDay(day).theme}` : 'Five minutes'} />;
+    return <RoundStage round={round} title={day ? `Day ${day}, ${planDay(day).theme}` : 'Five minutes'} />;
   }
 
+  const result = state.result;
   return (
-    <section className="space-y-4">
-      <h1 className="font-display text-3xl font-semibold">{state.result?.met ? 'You met the clinic pace today' : 'Session saved'}</h1>
-      {state.farewell && <p className="text-sm italic">{state.farewell}</p>}
-      {state.result && (
-        <div className="sticker-sm bg-[#fffaf0] p-3">
-          <ResultTable result={state.result} />
-        </div>
+    <Screen action={<ActionLink href="/dashboard">Back to my plan</ActionLink>}>
+      <MiaCard face={result?.met ? 'beaming' : 'smiling'} posture={result?.met ? 'leaning_in' : 'at_toy'} />
+      <Heading title={result?.met ? 'You met the clinic pace today' : 'Session saved'} lede={t(state.farewell ?? '')} />
+      {result && <ResultStats result={result} className="mt-7" />}
+      {result?.leverText && (
+        <Takeaway label="Next time" className="mt-3">
+          {t(result.leverText)}
+        </Takeaway>
       )}
-      {state.result?.leverText && <p className="text-sm font-semibold">Next time: {state.result.leverText}</p>}
-      <Link href="/dashboard" className="btn btn-primary w-full">
-        Back to my plan
-      </Link>
-    </section>
+    </Screen>
   );
 }

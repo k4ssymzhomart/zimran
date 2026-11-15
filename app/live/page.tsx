@@ -1,15 +1,22 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Shell } from '@/components/Bits';
+import { ArrowRight, Mic } from '@/components/Icons';
 import { RoundStage } from '@/components/RoundStage';
+import { ActionLink, Art, Heading, Pill, Screen, Stat } from '@/components/ui';
 import { loadProgress, saveProgress, todayISO } from '@/client/progressStore';
 import { useRound } from '@/hooks/useRound';
 import { addSession } from '@/lib/progress/history';
+import { useChild } from '@/components/child';
 
 const SECONDS = 300;
+
+const STEPS = [
+  { text: 'Put one earbud in and the phone on the table, with this page open.', hint: 'The screen stays on where the browser allows it. If it locks, listening stops.' },
+  { text: 'Let your child choose the toy. You follow.' },
+  { text: 'Talk as you play. With the earbud in, the coach speaks only to you.' },
+];
 
 /**
  * /live — five minutes of play with the parent's own child (beta).
@@ -24,6 +31,7 @@ export default function LivePage() {
 }
 
 function Live() {
+  const { child, t } = useChild();
   const round = useRound();
   const { state, start } = round;
   const [saved, setSaved] = useState(false);
@@ -35,64 +43,107 @@ function Live() {
     return () => clearTimeout(id);
   }, [state.phase, state.result, saved]);
 
+  if (state.phase === 'running') return <RoundStage round={round} title="Live, five minutes" live />;
+
+  if (state.phase === 'ended') {
+    const result = state.result;
+    if (!result) return null;
+    return (
+      <Screen action={<ActionLink href="/dashboard">Back to my plan</ActionLink>}>
+        <Art src={result.met ? '/art/trophy.png' : '/art/progress.png'} size="sm" priority />
+        <Heading title={result.met ? 'You met the pace for both skills' : 'Session saved'} />
+
+        {/* One card: the three counts side by side, and the reflections note as its footer. */}
+        <div className="card enter d2 mt-7 overflow-hidden">
+          <ul className="grid grid-cols-3 divide-x divide-stroke py-5" aria-label="Your five minutes">
+            <li className="px-2">
+              <Stat tone="violet" label="Specific praise" value={<Of count={result.counts.specific_praise} of={result.targets.specific_praise} />} />
+            </li>
+            <li className="px-2">
+              <Stat tone="mint" label="Descriptions" value={<Of count={result.counts.description} of={result.targets.description} />} />
+            </li>
+            <li className="px-2">
+              <Stat label="To swap" value={result.counts.avoid} />
+              <p className="text-[12px] tabular-nums text-fg-faint">at most {result.targets.maxAvoid}</p>
+            </li>
+          </ul>
+          <p className="border-t border-stroke px-4 py-3.5 text-[13px] leading-snug text-fg-soft">
+            <span className="block">Reflections are not counted in live play yet.</span>
+            <span className="block">Practise them with {child.name}.</span>
+          </p>
+        </div>
+
+        {result.leverText && (
+          <p className="enter d3 mt-4 rounded-card bg-violet/10 px-4 py-3.5 text-left text-[15px] leading-snug text-lilac">
+            <span className="font-semibold">Next time:</span> {t(result.leverText)}
+          </p>
+        )}
+      </Screen>
+    );
+  }
+
+  // idle: what to do before the five minutes start
   return (
-    <Shell>
-      {state.phase === 'idle' && (
-        <section className="space-y-4">
-          <h1 className="font-display text-3xl font-semibold">Live with your child</h1>
-          <p className="text-xs font-bold uppercase tracking-wide text-ink-soft">Beta</p>
-          <ol className="list-decimal space-y-1 pl-5 text-sm">
-            <li>Put one earbud in and the phone on the table, with this page open.</li>
-            <li>Let your child choose the toy. You follow.</li>
-            <li>Talk as you play. With the earbud in, the coach speaks only to you.</li>
-          </ol>
-          <p className="text-sm">
-            In Chrome or Edge your browser will ask for the microphone; other browsers have no voice input, and there
-            you type what you say. Speech is turned into text by the browser&apos;s speech service
-            (in Chrome, that is Google&apos;s); PlayReps does not record or store audio. The microphone hears the whole
-            room and cannot tell voices apart, so a clear sentence from your child may be counted as yours.
-          </p>
-          <p className="text-sm text-ink-soft">
-            The page keeps the screen on where the browser allows it. If the screen locks, listening stops.
-          </p>
+    <Screen
+      action={
+        <>
           <button
-            className="btn btn-primary w-full"
+            type="button"
+            className="btn btn-primary btn-block"
             onClick={() => {
               setSaved(false);
               start('blocks', SECONDS, 1, undefined, true);
             }}
           >
             Start five minutes
+            <ArrowRight size={20} />
           </button>
-          <Link href="/play" className="btn btn-plain w-full">
-            Practise with Mia first
-          </Link>
-        </section>
-      )}
+          <ActionLink href="/play" variant="ghost">
+            Practise with {child.name} first
+          </ActionLink>
+          <p className="mt-4 flex gap-2.5 text-left text-[13px] leading-normal text-fg-soft">
+            <Mic size={16} className="mt-px shrink-0 text-fg-faint" />
+            <span className="text-pretty">
+              Chrome and Edge ask for the microphone; in other browsers you type. Your browser’s speech service turns
+              speech into text (in Chrome, Google’s). PlayReps does not record or store audio. The microphone cannot tell
+              voices apart, so your child’s clear sentences may count as yours.
+            </span>
+          </p>
+        </>
+      }
+    >
+      <Art src="/art/earbud.png" size="sm" priority />
+      <div className="enter d1 mt-7">
+        <Pill>Beta</Pill>
+      </div>
+      <h1 className="title enter d1 mt-3 text-[32px] text-fg sm:text-[40px]">Live with your child</h1>
 
-      {state.phase === 'running' && <RoundStage round={round} title="Live · five minutes" live />}
+      <ol className="card enter d2 mt-7 divide-y divide-stroke text-left">
+        {STEPS.map((step, i) => (
+          <li key={step.text} className="flex gap-3.5 px-4 py-4">
+            <span
+              aria-hidden="true"
+              className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-violet/16 text-[14px] font-bold tabular-nums text-lilac"
+            >
+              {i + 1}
+            </span>
+            <span className="min-w-0 pt-0.5">
+              <span className="block text-[16px] font-medium leading-snug text-fg text-pretty">{step.text}</span>
+              {step.hint && <span className="mt-1 block text-[14px] leading-snug text-fg-soft text-pretty">{step.hint}</span>}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </Screen>
+  );
+}
 
-      {state.phase === 'ended' && state.result && (
-        <section className="space-y-4">
-          <h1 className="font-display text-3xl font-semibold">{state.result.met ? 'You met the pace for both skills' : 'Session saved'}</h1>
-          <ul className="sticker-sm space-y-1 bg-[#fffaf0] p-3 text-sm">
-            <li>
-              Specific praise: <b>{state.result.counts.specific_praise}</b> of {state.result.targets.specific_praise}
-            </li>
-            <li>
-              Descriptions: <b>{state.result.counts.description}</b> of {state.result.targets.description}
-            </li>
-            <li>
-              To swap: <b>{state.result.counts.avoid}</b> (at most {state.result.targets.maxAvoid})
-            </li>
-          </ul>
-          <p className="text-sm text-ink-soft">Reflections are not counted in live play yet. Practise them with Mia.</p>
-          {state.result.leverText && <p className="text-sm font-semibold">Next time: {state.result.leverText}</p>}
-          <Link href="/dashboard" className="btn btn-primary w-full">
-            Back to my plan
-          </Link>
-        </section>
-      )}
-    </Shell>
+/** "4 of 10": the count big, the target small beside it. */
+function Of({ count, of }: { count: number; of: number }) {
+  return (
+    <>
+      {count}
+      <span className="ml-1 text-[15px] font-semibold tracking-[-0.01em] text-fg-faint">of {of}</span>
+    </>
   );
 }
