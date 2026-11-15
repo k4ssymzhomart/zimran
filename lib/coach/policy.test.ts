@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { codeSentence } from '../coding/classify';
-import { coachPrompt, type CoachInput } from './policy';
+import { CALM_PRAISE_TEXT, coachPrompt, WAIT_OUT_TEXT, type CoachInput } from './policy';
 
 const base: CoachInput = {
   nowSec: 20,
@@ -23,7 +23,7 @@ describe('reacting to a sentence', () => {
     expect(p?.text).toContain('description');
   });
   it('turns general praise into a hint to be specific', () => {
-    expect(coachPrompt({ ...base, justCoded: codeSentence('Good job!') })?.text).toContain('what exactly');
+    expect(coachPrompt({ ...base, justCoded: codeSentence('Good job!') })?.text).toContain('exactly what');
   });
   it('stays quiet about neutral talk', () => {
     expect(coachPrompt({ ...base, justCoded: codeSentence("That's a red one.") })).toBeNull();
@@ -39,9 +39,70 @@ describe('reacting to a sentence', () => {
     ].map((t) => coachPrompt({ ...base, justCoded: codeSentence(t) })?.text ?? '');
     for (const line of lines) expect(line).not.toMatch(/\b(wrong|bad|mistake|should|don't)\b/i);
   });
-  it('does not speak twice within eight seconds', () => {
-    expect(coachPrompt({ ...base, lastPromptSec: 15, justCoded: codeSentence('Put it here.') })).toBeNull();
-    expect(coachPrompt({ ...base, lastPromptSec: 12, justCoded: codeSentence('Put it here.') })?.kind).toBe('swap');
+  // Changed with E2: this used a command, which now gets its swap line with no gap.
+  it('does not praise the parent twice within eight seconds', () => {
+    expect(coachPrompt({ ...base, lastPromptSec: 15, justCoded: codeSentence("You're stacking them.") })).toBeNull();
+    expect(coachPrompt({ ...base, lastPromptSec: 12, justCoded: codeSentence("You're stacking them.") })?.kind).toBe('praise_parent');
+    expect(coachPrompt({ ...base, lastPromptSec: 15, justCoded: codeSentence('Good job!') })).toBeNull();
+    expect(coachPrompt({ ...base, lastPromptSec: 12, justCoded: codeSentence('Good job!') })?.kind).toBe('swap');
+  });
+  it('always gives a question, a command and a criticism their swap line, whatever was just shown', () => {
+    for (const lastPromptSec of [20, 19.75, 15, 12, null]) {
+      for (const text of ['What are you making?', 'Put it here.', "Don't throw it."]) {
+        expect(coachPrompt({ ...base, lastPromptSec, justCoded: codeSentence(text) })?.kind, `${text} after ${lastPromptSec}`).toBe('swap');
+      }
+    }
+    // Also in the middle of an outburst.
+    expect(coachPrompt({ ...base, lastPromptSec: 20, outburst: true, waitOutShown: true, justCoded: codeSentence('Put it here.') })?.kind).toBe('swap');
+  });
+  it('has no exclamation mark in a line of its own, only inside a quoted example', () => {
+    const lines = ['What are you making?', 'Put it here.', "Don't throw it.", 'Good job!', "You're stacking them.", 'Nice tower!', 'You made a tower.'].map(
+      (t) => coachPrompt({ ...base, justCoded: codeSentence(t, { childLastSaid: 'I made a tower!' }) })?.text ?? '',
+    );
+    for (const line of [...lines, WAIT_OUT_TEXT, CALM_PRAISE_TEXT]) expect(line.replace(/“[^”]*”/g, '')).not.toContain('!');
+  });
+});
+
+describe('outbursts', () => {
+  const upset: CoachInput = { ...base, nowSec: 35, childSpokeSec: 28, outburst: true };
+
+  it('says to wait it out, at once and once', () => {
+    expect(coachPrompt(upset)).toEqual({ kind: 'wait_out', text: 'She is upset. Stay close and quiet, then praise the first calm thing she does.' });
+    // No gap: a line shown a second ago does not hold it back.
+    expect(coachPrompt({ ...upset, lastPromptSec: 34 })?.kind).toBe('wait_out');
+    expect(coachPrompt({ ...upset, waitOutShown: true })).toBeNull();
+  });
+  it('never asks to say her words back or to praise during an outburst', () => {
+    for (const nowSec of [33, 35, 60, 200]) {
+      for (const waitOutShown of [false, true]) {
+        const kind = coachPrompt({ ...upset, nowSec, waitOutShown })?.kind;
+        expect(kind).not.toBe('reflect_now');
+        expect(kind).not.toBe('praise_now');
+      }
+    }
+  });
+  it('holds its praise for the parent while she is upset', () => {
+    expect(coachPrompt({ ...upset, waitOutShown: true, justCoded: codeSentence("You're stacking them.") })).toBeNull();
+    expect(coachPrompt({ ...upset, waitOutShown: true, justCoded: codeSentence('Good job!') })).toBeNull();
+  });
+  it('asks for praise when she is calm again: at once after wait_out, after a short pause otherwise', () => {
+    const calm: CoachInput = { ...base, nowSec: 42, lastPromptSec: 35, calmAgain: true };
+    const line = { kind: 'praise_now', text: 'She is calm again. Praise that: “Thank you for using your calm voice.”' };
+    expect(coachPrompt({ ...calm, waitOutShown: true })).toEqual(line);
+    expect(coachPrompt({ ...calm, lastPromptSec: 41 })).toBeNull();
+    expect(coachPrompt({ ...calm, lastPromptSec: 34 })).toEqual(line);
+    // It comes before the nudge to reflect.
+    expect(coachPrompt({ ...calm, lastPromptSec: null, childSpokeSec: 30 })).toEqual(line);
+    // The example it quotes is specific praise.
+    expect(codeSentence('Thank you for using your calm voice.').code).toBe('specific_praise');
+  });
+  it('does not ask to say back a line that cannot be said back', () => {
+    const quiet: CoachInput = { ...base, nowSec: 21, childSpokeSec: 16 };
+    expect(coachPrompt(quiet)?.kind).toBe('reflect_now');
+    expect(coachPrompt({ ...quiet, canReflect: true })?.kind).toBe('reflect_now');
+    expect(coachPrompt({ ...quiet, canReflect: false })).toBeNull();
+    // The praise nudge is not blocked by it.
+    expect(coachPrompt({ ...quiet, nowSec: 45, canReflect: false })?.kind).toBe('praise_now');
   });
 });
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BLOCKS, DRAWING } from '../child/scenes';
-import { addDays, masteryShare, streak } from '../progress/history';
+import { addDays, dayStatus, masteryShare, MIN_DAY_SENTENCES, streak, todayFocus, weekOneAndFour } from '../progress/history';
+import { planDay } from '../progress/plan';
 import { DEMO_LABEL, simulateFamily, type DemoDay } from './simulate';
 
 const START = '2026-11-14';
@@ -10,7 +11,7 @@ const perMinute = (days: DemoDay[], key: 'specific_praise' | 'reflection' | 'des
   days.reduce((sum, d) => sum + (d.result.counts[key] * 60) / d.result.seconds, 0) / days.length;
 
 describe('simulated family', () => {
-  it('is labelled as demo data', () => {
+  it('is labeled as demo data', () => {
     expect(DEMO_LABEL).toBe('DEMO DATA - simulated family');
   });
 
@@ -22,7 +23,7 @@ describe('simulated family', () => {
     expect(simulateFamily(1, START).days).not.toEqual(simulateFamily(2, START).days);
   });
 
-  it('gives 28 five-minute sessions of 40 to 50 sentences, and honours a shorter run', () => {
+  it('gives 28 five-minute sessions of 40 to 50 sentences, and honors a shorter run', () => {
     const { days, progress } = simulateFamily(1, START);
     expect(days).toHaveLength(28);
     expect(progress.sessions).toHaveLength(28);
@@ -82,6 +83,39 @@ describe('simulated family', () => {
   it('keeps a 28-day streak', () => {
     const { days, progress } = simulateFamily(3, START);
     expect(streak(progress, days[27].date)).toEqual({ days: 28, freeDayUsed: false, activeToday: true });
+  });
+
+  it.each(SEEDS)('seed %i: 28 sessions are 28 completed plan days under the completed-day rule', (seed) => {
+    const { days, progress } = simulateFamily(seed, START);
+    days.forEach((d, i) => {
+      const c = d.result.counts;
+      // Every day clears the bar for a completed day with room to spare, and none was ended early.
+      expect(c.target + c.avoid + c.neutral + c.general_praise).toBeGreaterThanOrEqual(MIN_DAY_SENTENCES * 4);
+      expect(d.result.short).toBeUndefined();
+      expect(progress.sessions[i].short).toBeUndefined();
+      expect(dayStatus(progress, d.date)).toEqual({ day: i + 1, doneToday: true, completedDays: i + 1 });
+    });
+    const last = days[27].date;
+    expect(dayStatus(progress, last)).toEqual({ day: 28, doneToday: true, completedDays: 28 });
+    expect(planDay(dayStatus(progress, last).day).isMasteryCheck).toBe(true);
+    // The morning after, the family is on day 29: the first day of the cycle.
+    expect(dayStatus(progress, addDays(last, 1))).toEqual({ day: 29, doneToday: false, completedDays: 28 });
+    expect(planDay(29).title).toBe('Hard moment: clean-up time');
+    expect(streak(progress, last)).toEqual({ days: 28, freeDayUsed: false, activeToday: true });
+  });
+
+  it('the dashboard demo (28 days ending today) shows day 28 of 28, week 1 next to week 4, and a focus', () => {
+    const today = addDays(START, 27);
+    const { progress } = simulateFamily(7, START);
+    expect(dayStatus(progress, today).day).toBe(28);
+    const weeks = weekOneAndFour(progress, 150, today);
+    expect(weeks?.first.days).toBe(7);
+    expect(weeks?.fourth.days).toBe(7);
+    expect(weeks!.fourth.avoid).toBeLessThan(weeks!.first.avoid);
+    expect(todayFocus(progress, today).line).toMatch(/^(?:Today follows the plan|Your last three sessions averaged)/);
+    // Early in the plan the same family's numbers point at what it asks most: questions.
+    const early = simulateFamily(7, START, 3).progress;
+    expect(todayFocus(early, addDays(START, 3))).toMatchObject({ lever: 'question', source: 'data' });
   });
 
   it('lets the child answer: a cold goodbye on day 1, a warm one on day 28', () => {

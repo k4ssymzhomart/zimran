@@ -3,7 +3,7 @@ import { BUCKET } from '../types';
 import { codeSentence, codeTurn, isReflection, splitSentences } from './classify';
 import { EXAMPLES } from './examples';
 
-describe('codeSentence on the labelled examples', () => {
+describe('codeSentence on the labeled examples', () => {
   it.each(EXAMPLES)('%s -> %s', (text, expected, childSaid) => {
     const coded = codeSentence(text, { childLastSaid: childSaid ?? null });
     expect(coded.code).toBe(expected);
@@ -12,8 +12,8 @@ describe('codeSentence on the labelled examples', () => {
   });
 });
 
-describe('specific praise names the behaviour', () => {
-  it('recognises gentle, sharing, patient and tidy', () => {
+describe('specific praise names the behavior', () => {
+  it('recognizes gentle, sharing, patient and tidy', () => {
     expect(codeSentence('Great job stacking those blocks so carefully.').namedBehavior).toBe('gentle');
     expect(codeSentence('Thank you for sharing the red crayon.').namedBehavior).toBe('sharing');
     expect(codeSentence("You're doing a great job waiting your turn.").namedBehavior).toBe('patient');

@@ -35,12 +35,51 @@ describe('opener', () => {
     expect(s.phase).toBe('opener_reveal');
     expect(s.opener.first.map((c) => c.code)).toEqual(['general_praise', 'question']);
     expect(s.opener.insight?.headline).toBe('That was a question.');
+    // A question is not a fault: the five minutes are the exception, not the rule.
+    expect(s.opener.insight?.body).toContain('Questions are great the rest of the day.');
     expect(s.opener.reflected).toBe(false);
   });
-  it('recognises a reflection on the first answer', () => {
+  it('does not code or teach on a sentence that is not play talk, and says where support is', () => {
+    const s = run([{ type: 'answer_opener', text: "I can't do this anymore." }]);
+    expect(s.phase).toBe('opener_reveal');
+    expect(s.opener.first.map((c) => [c.code, c.rule])).toEqual([['unknown', 'safety']]);
+    expect(s.opener.insight?.body).toContain('988');
+    expect(s.opener.insight?.body).toContain('1-800-422-4453');
+    expect(s.opener.reflected).toBe(false);
+  });
+  it('recognizes a reflection on the first answer', () => {
     const s = run([{ type: 'answer_opener', text: 'You made a tower!' }]);
     expect(s.opener.reflected).toBe(true);
     expect(s.opener.insight?.headline).toBe('You said her words back.');
+  });
+  it('a to-swap sentence in the same turn takes the headline before any skill', () => {
+    // It used to open with praise for the reflection: "You said her words back."
+    const rude = run([{ type: 'answer_opener', text: 'You made a tower. Now shut up.' }]);
+    expect(rude.opener.first.map((c) => c.code)).toEqual(['reflection', 'criticism']);
+    expect(rude.opener.insight?.headline).toBe('That one corrected her.');
+    const turns: [string, string][] = [
+      ['You made a tower! What is it?', 'That was a question.'],
+      ['You made a tower. Now put the blue one on top.', 'That was a suggestion.'],
+      ['I love how carefully you stacked it. Is it a castle?', 'That was a question.'],
+      ["You're stacking the blocks. Not like that.", 'That one corrected her.'],
+      // A correction comes before a command, and a command before a question, whatever the order they were said in.
+      ['What is it? Put it here. No, not like that.', 'That one corrected her.'],
+      ['Is it a tower? Put it here.', 'That was a suggestion.'],
+    ];
+    for (const [text, headline] of turns) {
+      expect(run([{ type: 'answer_opener', text }]).opener.insight?.headline, text).toBe(headline);
+    }
+  });
+  it('with no to-swap sentence, the skills keep their order: her words back, then praise, then description', () => {
+    const turns: [string, string][] = [
+      ['Nice! You made a tower!', 'You said her words back.'],
+      ["You're stacking the blocks. I love how carefully you did that.", 'You named exactly what you liked.'],
+      ["Good job! You're stacking the blocks.", 'You said what she did.'],
+      ['Hmm. Good job!', 'Warm, and a little vague.'],
+    ];
+    for (const [text, headline] of turns) {
+      expect(run([{ type: 'answer_opener', text }]).opener.insight?.headline, text).toBe(headline);
+    }
   });
   it('lets the parent try the reflection and shows a model answer after two tries', () => {
     let s = run([{ type: 'answer_opener', text: 'What is it?' }, { type: 'try_reflection', text: 'Nice.' }]);
@@ -112,7 +151,13 @@ describe('rounds and lesson', () => {
     const s = run([{ type: 'begin_lesson' }, { type: 'begin_round2' }, { type: 'round_ended', result: betterRound }], afterRound1);
     expect(s.phase).toBe('change');
     expect(s.change?.improved).toBe(true);
+    expect(s.change?.verdict).toBe('improved');
     expect(s.change?.lines.length).toBeGreaterThan(0);
+  });
+  it('does not praise a second round in which nothing was said', () => {
+    const silent = result([], 40);
+    const s = run([{ type: 'begin_round2' }, { type: 'round_ended', result: silent }], afterRound1);
+    expect(s.change).toMatchObject({ improved: false, verdict: 'silent' });
   });
   it('lets the lesson be skipped', () => {
     expect(run([{ type: 'begin_round2' }], afterRound1).phase).toBe('round2');

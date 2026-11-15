@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   }
   // This build must never take real money: refuse anything but a test key.
   if (!key.startsWith('sk_test_')) {
-    return Response.json({ error: 'Checkout is switched off: only Stripe test keys are allowed here.' }, { status: 503 });
+    return Response.json({ error: 'Checkout is turned off: only Stripe test keys are allowed here.' }, { status: 503 });
   }
 
   const body = (await req.json().catch(() => null)) as { plan?: unknown } | null;
@@ -29,7 +29,11 @@ export async function POST(req: Request) {
   const planId = body.plan;
   const plan = PLANS[planId];
   // Send the visitor back to the site they came from (works on localhost and on any deployed URL).
-  const origin = req.headers.get('origin') ?? new URL(req.url).origin;
+  // Stripe's return links go only to this site: an Origin header that names another host is ignored.
+  const self = new URL(req.url);
+  const sent = req.headers.get('origin');
+  const host = req.headers.get('x-forwarded-host') ?? req.headers.get('host');
+  const origin = sent && URL.canParse(sent) && new URL(sent).host === host ? new URL(sent).origin : self.origin;
 
   try {
     // Stripe is constructed here, not at module level, so a missing key can never break the import.
@@ -48,7 +52,7 @@ export async function POST(req: Request) {
       ],
       metadata: { plan: planId },
       success_url: `${origin}/unlocked?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/pricing?cancelled=1`,
+      cancel_url: `${origin}/pricing?canceled=1`,
     });
     if (!session.url) throw new Error('Stripe returned no checkout URL.');
     return Response.json({ url: session.url });

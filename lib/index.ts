@@ -1,26 +1,39 @@
 export * from './types';
 export { codeSentence, codeTurn, isReflection, normalize, splitSentences } from './coding/classify';
 export { EXAMPLES } from './coding/examples';
-export { actionWeights, applyMove, EFFECTS, farewell, initialChild, MICRO_REACTION, tick, view } from './child/model';
-export { BLOCKS, DRAWING, SCENES } from './child/scenes';
+export { CRISIS_LINES, isSafetyConcern, SAFETY_NOTE } from './coding/safety';
+export {
+  actionWeights, applyMove, COPY_CONNECTION_CEILING, EFFECTS, farewell, initialChild, isOutburst, MICRO_REACTION, tick, view,
+} from './child/model';
+export { BLOCKS, CLEANUP, DRAWING, KITCHEN, sceneById, sceneForDay, SCENES } from './child/scenes';
 export {
   biggestLever,
+  CHANGE_TEXT,
   compareRounds,
   countCodes,
+  LEVER_NAME,
   LEVER_TEXT,
   MAX_AVOID_5MIN,
   NORM_PER_SKILL,
   NORM_SECONDS,
   paceTargets,
+  skillMix,
   summarizeRound,
 } from './progress/targets';
-export { coachPrompt, type CoachInput } from './coach/policy';
+export { CALM_PRAISE_TEXT, coachPrompt, WAIT_OUT_TEXT, type CoachInput } from './coach/policy';
 export {
   DEFAULT_BEAT_EVERY_SEC,
   initialRound,
+  MAX_COUNTED_PER_TURN,
+  MAX_DISPUTES,
   measuredSeconds,
+  REPEAT_NOTE,
+  REPEAT_WINDOW_SEC,
+  repeatKey,
   ringProgress,
   roundReducer,
+  SHORT_ROUND_NOTE,
+  TURN_CAP_NOTE,
   type RingProgress,
   type RoundEvent,
   type RoundState,
@@ -28,23 +41,44 @@ export {
   type TimedSentence,
 } from './round/session';
 export { candidateTasks, checkAnswer, lessonFor, type Lesson, type LessonPair, type LessonTask } from './lesson/lesson';
+export { checkDayTask, dayLesson, type DayLesson, type DayTask } from './lesson/days';
 export {
   addCheckin,
   addDays,
   addSession,
   calmTrend,
   dayNumber,
+  dayStatus,
   emptyProgress,
+  EXPORT_FORMAT,
+  EXPORT_VERSION,
+  exportProgress,
+  importProgress,
+  isEmptyResult,
+  lastLever,
   masteryShare,
+  MIN_DAY_SENTENCES,
+  parseFirstRounds,
   parseProgress,
+  planStreak,
+  readProgress,
+  replaceSession,
   skillTrend,
   streak,
+  todayFocus,
+  weekOneAndFour,
   type Checkin,
+  type LeverNote,
   type Progress,
   type SessionRecord,
   type TantrumBucket,
+  type WeekAverage,
 } from './progress/history';
-export { PLAN, PLAN_DAYS, planDay, type PlanDay } from './progress/plan';
+export { CYCLE_DAYS, PLAN, PLAN_DAYS, planDay, type PlanDay } from './progress/plan';
+export {
+  ANCHORS, buildCalendar, calendarPath, CALENDAR_LINK_TEXT, dayAfter, GOOGLE_CALENDAR_LINK_TEXT, googleCalendarUrl, isAnchor,
+  reminderDays, type Anchor,
+} from './reminder/calendar';
 export { DEMO_LABEL, simulateFamily, type DemoDay } from './demo/simulate';
 export {
   activeTask,
@@ -68,6 +102,7 @@ export {
   cleanTranscript,
   initialSpeech,
   isEcho,
+  isHearing,
   isRepeat,
   LISTENING_HINT,
   LIVE_NOTICE,

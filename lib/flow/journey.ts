@@ -6,6 +6,7 @@
  */
 import { BUCKET, type CodedSentence, type Code, type RoundChange, type RoundResult, type SavedSentence } from '../types';
 import { codeTurn } from '../coding/classify';
+import { SAFETY_NOTE } from '../coding/safety';
 import { BLOCKS } from '../child/scenes';
 import { checkAnswer, lessonFor, type Lesson, type LessonTask } from '../lesson/lesson';
 import { compareRounds, summarizeRound } from '../progress/targets';
@@ -109,12 +110,16 @@ export function initialJourney(seed = 1, startAt: JourneyPhase = 'opener'): Jour
   };
 }
 
-/** What to tell the parent about their very first answer. The strongest code in the turn decides. */
+/**
+ * What to tell the parent about their very first answer. One code in the turn decides the headline.
+ * A to-swap sentence comes before any skill: "You made a tower. Now shut up." is not opened with praise
+ * for the reflection. Among the skills, saying her words back comes first.
+ */
 const INSIGHT_ORDER: Code[] = [
-  'reflection',
   'criticism',
   'command',
   'question',
+  'reflection',
   'specific_praise',
   'description',
   'general_praise',
@@ -136,7 +141,7 @@ const INSIGHT: Record<Exclude<Code, 'unknown'>, Insight> = {
   },
   question: {
     headline: 'That was a question.',
-    body: 'It feels warm. It also asks her to stop playing and answer you.',
+    body: 'It feels warm. It also asks her to stop playing and answer you. Questions are great the rest of the day.',
   },
   specific_praise: {
     headline: 'You named exactly what you liked.',
@@ -158,10 +163,12 @@ const INSIGHT: Record<Exclude<Code, 'unknown'>, Insight> = {
 
 const UNREADABLE: Insight = {
   headline: 'That one could not be read.',
-  body: 'This practice reads English sentences. Try a short one.',
+  body: 'This practice reads English sentences. Say her words back in English below.',
 };
 
 export function openerInsight(first: CodedSentence[]): Insight {
+  // Not play talk: no code and no lesson about it, only where support is.
+  if (first.some((s) => s.rule === 'safety')) return SAFETY_NOTE;
   for (const code of INSIGHT_ORDER) {
     if (first.some((s) => s.code === code)) return INSIGHT[code as Exclude<Code, 'unknown'>];
   }
