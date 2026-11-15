@@ -32,6 +32,21 @@ const CONCERNS = [
   'I hit them.',
   'I hit her too.',
   'I spank him a lot.',
+  // Threats and despair a reviewer found the filter missed.
+  "I'll slap your face.",
+  'Mommy is going to smack your bottom.',
+  'I will break your arm.',
+  "I'm going to throw you out the window.",
+  "I'll give you something to cry about.",
+  'Keep it up and you will get a whooping.',
+  "I'm going to beat the crap out of you.",
+  'Mommy wants to die.',
+  // Still caught after the play-talk exceptions below were added.
+  'I am going to hit you.',
+  'I hit them with a belt.',
+  'I shook them.',
+  "I can't take it anymore.",
+  'I am going to beat you.',
 ];
 
 const PLAY_TALK = [
@@ -70,6 +85,21 @@ const PLAY_TALK = [
   "I'm going to shake her hand.",
   'I hurt her feelings.',
   'I hit her tower with my car.',
+  // Play talk a reviewer saw the crisis card on: a car race, tag, a peg hammer, a snow globe.
+  "I'm gonna beat you, my car is faster!",
+  'Tag, I hit you!',
+  'I hit them with the hammer too.',
+  'I shook them all up.',
+  "I'm going to hit her truck with my truck.",
+  "I can't take it anymore, this soup is too yummy.",
+  'I will hit you with my car.',
+  "I'm going to shake you like a snow globe!",
+  "I'll throw you up in the air!",
+  "I'm going to squish you!",
+  "I'll beat you to the door.",
+  'I hit your block with mine.',
+  'I will break your record.',
+  "I'll smack my lips.",
 ];
 
 describe('isSafetyConcern', () => {

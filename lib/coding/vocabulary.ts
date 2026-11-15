@@ -29,8 +29,22 @@ export const ACTION: ReadonlySet<string> = new Set(
     waited stopped worked helped cleaned tidied listened noticed remembered decided planned checked played
     shook shake slid slide spun spin swept sweep hung hang sent send won win rode ride wore wear ate eat
     drank drink slept sleep woke wake blew blow grew grow swam swim bent bend stuck stick tore tear taught teach
+    left shut bought told said saw swung spread lit thought heard fit knelt crept led lent paid sold
   `),
 );
+
+/**
+ * The base forms among the action verbs. "Stir the soup." is an order and "You stack them up" is narration
+ * in the present: both are told apart from a past ("You stirred") by this list.
+ */
+const ACTION_BASE = list(`
+  put make build draw pick choose stack color place move push pull turn add find take give share roll line open
+  close mix pour cut hold set knock fix connect press use get try finish start fill drive fly feed wash cook hide
+  drop lift balance match sort paint write count hand bring park cover wrap keep go come sit stand jump run throw
+  lay squeeze tap show grab carry sing tuck wipe stir scoop let dig bounce catch kick attach join dress brush
+  shake slide spin sweep hang send win ride wear eat drink sleep wake blow grow swim bend stick tear teach
+  leave shut buy tell spread light fit kneel creep lead lend pay sell swing
+`);
 
 /** More play verbs, base form. Their -ing, -ed and -s forms are generated below. */
 const PLAY_VERBS = list(`
@@ -47,6 +61,9 @@ const PLAY_VERBS = list(`
   twirl twist unlock unpack untie unzip visit walk watch water wave weave whisper whistle wiggle wink wobble
   wonder yawn zip zoom
   check clean decide figure listen look notice plan play remember say stop tell think tidy wait work
+  tip scoot nudge cradle rearrange assemble construct swap shuffle unwrap unfold straighten fasten crumble
+  sniff munch nibble gobble slurp serve deliver slip fetch unhook lower raise ladle whisk mash
+  scrape dunk drizzle flick fling hoist sprint steady stash tug zigzag
 `);
 
 /** Things in a playroom and in pretend play: toys, animals, food, clothes, body, art supplies, vehicles, places. */
@@ -127,7 +144,7 @@ const SOUNDS = list(`
 /** Grammar words and everyday filler: English, but they name no action and no play thing. */
 const FUNCTION_WORDS = list(`
   a about above absolutely actually across after again against ago ah all almost alone along already also always am an and another
-  goodness gosh grief luck huh mhm mm yep yup nah worst nobody shame
+  goodness gosh grief luck huh mhm mm yep yup nah worst nobody shame fault reason deal instant
   basically certainly completely definitely especially exactly finally hardly honestly literally mostly normally probably seriously simply suddenly totally truly usually
   any anybody anymore anyone anything anyway are around as at aw away aww be because been before behind being
   below beside best better between both but by bye can can't cannot could dear did do does doing done down
@@ -280,6 +297,13 @@ export function isEnglishWord(word: string): boolean {
 /** True for a common word of another language typed in Latin letters: "muy", "einen", "molodec". */
 export function isForeignWord(word: string): boolean {
   return FOREIGN.has(word.toLowerCase());
+}
+
+const BASE_VERBS: ReadonlySet<string> = new Set([...ACTION_BASE, ...PLAY_VERBS]);
+
+/** True for the base form of an action or play verb: "stir", "stack". Its other forms are not ("stirred", "stacks"). */
+export function isBaseVerb(word: string): boolean {
+  return BASE_VERBS.has(word.toLowerCase());
 }
 
 /** True for a form of an action or play verb: "snapped", "zipping". A thing or a quality is not one. */
