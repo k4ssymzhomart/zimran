@@ -21,7 +21,8 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
   // On Android the keyboard shrinks the layout, so the round screen keeps Mia and the input in view together.
   interactiveWidget: 'resizes-content',
-  themeColor: '#09081b',
+  // The violet token: on a phone the browser's own bar continues the violet block at the top of a Split screen.
+  themeColor: '#5B52FF',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

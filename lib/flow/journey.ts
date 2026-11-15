@@ -4,11 +4,11 @@
  * before and after -> a few setup questions -> the plan.
  * Screens only render this state and send events. Nothing here knows about React, the clock or storage.
  */
-import type { CodedSentence, Code, RoundChange, RoundResult } from '../types';
+import { BUCKET, type CodedSentence, type Code, type RoundChange, type RoundResult, type SavedSentence } from '../types';
 import { codeTurn } from '../coding/classify';
 import { BLOCKS } from '../child/scenes';
 import { checkAnswer, lessonFor, type Lesson, type LessonTask } from '../lesson/lesson';
-import { compareRounds } from '../progress/targets';
+import { compareRounds, summarizeRound } from '../progress/targets';
 
 export const ROUND1 = { sceneId: 'blocks', seconds: 60 } as const;
 export const ROUND2 = { sceneId: 'drawing', seconds: 40 } as const;
@@ -69,6 +69,8 @@ export interface JourneyState {
 export type JourneyEvent =
   | { type: 'answer_opener'; text: string }
   | { type: 'try_reflection'; text: string }
+  /** The first answer has been read: on to the one screen of instructions before round one. */
+  | { type: 'ready' }
   | { type: 'begin_round1' }
   | { type: 'round_ended'; result: RoundResult }
   /** The parent disputed a sentence after the round: the stored result follows. */
@@ -181,6 +183,30 @@ export function lastTry(state: JourneyState): TaskTry | null {
   return null;
 }
 
+/**
+ * "Disagree?" on one sentence of a finished round, worked out from the sentences as they are saved. The tapped
+ * sentence leaves the count (a second tap puts it back) and the result is summed again the way the round engine
+ * does it (lib/round/session.ts): targets, `met` and the lever belong to the planned length, and `seconds` stays
+ * the time the round was measured over. Null when there is no sentence at that index.
+ */
+export function afterDispute(
+  sentences: readonly SavedSentence[],
+  index: number,
+  plannedSeconds: number,
+  measuredSeconds: number,
+): { sentences: SavedSentence[]; result: RoundResult } | null {
+  if (!sentences[index]) return null;
+  const next = sentences.map((s, i): SavedSentence => {
+    if (i !== index) return s;
+    const { disputed, ...rest } = s;
+    return disputed ? rest : { ...rest, disputed: true };
+  });
+  const counted = next
+    .filter((s) => !s.disputed)
+    .map((s): CodedSentence => ({ text: s.text, code: s.code, bucket: BUCKET[s.code], confidence: 1, rule: s.rule ?? '' }));
+  return { sentences: next, result: { ...summarizeRound(counted, plannedSeconds), seconds: measuredSeconds } };
+}
+
 function answerOpener(state: JourneyState, text: string): JourneyState {
   if (!text.trim()) return state;
   const first = codeTurn(text, { childLastSaid: state.opener.childSaid });
@@ -232,6 +258,8 @@ export function journeyReducer(state: JourneyState, event: JourneyEvent): Journe
       return state.phase === 'opener' ? answerOpener(state, event.text) : state;
     case 'try_reflection':
       return state.phase === 'opener_reveal' ? tryReflection(state, event.text) : state;
+    case 'ready':
+      return state.phase === 'opener_reveal' ? { ...state, phase: 'ready1' } : state;
     case 'begin_round1':
       return ['opener', 'opener_reveal', 'ready1'].includes(state.phase) ? { ...state, phase: 'round1' } : state;
     case 'round_ended':

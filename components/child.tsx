@@ -43,6 +43,8 @@ export function forChild(text: string | null | undefined, child: ChildId): strin
     .replace(/\bherself\b/g, 'himself')
     .replace(/\bHerself\b/g, 'Himself')
     .replace(/\bhers\b/g, 'his')
+    // After "let" she is the one acting: "Let her lead" is "Let him lead", not "Let his lead".
+    .replace(/\b([Ll]et) her\b/g, '$1 him')
     .replace(/\b(H|h)er\b(\s*)([\w’']+)?/g, (_m, h: string, space: string, next?: string) => {
       const possessive = next !== undefined && POSSESSED.test(next);
       const word = possessive ? 'is' : 'im';

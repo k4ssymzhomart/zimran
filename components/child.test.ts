@@ -20,6 +20,9 @@ describe('forChild', () => {
   it('turns object "her" into "him"', () => {
     expect(forChild('It also asks her to stop playing and answer you.', 'leo')).toBe('It also asks him to stop playing and answer you.');
     expect(forChild('Let her choose the game', 'leo')).toBe('Let him choose the game');
+    expect(forChild('Let her lead: describe what she chose instead of telling her what to do.', 'leo')).toBe(
+      'Let him lead: describe what he chose instead of telling him what to do.',
+    );
     expect(forChild('say what you see her doing.', 'leo')).toBe('say what you see him doing.');
     expect(forChild('She heard you. Praise her.', 'leo')).toBe('He heard you. Praise him.');
     expect(forChild('telling her what to do', 'leo')).toBe('telling him what to do');

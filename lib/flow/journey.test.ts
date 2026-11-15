@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest';
+import { savedSentences } from '../../hooks/useRound';
 import { codeTurn } from '../coding/classify';
 import { summarizeRound } from '../progress/targets';
+import { initialRound, roundReducer, type RoundEvent, type RoundState } from '../round/session';
 import {
   activeTask,
+  afterDispute,
   initialJourney,
   journeyReducer,
   lastTry,
   lessonDone,
   openerInsight,
+  ROUND1,
   type JourneyEvent,
   type JourneyState,
 } from './journey';
@@ -50,6 +54,14 @@ describe('opener', () => {
   it('ignores an empty answer', () => {
     const s = initialJourney();
     expect(run([{ type: 'answer_opener', text: '   ' }], s)).toBe(s);
+  });
+  it('goes from the read answer to the screen before round one, and from there into the round', () => {
+    const read = run([{ type: 'answer_opener', text: 'What is it?' }, { type: 'try_reflection', text: 'You made a tower.' }]);
+    const ready = run([{ type: 'ready' }], read);
+    expect(ready.phase).toBe('ready1');
+    // Nothing but the phase moves: the first answer and its reading stay as they were.
+    expect(ready.opener).toBe(read.opener);
+    expect(run([{ type: 'begin_round1' }], ready).phase).toBe('round1');
   });
   it('has an insight for every kind of first answer and none of them scolds', () => {
     const answers = ['You made a tower!', 'No, not like that.', 'Put it here.', 'What is it?', 'Nice tower!', "You're stacking.", 'Good job!', 'That is red.', 'Молодец'];
@@ -112,6 +124,66 @@ describe('rounds and lesson', () => {
   });
 });
 
+describe('a dispute after the round', () => {
+  const play = (events: RoundEvent[]): RoundState => events.reduce(roundReducer, initialRound());
+  const say = (text: string): RoundEvent => ({ type: 'say', text });
+  const start: RoundEvent = { type: 'start', sceneId: ROUND1.sceneId, seconds: ROUND1.seconds, seed: 1 };
+  /** A round the parent ended early: its result is measured over the time played, its targets over the planned minute. */
+  const endedEarly = play([
+    start,
+    say('What is it?'),
+    { type: 'tick', dtSec: 9 },
+    say('You made a tower!'),
+    say('Wow, good job! Is that a tower?'),
+    { type: 'tick', dtSec: 12 },
+    say('Put it on top.'),
+    say("You're stacking the red block."),
+    { type: 'tick', dtSec: 13 },
+    { type: 'end' },
+  ]);
+  const playedOut = play([start, say('Is that a tower?'), say('You made a tower!'), { type: 'tick', dtSec: ROUND1.seconds }]);
+
+  it('gives the result the round engine gives, whichever sentence is disputed', () => {
+    for (const round of [endedEarly, playedOut]) {
+      expect(round.phase).toBe('ended');
+      const saved = savedSentences(round.sentences);
+      expect(saved.length).toBeGreaterThan(1);
+      saved.forEach((_, index) => {
+        const engine = roundReducer(round, { type: 'dispute', index });
+        const mine = afterDispute(saved, index, ROUND1.seconds, round.result!.seconds);
+        expect(mine?.result).toEqual(engine.result);
+        expect(mine?.sentences).toStrictEqual(savedSentences(engine.sentences));
+      });
+    }
+  });
+  it('keeps the time the round was measured over and the targets of the planned minute', () => {
+    const saved = savedSentences(endedEarly.sentences);
+    const mine = afterDispute(saved, 0, ROUND1.seconds, endedEarly.result!.seconds)!;
+    expect(mine.result.seconds).toBe(34);
+    expect(mine.result.targets).toEqual(endedEarly.result!.targets);
+    // The disputed question is out of the count; nothing else moved.
+    expect(mine.result.counts.question).toBe(endedEarly.result!.counts.question - 1);
+    expect(mine.result.counts.avoid).toBe(endedEarly.result!.counts.avoid - 1);
+    expect(mine.result.counts.target).toBe(endedEarly.result!.counts.target);
+  });
+  it('puts the sentence back on a second tap', () => {
+    const saved = savedSentences(endedEarly.sentences);
+    const once = afterDispute(saved, 1, ROUND1.seconds, endedEarly.result!.seconds)!;
+    expect(once.sentences[1].disputed).toBe(true);
+    const twice = afterDispute(once.sentences, 1, ROUND1.seconds, endedEarly.result!.seconds)!;
+    expect(twice.sentences).toStrictEqual(saved);
+    expect(twice.result).toEqual(endedEarly.result);
+  });
+  it('does nothing for an index that is not a sentence, and never edits its input', () => {
+    const saved = savedSentences(endedEarly.sentences);
+    const frozen = JSON.stringify(saved);
+    expect(afterDispute(saved, saved.length, ROUND1.seconds, 34)).toBeNull();
+    expect(afterDispute(saved, -1, ROUND1.seconds, 34)).toBeNull();
+    afterDispute(saved, 0, ROUND1.seconds, 34);
+    expect(JSON.stringify(saved)).toBe(frozen);
+  });
+});
+
 describe('setup and plan', () => {
   const atChange = run(
     [{ type: 'begin_round1' }, { type: 'round_ended', result: weakRound }, { type: 'begin_round2' }, { type: 'round_ended', result: betterRound }],
@@ -149,6 +221,7 @@ describe('guards', () => {
     const s = initialJourney();
     for (const e of [
       { type: 'try_reflection', text: 'You made a tower.' },
+      { type: 'ready' },
       { type: 'round_ended', result: weakRound },
       { type: 'begin_lesson' },
       { type: 'answer_task', text: 'x' },
@@ -162,6 +235,7 @@ describe('guards', () => {
     const events: JourneyEvent[] = [
       { type: 'answer_opener', text: 'What is it?' },
       { type: 'try_reflection', text: 'You made a tower.' },
+      { type: 'ready' },
       { type: 'begin_round1' },
       { type: 'round_ended', result: weakRound },
       { type: 'begin_lesson' },

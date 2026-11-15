@@ -1,55 +1,68 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { ArrowRight } from '@/components/Icons';
-import { TopBar } from '@/components/ui';
+import type { ComponentType } from 'react';
+import { Footer } from '@/components/landing/Footer';
+import { Hero } from '@/components/landing/Hero';
+import { LandingBar } from '@/components/landing/LandingBar';
+import { LiveAnswer } from '@/components/landing/LiveAnswer';
+// The other sections: uncomment an import here and its line in SECTIONS below.
+// import { Answers } from '@/components/landing/Answers';
+// import { BeforeAfterToggle } from '@/components/landing/BeforeAfterToggle';
+// import { Closing } from '@/components/landing/Closing';
+// import { FirstVisitSteps } from '@/components/landing/FirstVisitSteps';
+// import { FourCounts } from '@/components/landing/FourCounts';
+// import { PaceBand } from '@/components/landing/PaceBand';
+// import { PlanBuilder } from '@/components/landing/PlanBuilder';
+// import { Pricing } from '@/components/landing/Pricing';
+
+/** The anchor of the answer field. Every "Try one answer" on this page leads there. */
+const ANSWER = 'answer';
+
+export interface LandingSection {
+  /**
+   * The anchor of the section, unique on the page. The page puts it on a wrapper around the section,
+   * so pick a name the section does not already use for an id of its own.
+   */
+  id: string;
+  Component: ComponentType;
+  /** Set it to link to the section from the top bar: "How it works", "Method", "Pricing". */
+  nav?: string;
+}
 
 /**
- * The landing page: one promise, one picture, one action.
- * The button goes straight to choosing Mia or Leo, so the next screen is already the product.
+ * ---------- THE OTHER SECTIONS GO HERE ----------
+ * Everything between the live answer and the footer, in page order (Figma 66:1267 and 63:224).
+ * To add a section, add its line: the page renders it in place, and a line with `nav` gets its link in the top bar.
+ */
+export const SECTIONS: LandingSection[] = [
+  // { id: 'counts', Component: FourCounts },
+  // { id: 'how-it-works', Component: FirstVisitSteps, nav: 'How it works' },
+  // { id: 'before-after', Component: BeforeAfterToggle },
+  // { id: 'builder', Component: PlanBuilder },
+  // { id: 'pace', Component: PaceBand, nav: 'Method' },
+  // { id: 'pricing', Component: Pricing, nav: 'Pricing' },
+  // { id: 'answers', Component: Answers },
+  // { id: 'closing', Component: Closing },
+];
+
+/**
+ * The landing: the top bar, the first screen, the live answer, the sections above, the footer.
+ * White is the page; violet comes as bands, cards and tiles.
  */
 export default function Landing() {
+  const sectionLinks = SECTIONS.flatMap(({ id, nav }) => (nav ? [{ label: nav, href: `#${id}` }] : []));
+
   return (
-    <div className="glow flex min-h-[100dvh] flex-col overflow-hidden">
-      <TopBar
-        right={
-          <Link href="/jury" className="btn btn-ghost">
-            Jury guide
-          </Link>
-        }
-      />
-
-      <main className="mx-auto grid w-full max-w-[1120px] flex-1 items-center gap-6 px-5 pb-16 pt-2 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:pt-0">
-        {/* the picture: the two simulated children inside the three rings */}
-        <div className="pop relative mx-auto aspect-square w-full max-w-[340px] sm:max-w-[420px] lg:order-2 lg:max-w-[520px]">
-          <div aria-hidden="true" className="absolute inset-[12%] rounded-full bg-violet/45 blur-[80px]" />
-          <Image src="/art/rings.png" alt="" fill priority sizes="(min-width: 1024px) 520px, 420px" className="breathe object-contain opacity-90" />
-          <Image
-            src="/art/duo.png"
-            alt="Mia and Leo, two simulated four-year-olds, building a tower of blocks"
-            width={1100}
-            height={942}
-            priority
-            sizes="(min-width: 1024px) 400px, 300px"
-            className="absolute bottom-[4%] left-1/2 w-[78%] -translate-x-1/2 drop-shadow-[0_24px_40px_rgba(9,8,27,0.6)]"
-          />
-        </div>
-
-        <div className="text-center lg:text-left">
-          <h1 className="title enter d1 text-[40px] font-black text-fg sm:text-[60px] lg:text-[68px]">
-            Practise the five minutes of play clinics teach.
-          </h1>
-          <p className="lede enter d2 mx-auto mt-5 max-w-[500px] sm:text-[19px] lg:mx-0">
-            Talk with Mia or Leo, a simulated four-year-old. Every sentence you say is coded as you say it.
-          </p>
-          <div className="enter d3 mt-9 flex flex-col items-center gap-3 lg:items-start">
-            <Link href="/start" className="btn btn-primary w-full max-w-[340px] text-[18px]">
-              Start practising
-              <ArrowRight size={20} />
-            </Link>
-            <p className="text-[13px] text-fg-faint">Free to try. No sign-up.</p>
+    <div className="split-root">
+      <LandingBar sections={sectionLinks} actionHref={`#${ANSWER}`} />
+      <main>
+        <Hero actionHref={`#${ANSWER}`} />
+        <LiveAnswer id={ANSWER} />
+        {SECTIONS.map(({ id, Component }) => (
+          <div key={id} id={id}>
+            <Component />
           </div>
-        </div>
+        ))}
       </main>
+      <Footer />
     </div>
   );
 }

@@ -1,0 +1,125 @@
+'use client';
+
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { todayISO } from '@/client/progressStore';
+import { Art, Button, Divider, Pattern, PlanRow, RowChevron, Sheet, cn, focusRingWithin } from '@/components/kit';
+import { defaultTimeFor, isTime, momentLabel, reminderDays, reminderHref, repeatsLabel } from '@/lib/progress/calendar';
+import type { CalendarSheetProps } from './quizTypes';
+
+/** The frozen props of the sheet, and one more the flow may pass. */
+export interface CalendarSheetOwnProps extends CalendarSheetProps {
+  /**
+   * The Moment row was tapped: the flow goes back to "When can you play for five minutes?".
+   * Without it the row only shows the moment, with no arrow, because it would lead nowhere.
+   */
+  onEditMoment?(): void;
+}
+
+/**
+ * "Put five minutes in your calendar." Mobile 62:1460: a sheet with the moment, the time and how long it repeats.
+ *
+ * "Add to calendar" is a plain link to app/api/calendar/route.ts, which answers with a calendar file: one event at
+ * the chosen time on the parent's own clock, every day for the days left in the plan. Nothing is saved anywhere
+ * else, and the link carries no name.
+ */
+export function CalendarSheet({ open, anchor, daysLeft, onClose, onEditMoment }: CalendarSheetOwnProps) {
+  /** The time the parent set, with the moment it was set for. Until then, and for a new moment, the time follows the moment. */
+  const [chosen, setChosen] = useState<{ anchor: string | null; time: string } | null>(null);
+  /** Today on this device, YYYY-MM-DD. Read after mount and again each time the sheet opens or closes, never during render. */
+  const [today, setToday] = useState<string | null>(null);
+
+  useEffect(() => {
+    // One tick later, so the first paint matches the prerendered page and no state is set inside the effect itself.
+    const timer = window.setTimeout(() => setToday(todayISO()), 0);
+    return () => window.clearTimeout(timer);
+  }, [open]);
+
+  const moment = momentLabel(anchor);
+  const time = chosen !== null && chosen.anchor === anchor ? chosen.time : defaultTimeFor(anchor);
+  const days = reminderDays(daysLeft);
+  const href = today === null ? null : reminderHref({ time, days, start: today, moment });
+
+  return (
+    // The frame spaces the picture, the title and the rows 16px apart.
+    <Sheet open={open} onClose={onClose} title="Put five minutes in your calendar." art={BELL} className="gap-[16px]!">
+      <div className="flex flex-col gap-[16px]">
+        <div className="flex flex-col">
+          <Divider />
+          <PlanRow compact label="Moment" value={moment ?? 'Not set'} onClick={onEditMoment} />
+          <Divider />
+          <TimeRow value={time} onChange={(next) => setChosen({ anchor, time: next })} />
+          <Divider />
+          <PlanRow compact label="Repeats" value={repeatsLabel(today, days)} />
+        </div>
+        <div className="flex flex-col gap-[2px]">
+          {href === null ? (
+            // Only until the date is read, one tick after mount: the same pill, not yet a link.
+            <Button fullWidth aria-disabled>
+              Add to calendar
+            </Button>
+          ) : (
+            // `download` keeps next/link out of the way: the browser itself follows the link and takes the file.
+            // The sheet closes a tick later, after the browser has started on the link.
+            <Button fullWidth href={href} download prefetch={false} onClick={() => window.setTimeout(onClose, 0)}>
+              Add to calendar
+            </Button>
+          )}
+          <Button variant="ghost" fullWidth onClick={onClose}>
+            Not now
+          </Button>
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+
+/** The picture of the sheet: the bell on a 76px violet tile with the everyday pattern. */
+const BELL = (
+  <div className="relative flex size-[76px] shrink-0 items-center justify-center overflow-clip rounded-[22px] bg-violet">
+    <Pattern kind="reps" size={576} />
+    <Art name="bell" size={52} className="relative" />
+  </div>
+);
+
+/**
+ * The Time row: the look of a compact PlanRow over a native time field. The field is not drawn, but it covers the
+ * whole row, takes every tap and key, and opens the picker the phone already has.
+ * TODO kit: a PlanRow that can hold a native control.
+ */
+function TimeRow({ value, onChange }: { value: string; onChange(time: string): void }) {
+  /** The time the field held when it took focus: where the picker of an iPhone goes back to on its "Reset". */
+  const atFocus = useRef(value);
+  return (
+    <label className={cn('relative flex min-h-[52px] w-full cursor-pointer items-center gap-[8px]', focusRingWithin)}>
+      <span className="min-w-0 flex-1 text-body text-gray">Time</span>
+      {/* The field reads its own value aloud; this is the copy that is drawn. */}
+      <span aria-hidden className="shrink-0 text-body-strong text-ink">
+        {value}
+      </span>
+      <RowChevron />
+      <input
+        type="time"
+        value={value}
+        onFocus={() => {
+          atFocus.current = value;
+        }}
+        // A cleared field has no time. "Reset" in the iPhone picker clears it and turns its wheels back to the
+        // time it opened with, so the row goes back to that time too and the two never disagree.
+        onChange={(event) => onChange(isTime(event.target.value) ? event.target.value : atFocus.current)}
+        onClick={openPicker}
+        className="absolute inset-0 size-full cursor-pointer text-body opacity-0"
+      />
+    </label>
+  );
+}
+
+/** With a mouse, a browser opens the picker of a time field only from its small clock icon. Here the row is the field. */
+function openPicker(event: MouseEvent<HTMLInputElement>) {
+  // A finger already opens the picker by itself.
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  try {
+    event.currentTarget.showPicker();
+  } catch {
+    // This browser has no picker to show. Typing the time into the focused row still works.
+  }
+}
