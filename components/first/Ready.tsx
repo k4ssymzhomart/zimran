@@ -86,6 +86,14 @@ export interface RoundTwoReadyProps {
   onStart(): void;
 }
 
+/**
+ * The screen before this one is gone with the field or the button that was used. The headline takes the focus,
+ * without a ring: a screen reader reads it, and the next Tab reaches the action.
+ */
+function takeFocus(heading: HTMLElement | null) {
+  heading?.focus({ preventScroll: true });
+}
+
 /** "Ready for round two." (24:375). It is both the ready screen of round two and the end of the lesson. */
 export function RoundTwoReady({ partner, note, onStart }: RoundTwoReadyProps) {
   return (
@@ -109,7 +117,9 @@ export function RoundTwoReady({ partner, note, onStart }: RoundTwoReadyProps) {
     >
       <div className="pb-[8px] pt-[4px] lg:pt-0">
         {note}
-        <h1 className="text-title">Ready for round two.</h1>
+        <h1 ref={takeFocus} tabIndex={-1} className="text-title outline-none">
+          Ready for round two.
+        </h1>
       </div>
     </SplitScreen>
   );

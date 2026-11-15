@@ -3,6 +3,7 @@
 import { forChild } from '@/components/child';
 import { Art, Button, Pattern, SplitScreen, Tag, cn } from '@/components/kit';
 import { PLAN, PLAN_DAYS, planDay } from '@/lib/progress/plan';
+import type { PartnerId } from '@/lib/types';
 import type { PlanResultProps } from './types';
 
 /** One row per week of the plan: the first day of a week names its skill ("Follow her lead"). */
@@ -17,6 +18,15 @@ function comingUp(teaser: string): { label: string; text: string } {
   if (colon < 1) return { label: 'Next', text: teaser };
   const text = teaser.slice(colon + 2);
   return { label: teaser.slice(0, colon), text: text.charAt(0).toUpperCase() + text.slice(1) };
+}
+
+/**
+ * The plan's words on their way to the screen, about the chosen child.
+ * TODO components/child.tsx: forChild turns "her sportscaster" into "him sportscaster", because the word is not in
+ * its list of what follows a possessive "her". Corrected here until it is corrected there.
+ */
+function shown(text: string, partner: PartnerId): string {
+  return forChild(text, partner).replace(/\bhim sportscaster\b/g, 'his sportscaster');
 }
 
 /**
@@ -42,7 +52,7 @@ function takeFocus(heading: HTMLElement | null) {
 export function PlanResult({ partner, anchor, day, onNext, onOpenPlan }: PlanResultProps) {
   const done = Number.isFinite(day) ? Math.min(PLAN_DAYS, Math.max(1, Math.floor(day))) : 1;
   const today = planDay(done);
-  const next = comingUp(forChild(today.teaser, partner));
+  const next = comingUp(shown(today.teaser, partner));
   const moment = anchor?.trim() || null;
 
   return (
@@ -83,7 +93,7 @@ export function PlanResult({ partner, anchor, day, onNext, onOpenPlan }: PlanRes
                 className={cn('flex items-center gap-[14px] py-[11px]', index > 0 && 'border-t border-line')}
               >
                 <span className={cn('w-[62px] shrink-0 text-label whitespace-nowrap', now ? 'text-violet' : 'text-gray')}>Week {week.week}</span>
-                <span className={cn('min-w-0 flex-1 text-ink', now ? 'text-body-strong' : 'text-body')}>{forChild(week.title, partner)}</span>
+                <span className={cn('min-w-0 flex-1 text-ink', now ? 'text-body-strong' : 'text-body')}>{shown(week.title, partner)}</span>
                 {now && <Tag tone="skill">Now</Tag>}
               </li>
             );

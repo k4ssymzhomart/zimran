@@ -40,6 +40,14 @@ function shown(text: string, partner: PartnerId): string {
 }
 
 /**
+ * A step of the lesson that was just opened: the control that opened it is gone, and the focus with it. The
+ * heading of the new step takes it, without a ring: a screen reader reads it, and the next Tab reaches what follows.
+ */
+function takeFocus(heading: HTMLElement | null) {
+  heading?.focus({ preventScroll: true });
+}
+
+/**
  * The 30-second lesson between the two rounds. Three steps in one component: the idea (24:216, 32:212), one task
  * at a time (24:255, 24:292, 24:331), and "Ready for round two" when both tasks are behind (24:375).
  * The props say which task is open; the idea in front of the first task is a step held here.
@@ -119,7 +127,9 @@ export function Lesson({ partner, lesson, taskIndex, lastTry, done, onAnswer, on
         }
       >
         <div className="-mb-[4px] flex flex-col gap-[10px]">
-          <h1 className="text-title">{say(lesson.title)}.</h1>
+          <h1 ref={takeFocus} tabIndex={-1} className="text-title outline-none">
+            {say(lesson.title)}.
+          </h1>
           <p className="text-body text-gray">{say(lesson.why)}</p>
           <ul className="pt-[6px]">
             {lesson.pairs.slice(0, PAIRS_SHOWN).map((pair, i) => (
@@ -206,7 +216,10 @@ export function Lesson({ partner, lesson, taskIndex, lastTry, done, onAnswer, on
       <div className={cn('flex flex-col gap-[4px]', note !== null && '-mt-[4px] lg:mt-0')}>
         {note}
         <p className="text-body text-gray">Instead of</p>
-        <h1 className="text-title">“{say(task.insteadOf)}”</h1>
+        {/* Where the field takes the focus itself (a mouse and a keyboard), the heading leaves it there. */}
+        <h1 ref={focusField ? undefined : takeFocus} tabIndex={-1} className="text-title outline-none">
+          “{say(task.insteadOf)}”
+        </h1>
         {hintHere && lastTry !== null && (
           <p role="status" className="pt-[12px] text-body">
             {say(lastTry.feedback)}

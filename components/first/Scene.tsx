@@ -78,8 +78,15 @@ const PICTURES = new Map<string, ScenePicture>([
   ['drawing', { art: 'drawing', pose: { mia: 'body-drawing', leo: 'body-showing' } }],
 ]);
 
-/** For a scene that is in the data before its pictures are, and for a saved scene id that is no scene. */
+/** For a saved scene id that has no card here: the block shows the blocks and no card is marked. */
 const NO_PICTURE: ScenePicture = { art: 'blocks', pose: { mia: 'body-showing', leo: 'body-showing' } };
+
+/**
+ * The scenes the question offers: the ones whose pictures are drawn, which are the two of the frame.
+ * The engine also plays a kitchen and a clean-up scene (lib/child/scenes.ts). Neither child has a pose for them
+ * yet, and a stand-in would put one picture on several cards, so they get a card when they get a line in PICTURES.
+ */
+const OFFERED = SCENES.filter((scene) => PICTURES.has(scene.id));
 
 /**
  * "What does {name} play with most?" (Figma 49:1412). The two scene cards are one question with no Next: a tap on a
@@ -135,7 +142,7 @@ export function Scene({ step, steps, onBack, childName, partner, value, onPick }
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
       >
-        {SCENES.map((scene) => {
+        {OFFERED.map((scene) => {
           const selected = scene.id === value;
           const picture = PICTURES.get(scene.id) ?? NO_PICTURE;
           return (

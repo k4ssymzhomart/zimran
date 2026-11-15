@@ -182,7 +182,11 @@ export function useFirstVisit() {
       router.push(ROUTES.home);
       return;
     }
-    if (step === 'opener_reveal') setCarried(null);
+    if (step === 'opener_reveal') {
+      // Forgotten for good: a page that is shown again looks at what it took from the landing once more.
+      taken.current = null;
+      setCarried(null);
+    }
     dispatch({ type: 'step_back' });
   }, [quiet, visit, step, router]);
 
@@ -283,10 +287,15 @@ export function useFirstVisit() {
   const pickFrequency = useCallback((frequency: HowOften) => answerThenGo(() => profileStore.update({ frequency })), [answerThenGo]);
   const pickScene = useCallback((sceneId: string) => answerThenGo(() => profileStore.update({ sceneId })), [answerThenGo]);
 
-  const setAnchor = useCallback((moment: string) => {
-    dispatch({ type: 'set_setup', patch: { anchor: moment } });
-    profileStore.update({ anchor: moment });
-  }, []);
+  const setAnchor = useCallback(
+    (moment: string) => {
+      // Not in the first moment after the scene was tapped: that tap's double would choose a moment unread.
+      if (quiet()) return;
+      dispatch({ type: 'set_setup', patch: { anchor: moment } });
+      profileStore.update({ anchor: moment });
+    },
+    [quiet],
+  );
   /** Continue on "When can you play?": the calendar sheet comes up, with the day of the plan it counts from. */
   const leaveSetup = useCallback(() => {
     if (quiet()) return;
