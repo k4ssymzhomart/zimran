@@ -75,7 +75,7 @@ function Count({ name, change, children }: { name: string; change: string | null
 const VALUE = 'text-body-strong text-ink lg:text-heading';
 
 /**
- * Landing section 5, "The same minute, played twice." (Figma 66:1429 on phones, 63:431 from 1024px).
+ * Landing section 5, "Before and after, in one minute." (Figma 66:1429 on phones, 63:431 from 1024px).
  * A worked example, labeled as one: the toggle switches between the two rounds, the rings count the round
  * that is showing, and the lines under them are compareRounds() of the two.
  */
@@ -93,7 +93,7 @@ export function BeforeAfterToggle() {
   return (
     <Section tone="mist">
       <div className="flex flex-col-reverse items-start gap-[10px] lg:flex-row lg:items-center lg:justify-between">
-        <h2 className="text-title lg:text-title-xl">The same minute, played twice.</h2>
+        <h2 className="text-title lg:text-title-xl">Before and after, in one minute.</h2>
         <Tag tone="quiet">Example</Tag>
       </div>
 
@@ -156,7 +156,7 @@ export function BeforeAfterToggle() {
 
           {/* The line the product's own before-and-after screen ends on (Figma 24:477), under the changes. */}
           <p className="text-small text-gray max-lg:mt-[12px]">
-            Clinics don’t start with discipline. They start with five calm minutes of play a day.
+            Clinics start with five calm minutes of play a day, not with discipline.
           </p>
         </div>
       </div>

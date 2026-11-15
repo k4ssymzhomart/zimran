@@ -483,3 +483,171 @@ body:has(.split-root) ::selection {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ===== Landing motion: owned by components/landing (LandingBar, LandingMotion, Floater, Sparkle, SortedWords). ===== */
+/* Everything from this line to the end of the file. Motion here is transform and opacity only. */
+
+/* The top bar: its fill and line ease in past the first screen; a fast scroll down slides it away. */
+.landing-bar {
+  transition:
+    background-color 200ms var(--ease-out-quint),
+    border-color 200ms var(--ease-out-quint),
+    translate 300ms var(--ease-out-quint);
+}
+.landing-bar-progress {
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--color-violet);
+  transform-origin: 0 50%;
+  transform: scaleX(var(--bar-progress, 0));
+  transition: opacity 200ms var(--ease-out-quint);
+}
+.landing-bar-action {
+  display: inline-flex;
+  transition:
+    opacity 200ms var(--ease-out-quint),
+    transform 200ms var(--ease-out-quint),
+    visibility 0s;
+}
+.landing-bar-action-off {
+  opacity: 0;
+  transform: translateY(-6px);
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 200ms var(--ease-out-quint),
+    transform 200ms var(--ease-out-quint),
+    visibility 0s 200ms;
+}
+@media (max-width: 1023.98px) {
+  /* On phones "Open app" holds this place over the violet block. */
+  .landing-bar-action-off {
+    display: none;
+  }
+}
+
+/* Sparkles twinkle; 3D pieces float. Both stand still with reduced motion. */
+.landing-sparkle {
+  opacity: 0.85;
+}
+@keyframes landing-twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.55) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(20deg);
+  }
+}
+@keyframes landing-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(3deg);
+  }
+}
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-sparkle {
+    animation: landing-twinkle 3.2s ease-in-out infinite both;
+  }
+  .landing-float {
+    animation: landing-float 7s ease-in-out infinite;
+  }
+
+  /* Reveals: a block below the screen waits, then its parts rise in one after another, and stay. */
+  .split-root [data-reveal='wait'] section > * {
+    opacity: 0;
+  }
+  .split-root [data-reveal='in'] section > * {
+    animation: landing-rise 450ms var(--ease-out-quint) backwards;
+  }
+  .split-root [data-reveal='in'] section > :nth-child(2) {
+    animation-delay: 80ms;
+  }
+  .split-root [data-reveal='in'] section > :nth-child(3) {
+    animation-delay: 160ms;
+  }
+  .split-root [data-reveal='in'] section > :nth-child(4) {
+    animation-delay: 240ms;
+  }
+  .split-root [data-reveal='in'] section > :nth-child(n + 5) {
+    animation-delay: 320ms;
+  }
+}
+
+/* The scroll moment (SortedWords): --sort-p runs 0 to 1 while the section is pinned. Its default, 1, is the last
+   step, so with reduced motion or no scroll timeline the section stands still on it. */
+@property --sort-p {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+@keyframes landing-sort {
+  from {
+    --sort-p: 0;
+  }
+  to {
+    --sort-p: 1;
+  }
+}
+.sorted-words,
+.sorted-label,
+.sorted-out,
+.sorted-in {
+  --t: clamp(0, (var(--sort-p, 1) - var(--a, 0)) * var(--k, 1), 1);
+}
+.sorted-words {
+  opacity: var(--t);
+  transform: translateX(calc((1 - var(--t)) * 64px));
+}
+.sorted-label {
+  display: inline-flex;
+  opacity: var(--t);
+  transform: translateX(calc((1 - var(--t)) * -12px));
+}
+.sorted-out {
+  opacity: calc(1 - var(--t));
+  transform: translateY(calc(var(--t) * -16px));
+}
+.sorted-in {
+  opacity: var(--t);
+  transform: translateY(calc((1 - var(--t)) * 16px));
+}
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .sorted-run {
+      height: 280vh;
+      animation: landing-sort linear both;
+      animation-timeline: view();
+      animation-range: contain 0% contain 100%;
+    }
+    .sorted-stage {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+    }
+  }
+  /* Elsewhere SortedWords marks the run live and sets --sort-p from the scroll. */
+  .sorted-run[data-live] {
+    height: 280vh;
+  }
+  .sorted-run[data-live] .sorted-stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+  }
+}
+/* ===== End of landing motion. ===== */

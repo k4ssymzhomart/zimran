@@ -49,8 +49,8 @@ const PLANS: Plan[] = [
     name: '12 weeks',
     price: '$69',
     note: '$0.82 a day',
-    lines: ['Daily five-minute session', 'Weeks 1–4 with Mia', 'Weeks 5–8 live with your child'],
-    phoneLine: 'Weeks 1–4 with Mia, weeks 5–8 live with your child',
+    lines: ['Daily five-minute session', 'Weeks 1–4 with Mia', 'Weeks 5–12 live with your child'],
+    phoneLine: 'Weeks 1–4 with Mia, weeks 5–12 live with your child',
     action: 'Choose 12 weeks',
     button: 'ink',
   },
@@ -121,7 +121,7 @@ function PlanCard({ plan }: { plan: Plan }) {
 export function Pricing() {
   // The same switch as the paywall (app/pricing/page.tsx): with a Stripe key its action opens Stripe's test
   // checkout, as drawn; without one no payment is taken on this site, and the tag says so.
-  const mode = process.env.STRIPE_SECRET_KEY ? 'Test mode' : 'Demo';
+  const mode = process.env.STRIPE_SECRET_KEY ? 'Test mode: no real card is charged.' : 'Demo: no payment is taken here.';
 
   return (
     <Section>

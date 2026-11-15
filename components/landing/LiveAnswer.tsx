@@ -30,7 +30,7 @@ interface Reading {
   coded: CodedSentence[];
 }
 
-/** What the panel shows for an answer: the tag, one line about what it did, and the four counts. */
+/** What the panel shows for an answer: the tag, the reason under it, and the four counts. */
 function describe({ text, coded }: Reading) {
   const insight = openerInsight(coded);
   // The sentence the line is about is the engine's own pick: ask it about each sentence alone.
@@ -42,7 +42,7 @@ function describe({ text, coded }: Reading) {
     // A sentence to swap says so, as it does on every screen of the product.
     label: bucket === 'avoid' ? `${LABEL[code]}, to swap` : LABEL[code],
     tone: TONE[bucket],
-    line: forChild(insight.headline, PARTNER),
+    line: forChild(insight.body, PARTNER),
     tallies: [
       { label: 'Praise', value: counts.specific_praise, skill: true },
       { label: 'Reflect', value: counts.reflection, skill: true },
