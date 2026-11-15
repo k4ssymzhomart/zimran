@@ -8,8 +8,8 @@ import { codeSentence, codeTurn, isReflection, normalize } from '../coding/class
 import { SAFETY_NOTE } from '../coding/safety';
 import { applyMove, farewell, initialChild, isOutburst, MICRO_REACTION, tick } from '../child/model';
 import { BLOCKS, sceneById } from '../child/scenes';
-import { coachPrompt, REACT_GAP } from '../coach/policy';
-import { biggestLever, countCodes, LEVER_TEXT, paceTargets, summarizeRound } from '../progress/targets';
+import { coachPrompt } from '../coach/policy';
+import { biggestLever, countCodes, LEVER_TEXT, LEVER_TEXT_LIVE, paceTargets, summarizeRound } from '../progress/targets';
 
 export interface TimedSentence extends CodedSentence {
   atSec: number;
@@ -99,6 +99,11 @@ export interface RingProgress {
 export const DEFAULT_BEAT_EVERY_SEC = 7;
 /** The same target sentence said again within this many seconds fills no ring. */
 export const REPEAT_WINDOW_SEC = 20;
+/**
+ * One sentence fills a ring at most this many times a round, however far apart it is said, and so does
+ * a sentence with only a color, a number or a name swapped ("You are stacking the red block", "... the blue block").
+ */
+export const MAX_SAME_PER_ROUND = 4;
 /** Label for a sentence marked `repeat`, for the chip in the list. */
 export const REPEAT_NOTE = 'Already said. Say something new.';
 /** One turn counts at most this many target sentences. A pasted paragraph is one turn of talk, not ten. */
@@ -110,6 +115,8 @@ export const MAX_DISPUTES = 3;
 /** Shown with a result marked `short`. */
 export const SHORT_ROUND_NOTE = 'This round ended early, so it has no pace verdict.';
 const REPEAT_COACH = 'That one is already counted. Say something new you see.';
+/** Shown when "Disagree?" is tapped with all MAX_DISPUTES places taken. */
+export const DISPUTES_USED_NOTE = 'Three sentences are set aside in this round. Tap “Count it” on one to free a place.';
 const ENGLISH_ONLY = 'This practice reads English sentences. Try a short one.';
 
 export function initialRound(): RoundState {
@@ -181,9 +188,14 @@ function withCoach(state: RoundState, justCoded: CodedSentence | null): RoundSta
     childSpokeSec: state.child.lastSaid === null ? null : state.childSpokeSec,
     reflectedSinceChildSpoke: state.reflectedSinceChildSpoke,
     justCoded,
+    live: state.live,
     outburst,
-    // Once per outburst beat, and one line across several outburst beats in a row.
-    waitOutShown: state.coach?.kind === 'wait_out' || (outburst && state.waitOutBeatSec === beat.atSec),
+    // Once per outburst beat, and one line across several outburst beats in a row. A swap line that went up
+    // during this beat covers it too: it stays until the next beat instead of giving way a tick later.
+    waitOutShown:
+      state.coach?.kind === 'wait_out' ||
+      (outburst && state.waitOutBeatSec === beat.atSec) ||
+      (outburst && justCoded === null && state.coach?.kind === 'swap' && state.lastPromptSec !== null && state.lastPromptSec >= beat.atSec),
     calmAgain,
     canReflect,
   });
@@ -226,7 +238,7 @@ function summary(state: RoundState): RoundResult {
   let result: RoundResult = { ...base, seconds: measuredSeconds(state) };
   if (state.elapsedSec < state.seconds / 2) {
     const lever = biggestLever(base.counts, base.targets);
-    result = { ...result, met: false, lever, leverText: lever ? LEVER_TEXT[lever] : null, short: true };
+    result = { ...result, met: false, lever, leverText: lever ? (state.live ? LEVER_TEXT_LIVE : LEVER_TEXT)[lever] : null, short: true };
   }
   const disputed = state.sentences.filter((s) => s.disputed).length;
   return disputed > 0 ? { ...result, disputed } : result;
@@ -333,16 +345,49 @@ function keyStem(word: string): string {
  * a sentence new; another color, toy or place does.
  */
 export function repeatKey(text: string): string {
+  return keyOf(text, KEY_DROP);
+}
+
+function keyOf(text: string, drop: ReadonlySet<string>): string {
   const plain = normalize(text)
     .replace(/[^a-z0-9' ]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
   const stems = plain
     .split(' ')
-    .filter((w) => w !== '' && !KEY_DROP.has(w))
+    .filter((w) => w !== '' && !drop.has(w) && !(drop === SKELETON_DROP && /^\d+$/.test(w)))
     .map((w) => (KEY_PRAISE.has(w) ? '+praise' : keyStem(w)));
   // A sentence made only of dropped words ("ok", "Yes.") keeps its plain text, so two different ones stay different.
   return stems.length > 0 ? Array.from(new Set(stems)).sort().join(' ') : plain;
+}
+
+/** Words a template swaps to look new: colors, numbers, "again". */
+const SKELETON_DROP: ReadonlySet<string> = new Set([
+  ...KEY_DROP,
+  ...(
+    'red blue green yellow orange purple pink white black brown gray grey gold silver ' +
+    'one two three four five six seven eight nine ten eleven twelve first second third another again'
+  ).split(' '),
+]);
+
+/**
+ * The sentence with what a template swaps taken out: a name set off by a comma at either end, color words,
+ * number words and digits. "You are stacking the red block, Anna." and "You are stacking 2 blue blocks."
+ * have one skeleton. Used for the per-round limit only; the repeat window still tells red from blue.
+ */
+export function skeletonKey(text: string): string {
+  const unnamed = text.replace(/^\s*[A-Za-z]+,\s*/, '').replace(/,\s*[A-Za-z]+[\s.!?]*$/, '');
+  return keyOf(/[A-Za-z]/.test(unnamed) ? unnamed : text, SKELETON_DROP);
+}
+
+/** Her latest line: the one on screen, or, once it has left the screen, the last one she spoke. */
+function herLastLine(state: RoundState): string | null {
+  if (state.child.lastSaid !== null) return state.child.lastSaid;
+  for (let i = state.beats.length - 1; i >= 0; i--) {
+    const line = state.beats[i].says;
+    if (line !== null) return line;
+  }
+  return null;
 }
 
 const asNeutral = (s: CodedSentence, rule: string): CodedSentence => ({ text: s.text, code: 'neutral', bucket: 'neutral', confidence: s.confidence, rule });
@@ -350,7 +395,9 @@ const asRepeat = (s: CodedSentence): CodedSentence => asNeutral(s, 'repeat');
 
 function say(state: RoundState, text: string): RoundState {
   if (!text.trim()) return state;
-  const coded = codeTurn(text, { childLastSaid: state.child.lastSaid });
+  // Her last line can be said back until she says the next one. (The coach's nudge to say it back still
+  // stops after about 14 seconds: see withCoach.) Each line is reflected once, as before.
+  const coded = codeTurn(text, { childLastSaid: herLastLine(state) });
   if (coded.length === 0) return state;
 
   const next: RoundState = { ...state, sentences: [...state.sentences] };
@@ -363,6 +410,15 @@ function say(state: RoundState, text: string): RoundState {
   let last: CodedSentence | null = null;
   let lastAvoid: CodedSentence | null = null;
   let countedTargets = 0;
+  /** Skill sentences read so far in this turn, repeats included: a turn is read up to MAX_COUNTED_PER_TURN + 1 of them. */
+  let seenSkill = 0;
+  /** How often each skeleton has filled a ring in this round. */
+  const filled = new Map<string, number>();
+  for (const p of next.sentences) {
+    if (p.bucket !== 'target' || p.code === 'reflection') continue;
+    const k = skeletonKey(p.text);
+    filled.set(k, (filled.get(k) ?? 0) + 1);
+  }
   let safety = false;
   for (const raw of coded) {
     let s = raw;
@@ -390,16 +446,25 @@ function say(state: RoundState, text: string): RoundState {
     // line again, saying it back again is a new reflection, whatever was typed a few seconds ago.
     const key = repeatKey(s.text);
     if (s.bucket === 'target' && s.code !== 'reflection' && heard.some((h) => h.counted && h.key === key)) s = asRepeat(s);
+    // One sentence does not fill a ring all round long, and neither does a template with one word swapped.
+    const skeleton = skeletonKey(s.text);
+    if (s.bucket === 'target' && s.code !== 'reflection' && (filled.get(skeleton) ?? 0) >= MAX_SAME_PER_ROUND) s = asRepeat(s);
     const repeat = s.rule === 'repeat';
 
     // One turn counts up to MAX_COUNTED_PER_TURN target sentences; the rest of a paste is kept as neutral talk.
     // Questions, commands and criticism are never cut: every one of them is counted.
+    // A paste is read only so far: after MAX_COUNTED_PER_TURN + 1 skill sentences, repeats included, the rest
+    // is not counted either, so pasting the same paragraph again does not walk down it three sentences a time.
     let capped = false;
+    if (s.bucket === 'target' || repeat) seenSkill += 1;
     if (s.bucket === 'target') {
-      if (countedTargets >= MAX_COUNTED_PER_TURN) {
+      if (countedTargets >= MAX_COUNTED_PER_TURN || seenSkill > MAX_COUNTED_PER_TURN + 1) {
         s = asNeutral(s, 'turn_cap');
         capped = true;
-      } else countedTargets += 1;
+      } else {
+        countedTargets += 1;
+        if (s.code !== 'reflection') filled.set(skeleton, (filled.get(skeleton) ?? 0) + 1);
+      }
     }
 
     // Filler said again ("ok", "Good job!") keeps its code, but she has just heard it: it does not warm her twice.
@@ -445,24 +510,27 @@ function say(state: RoundState, text: string): RoundState {
   next.microReaction = reaction(last);
   // A to-swap sentence anywhere in the turn gets its swap line, whatever came after it.
   if (lastAvoid) return withCoach(next, lastAvoid);
-  // A turn that was only a repeat gets one calm line, unless she is upset: then the wait_out line stays.
-  if (last.rule === 'repeat' && !outburst) {
-    const since = next.lastPromptSec === null ? Infinity : next.elapsedSec - next.lastPromptSec;
-    if (since >= REACT_GAP) return { ...next, coach: { kind: 'swap', text: REPEAT_COACH }, lastPromptSec: next.elapsedSec };
-  }
+  // A turn that ended on a repeat always gets its one calm line, so "Neutral talk" on a good sentence is
+  // explained. Like the swap lines it does not wait for the gap. When she is upset the wait_out line stays.
+  if (last.rule === 'repeat' && !outburst) return { ...next, coach: { kind: 'swap', text: REPEAT_COACH }, lastPromptSec: next.elapsedSec };
   return withCoach(next, last);
 }
 
 function dispute(state: RoundState, index: number): RoundState {
   const target = state.sentences[index];
   if (!target) return state;
-  // Setting a sentence aside takes one of the MAX_DISPUTES slots; with none left nothing changes.
-  // Taking a dispute back frees its slot.
-  if (!target.disputed && state.disputesLeft <= 0) return state;
+  // Setting aside a sentence that fills a ring or sits in the to-swap tray takes one of the MAX_DISPUTES
+  // places; taking the dispute back frees it. A sentence that counts for nothing (neutral talk, a repeat,
+  // one beyond the turn cap) is set aside for free: the tap cannot change the result.
+  const costs = target.bucket === 'target' || target.bucket === 'avoid';
+  if (costs && !target.disputed && state.disputesLeft <= 0) {
+    // A refused tap says why, once, while the round runs. After the round the screen has no coach line.
+    return state.phase === 'running' ? { ...state, coach: { kind: 'swap', text: DISPUTES_USED_NOTE }, lastPromptSec: state.elapsedSec } : state;
+  }
   const next: RoundState = {
     ...state,
     sentences: state.sentences.map((s, i) => (i === index ? { ...s, disputed: !s.disputed } : s)),
-    disputesLeft: state.disputesLeft + (target.disputed ? 1 : -1),
+    disputesLeft: costs ? Math.min(MAX_DISPUTES, state.disputesLeft + (target.disputed ? 1 : -1)) : state.disputesLeft,
   };
   // A dispute in the replay, after the round, also updates the final result.
   return next.phase === 'ended' ? { ...next, result: summary(next) } : next;

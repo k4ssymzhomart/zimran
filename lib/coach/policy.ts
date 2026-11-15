@@ -28,6 +28,8 @@ export interface CoachInput {
    * of an outburst. Left out, it can.
    */
   canReflect?: boolean;
+  /** Live play with the parent's own child: the lines say "your child" and "they", not "she". Left out, practice with Mia. */
+  live?: boolean;
 }
 
 /** Shortest pause between a praise or a hint for a sentence and the previous line. Swap lines do not wait. */
@@ -39,8 +41,12 @@ export const REFLECT_WITHIN = 5;
 
 const SWAP: Partial<Record<Code, string>> = {
   question: "Questions are natural. Try it as a statement: “You're …”",
-  command: 'Let her lead for now. Say what she chose to do.',
+  command: 'Follow her lead for now. Say what she chose to do.',
   criticism: 'Let small things pass. Praise the opposite when you see it.',
+};
+const SWAP_LIVE: Partial<Record<Code, string>> = {
+  ...SWAP,
+  command: 'Let your child lead for now. Say what they chose to do.',
 };
 
 /** Shown on a whine or a meltdown. The method does not answer an outburst: the parent stays near and waits for calm. */
@@ -53,6 +59,15 @@ const PRAISE_PARENT: Partial<Record<Code, string>> = {
   reflection: 'Good reflection. She heard that you were listening.',
   description: 'Nice description. You named exactly what she did.',
 };
+const PRAISE_PARENT_LIVE: Partial<Record<Code, string>> = {
+  specific_praise: 'Nice specific praise. Your child knows exactly what you liked.',
+  reflection: 'Good reflection. Your child heard that you were listening.',
+  description: 'Nice description. You named exactly what your child did.',
+};
+const ADD_WHAT = 'Warm. Now add exactly what she did: “Good job stacking so gently.”';
+const ADD_WHAT_LIVE = 'Warm. Now add exactly what your child did: “Good job stacking so gently.”';
+const PRAISE_NOW = 'Praise one exact thing she just did.';
+const PRAISE_NOW_LIVE = 'Praise one exact thing your child just did.';
 
 export function coachPrompt(i: CoachInput): CoachPrompt | null {
   const since = i.lastPromptSec === null ? Infinity : i.nowSec - i.lastPromptSec;
@@ -60,15 +75,15 @@ export function coachPrompt(i: CoachInput): CoachPrompt | null {
   if (i.justCoded) {
     // A to-swap sentence always gets its swap line, whatever is showing: a question typed a moment after
     // another line is still a question, and silence there reads as approval.
-    const swap = SWAP[i.justCoded.code];
+    const swap = (i.live ? SWAP_LIVE : SWAP)[i.justCoded.code];
     if (swap) return { kind: 'swap', text: swap };
     // During an outburst the one line that matters is "stay close and quiet": no praise for talking through it.
     if (i.outburst) return null;
     if (since < REACT_GAP) return null;
-    const praise = PRAISE_PARENT[i.justCoded.code];
+    const praise = (i.live ? PRAISE_PARENT_LIVE : PRAISE_PARENT)[i.justCoded.code];
     if (praise) return { kind: 'praise_parent', text: praise };
     if (i.justCoded.code === 'general_praise') {
-      return { kind: 'swap', text: 'Warm. Now add exactly what she did: “Good job stacking so gently.”' };
+      return { kind: 'swap', text: i.live ? ADD_WHAT_LIVE : ADD_WHAT };
     }
     return null;
   }
@@ -88,7 +103,7 @@ export function coachPrompt(i: CoachInput): CoachPrompt | null {
 
   const sincePraise = i.lastSpecificPraiseSec === null ? i.nowSec : i.nowSec - i.lastSpecificPraiseSec;
   if (sincePraise >= PRAISE_OVERDUE) {
-    return { kind: 'praise_now', text: 'Praise one exact thing she just did.' };
+    return { kind: 'praise_now', text: i.live ? PRAISE_NOW_LIVE : PRAISE_NOW };
   }
 
   return null;

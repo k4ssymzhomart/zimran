@@ -4,15 +4,18 @@ import { COPY_CONNECTION_CEILING, initialChild, isOutburst } from '../child/mode
 import { CALM_PRAISE_TEXT, NUDGE_GAP, REACT_GAP, WAIT_OUT_TEXT } from '../coach/policy';
 import { CRISIS_LINES } from '../coding/safety';
 import {
+  DISPUTES_USED_NOTE,
   initialRound,
   MAX_COUNTED_PER_TURN,
   MAX_DISPUTES,
+  MAX_SAME_PER_ROUND,
   measuredSeconds,
   REPEAT_WINDOW_SEC,
   repeatKey,
   ringProgress,
   roundReducer,
   SHORT_ROUND_NOTE,
+  skeletonKey,
   TURN_CAP_NOTE,
   type RoundEvent,
   type RoundState,
@@ -968,7 +971,9 @@ describe('"Disagree?" has a limit (E5)', () => {
   const FIVE = [START, say('Put it here.'), say('Give me that.'), say('Sit down.'), say('No, not like that.'), say('Stop it.')];
   const disputeAt = (index: number): RoundEvent => ({ type: 'dispute', index });
 
-  it('sets aside at most three sentences a round; one more changes nothing', () => {
+  // Changed by design: a fourth tap used to return the very same state, so the button did nothing and said nothing.
+  // It still changes no sentence and no count; while the round runs it now puts up one line that says why.
+  it('sets aside at most three sentences a round; one more changes no count and says why', () => {
     expect(MAX_DISPUTES).toBe(3);
     const s = run(FIVE);
     expect(s.disputesLeft).toBe(3);
@@ -976,8 +981,14 @@ describe('"Disagree?" has a limit (E5)', () => {
     const three = run([disputeAt(0), disputeAt(1), disputeAt(2)], s);
     expect(three.disputesLeft).toBe(0);
     expect(ringProgress(three).avoid.count).toBe(2);
-    expect(run([disputeAt(3)], three)).toBe(three);
-    expect(run([disputeAt(4)], three)).toBe(three);
+    for (const index of [3, 4]) {
+      const refused = run([disputeAt(index)], three);
+      expect(refused.sentences).toBe(three.sentences);
+      expect(refused.disputesLeft).toBe(0);
+      expect(ringProgress(refused)).toEqual(ringProgress(three));
+      expect(refused.coach).toEqual({ kind: 'swap', text: DISPUTES_USED_NOTE });
+      expect({ ...refused, coach: three.coach, lastPromptSec: three.lastPromptSec }).toEqual(three);
+    }
     const ended = run([disputeAt(3), disputeAt(4), tick(300)], three);
     expect(ended.result?.counts.avoid).toBe(2);
     expect(ended.result?.disputed).toBe(3);
@@ -1012,6 +1023,382 @@ describe('"Disagree?" has a limit (E5)', () => {
     expect(one.result?.disputed).toBe(1);
     expect(run([disputeAt(0)], one).result).not.toHaveProperty('disputed');
     expect(run([START]).disputesLeft).toBe(3);
+  });
+});
+
+describe('"Disagree?" on a sentence that counts for nothing is free', () => {
+  const disputeAt = (index: number): RoundEvent => ({ type: 'dispute', index });
+
+  it('a repeat set aside takes no place and changes no ring', () => {
+    let s = run([START, tick(3), say('You are stacking the blocks.'), tick(2), say('You are stacking the blocks.')]);
+    expect(s.sentences.map((x) => x.rule)).toEqual(['you_are_doing', 'repeat']);
+    const before = ringProgress(s);
+    s = run([disputeAt(1)], s);
+    expect(s.sentences[1].disputed).toBe(true);
+    expect(s.disputesLeft).toBe(MAX_DISPUTES);
+    expect(ringProgress(s)).toEqual(before);
+    // Taking it back gives no extra place either.
+    s = run([disputeAt(1)], s);
+    expect(s.sentences[1].disputed).toBe(false);
+    expect(s.disputesLeft).toBe(MAX_DISPUTES);
+  });
+
+  it('capped sentences, neutral talk and general praise are free; a question and a command still take a place each', () => {
+    const paste = 'You are stacking the red block. You are building a tall tower. You are lining up the green blocks. You are rolling the car. You are pouring juice.';
+    let s = run([START, tick(3), say(paste), tick(7), say('Good job!'), tick(1), say('Hmm.'), tick(7), say('What is that?'), tick(7), say('Put it here.')]);
+    expect(s.sentences.map((x) => x.rule).slice(3, 5)).toEqual(['turn_cap', 'turn_cap']);
+    s = run([disputeAt(3), disputeAt(4), disputeAt(5), disputeAt(6)], s);
+    expect(s.disputesLeft).toBe(3);
+    expect(ringProgress(s).avoid.count).toBe(2);
+    s = run([disputeAt(7)], s);
+    expect(s.disputesLeft).toBe(2);
+    expect(ringProgress(s).avoid.count).toBe(1);
+    s = run([disputeAt(8)], s);
+    expect(s.sentences[8].disputed).toBe(true);
+    expect(s.disputesLeft).toBe(1);
+    expect(ringProgress(s).avoid.count).toBe(0);
+    // A description that filled a ring takes a place too.
+    s = run([disputeAt(0)], s);
+    expect(s.disputesLeft).toBe(0);
+    expect(ringProgress(s).description.count).toBe(2);
+  });
+
+  it('the line for a refused tap is calm, and is not shown in the replay after the round', () => {
+    expect(DISPUTES_USED_NOTE).not.toMatch(/\b(wrong|bad|mistake|fail\w*|should|don['’]t|dont)\b/i);
+    expect(DISPUTES_USED_NOTE.replace(/“[^”]*”/g, '')).not.toContain('!');
+    expect(DISPUTES_USED_NOTE.length).toBeLessThan(90);
+    const ended = run([START, say('Put it here.'), say('Give me that.'), say('Sit down.'), say('Stop it.'), disputeAt(0), disputeAt(1), disputeAt(2), { type: 'end' }]);
+    expect(run([disputeAt(3)], ended)).toBe(ended);
+  });
+});
+
+describe('a description that names a toy from her line', () => {
+  const at = (s: RoundState, sec: number): RoundState => run([tick(sec - s.elapsedSec)], s);
+
+  it('is a description, and her real line said back after it is the reflection', () => {
+    // The daily round as the screen starts it. At 70 s: "Mia slides the orange crayon over to you." / "You can have orange."
+    let s = at(run([{ type: 'start', sceneId: 'drawing', seconds: 300, seed: 1002 }]), 72);
+    expect(s.child.lastSaid).toBe('You can have orange.');
+    s = run([say('You are sliding the orange crayon over to me.')], s);
+    expect(s.sentences[0]).toMatchObject({ code: 'description', rule: 'you_are_doing' });
+    s = run([say('You can have orange.')], at(s, 75));
+    expect(s.sentences[1]).toMatchObject({ code: 'reflection', rule: 'echoes_child' });
+    expect(ringProgress(s)).toMatchObject({ description: { count: 1 }, reflection: { count: 1 } });
+  });
+
+  it('holds through the typing grace for her previous line', () => {
+    // She said "This block is for you.", then moved on to "This one goes on top."
+    let s = run([START]);
+    s = { ...s, child: { ...s.child, lastSaid: 'This one goes on top.' }, prevSaid: 'This block is for you.', prevSaidUntilSec: 30, prevReflected: false, elapsedSec: 10 };
+    s = run([say('You are setting a blue block down very gently.')], s);
+    expect(s.sentences[0].code).toBe('description');
+    // The grace itself still works: her previous line said back is a reflection.
+    s = run([say('This block is for me.')], s);
+    expect(s.sentences[1].code).toBe('reflection');
+    expect(s.prevReflected).toBe(true);
+  });
+
+  it('an honest round of describe, say back, praise fills all three rings', () => {
+    const beats: Record<string, [string, string]> = {
+      'I made a tower!': ['You are stacking a red block on the tower.', 'I love how carefully you stacked that block.'],
+      'This one goes on top.': ['You are setting a blue block down very gently.', 'Great job setting it down so gently.'],
+      'This block is for you.': ['You are handing me a yellow block.', 'Thank you for sharing the yellow block.'],
+      'It is a train.': ['You are lining up three green blocks.', 'I like how you lined up the green blocks.'],
+      'It is wobbly.': ['You are waiting for the tower.', 'Nice job waiting so patiently.'],
+      'All clean.': ['You are putting the extra blocks back in the box.', 'Thank you for putting the blocks back.'],
+      'The cars go under here.': ['You are building a little bridge.', 'I love the bridge you built.'],
+      'Look, it stays!': ['You are balancing a small block on a big one.', 'Great job balancing the small block.'],
+    };
+    let s = run([{ type: 'start', sceneId: 'blocks', seconds: 300, seed: 11 }]);
+    let answered = -1;
+    for (let sec = 2; sec < 300; sec += 1) {
+      s = at(s, sec);
+      const beat = s.beats.length - 1;
+      const line = s.child.lastSaid;
+      if (beat === answered || line === null || !(line in beats) || sec - s.beats[beat].atSec < 2) continue;
+      answered = beat;
+      s = run([say(beats[line][0])], s);
+      s = run([say(line)], at(s, sec + 2));
+      s = run([say(beats[line][1])], at(s, sec + 4));
+    }
+    // Every description that followed a line of hers was coded as a description, never as that line said back.
+    const described = s.sentences.filter((x) => /^You are /.test(x.text));
+    expect(described.length).toBeGreaterThan(8);
+    expect(described.filter((x) => x.code === 'reflection')).toEqual([]);
+    const r = ringProgress(s);
+    expect(r.description.count).toBeGreaterThanOrEqual(8);
+    expect(r.reflection.count).toBeGreaterThanOrEqual(8);
+    expect(r.avoid.count).toBe(0);
+  });
+});
+
+describe('her last line can be said back until she says the next one', () => {
+  const at = (s: RoundState, sec: number): RoundState => run([tick(sec - s.elapsedSec)], s);
+  const first60: RoundEvent = { type: 'start', sceneId: 'blocks', seconds: 60, seed: 1 };
+
+  it('her whine said back 14 seconds later is a reflection, not a correction of her', () => {
+    // The first-visit round: the scripted whine at 35 s is "This is too hard."; she is silent at 42 s and 49 s.
+    for (const sec of [48.75, 49, 52]) {
+      let s = at(run([first60]), sec);
+      expect(s.beats.filter((b) => b.says !== null).pop()?.says).toBe('This is too hard.');
+      if (sec >= 49) expect(s.child.lastSaid).toBeNull();
+      s = run([say('This is too hard.')], s);
+      expect(s.sentences[0], String(sec)).toMatchObject({ code: 'reflection', rule: 'echoes_child' });
+      expect(ringProgress(s).avoid.count).toBe(0);
+      expect(s.coach?.text ?? '').not.toContain('Let small things pass');
+    }
+  });
+
+  it('a line of hers that has left the screen is still hers', () => {
+    let s = at(run([{ type: 'start', sceneId: 'drawing', seconds: 40, seed: 2 }]), 21);
+    expect(s.child.lastSaid).toBeNull();
+    expect(s.beats.filter((b) => b.says !== null).pop()).toMatchObject({ says: 'The dog is hungry.', atSec: 7 });
+    s = run([say('The dog is hungry.')], s);
+    expect(s.sentences[0].code).toBe('reflection');
+    // One line of hers, one reflection: said back again it is a repeat.
+    s = run([say('The dog is hungry.')], at(s, 23));
+    expect(s.sentences[1]).toMatchObject({ code: 'neutral', rule: 'repeat' });
+  });
+
+  it('"You messed up." after her "I messed up." is never a correction, however late', () => {
+    let s = run([{ type: 'start', sceneId: 'drawing', seconds: 300, seed: 1 }]);
+    s = { ...s, child: { ...s.child, lastSaid: null }, beats: [...s.beats, { kind: 'whine', does: 'Mia presses the crayon down hard and huffs.', says: 'I messed up.', atSec: 7 }], elapsedSec: 40 };
+    s = run([say('You messed up.')], s);
+    expect(s.sentences[0].code).toBe('reflection');
+  });
+
+  it('a description typed while she is silent stays a description, and her bare "No!" said back stays neutral', () => {
+    let s = at(run([first60]), 52);
+    s = run([say('You are stacking a red block on the tower.')], s);
+    expect(s.sentences[0].code).toBe('description');
+    let no = run([START]);
+    no = { ...no, child: { ...no.child, lastSaid: null }, beats: [...no.beats, { kind: 'meltdown', does: 'Mia throws a block across the room.', says: 'No!', atSec: 7 }], elapsedSec: 30 };
+    no = run([say('No!')], no);
+    expect(no.sentences[0]).toMatchObject({ code: 'neutral', rule: 'echoes_no' });
+  });
+
+  it('the nudge to say it back still stops when her line leaves the screen', () => {
+    let s = at(run([first60]), 49);
+    expect(s.child.lastSaid).toBeNull();
+    s = at(s, 59);
+    expect(s.coach?.kind).not.toBe('reflect_now');
+  });
+});
+
+describe('a paste, a loop or a template does not meet the pace', () => {
+  const at = (s: RoundState, sec: number): RoundState => run([tick(sec - s.elapsedSec)], s);
+  const start300 = (live: boolean): RoundState => run([{ type: 'start', sceneId: 'blocks', seconds: 300, seed: 3, live }]);
+  const X = [
+    'stacking the red blocks', 'building a tall tower', 'lining up the green blocks', 'putting the blue block on top', 'making a long bridge',
+    'rolling the yellow car', 'drawing a big circle', 'coloring the sun yellow', 'holding the orange crayon', 'pouring the juice',
+  ];
+  const PARAGRAPH = [...X.map((x) => `You are ${x}.`), ...X.map((x) => `I love how carefully you are ${x}.`)].join(' ');
+
+  it('the same paragraph pasted twelve times is read four sentences deep, not three more each time', () => {
+    for (const gap of [1, 7]) {
+      let s = start300(true);
+      for (let i = 0; i < 12; i++) s = run([say(PARAGRAPH)], at(s, 2 + i * gap));
+      s = at(s, 300);
+      expect(s.result?.counts.description, `gap ${gap}`).toBeLessThanOrEqual(MAX_COUNTED_PER_TURN + 1);
+      expect(s.result?.counts.specific_praise).toBe(0);
+      expect(s.result?.met).toBe(false);
+    }
+    // With her line said back in front of it, in practice.
+    let s = start300(false);
+    for (let i = 0; i < 12; i++) {
+      s = at(s, 2 + i * 7);
+      s = run([say(`${s.child.lastSaid ?? ''} ${PARAGRAPH}`)], s);
+    }
+    s = at(s, 300);
+    expect(s.result?.counts.description).toBeLessThanOrEqual(MAX_COUNTED_PER_TURN + 1);
+    expect(s.result?.met).toBe(false);
+  });
+
+  it('a turn of one repeat and three new sentences still counts all three', () => {
+    let s = run([START, tick(2), say('You are stacking the blocks.'), tick(3)]);
+    s = run([say('You are stacking the blocks. You are building a bridge. You are rolling the car. I love how gently you set that down.')], s);
+    expect(s.sentences.slice(1).map((x) => x.rule)).toEqual(['repeat', 'you_are_doing', 'you_are_doing', 'praise_plus_what']);
+    expect(ringProgress(s)).toMatchObject({ description: { count: 3 }, specific_praise: { count: 1 } });
+  });
+
+  it('the same two or three sentences said every 21 seconds stop filling their rings after four times', () => {
+    expect(MAX_SAME_PER_ROUND).toBe(4);
+    let sim = start300(false);
+    for (let sec = 2; sec < 300; sec += 21) {
+      sim = at(sim, sec);
+      sim = run([say(`You are stacking the blocks. I love how carefully you are stacking. ${sim.child.lastSaid ?? ''}`)], sim);
+    }
+    sim = at(sim, 300);
+    expect(sim.result?.counts).toMatchObject({ description: 4, specific_praise: 4 });
+    expect(sim.result?.met).toBe(false);
+
+    let live = start300(true);
+    for (let sec = 2; sec < 300; sec += 21) live = run([say('You are stacking the blocks. I love how carefully you are stacking. You made a tower!')], at(live, sec));
+    live = at(live, 300);
+    expect(live.result?.counts).toMatchObject({ description: 8, specific_praise: 4 });
+    expect(live.result?.met).toBe(false);
+
+    let alternating = start300(true);
+    let i = 0;
+    for (let sec = 2; sec < 300; sec += 10.5) alternating = run([say(i++ % 2 ? 'I love how carefully you are stacking.' : 'You are stacking the blocks.')], at(alternating, sec));
+    alternating = at(alternating, 300);
+    expect(alternating.result?.counts).toMatchObject({ description: 4, specific_praise: 4 });
+    expect(alternating.result?.met).toBe(false);
+    // The fifth saying is listed as a repeat, with the note the chip shows.
+    expect(alternating.sentences.filter((x) => x.repeat).length).toBeGreaterThan(10);
+  });
+
+  it('swapping a color, a number or a name does not make a new sentence all round long', () => {
+    const COLORS = ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'white', 'black', 'brown'];
+    const NUMBERS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+    const NAMES = [', Mia', ', sweetie', ', honey', ', buddy', ', Anna', ', Tom', ', Aiden', ', Zoe', ', Leo'];
+    const templates: [string, (i: number) => string][] = [
+      ['color', (i) => `You are stacking the ${COLORS[i % 10]} block. I love how you are stacking the ${COLORS[i % 10]} block.`],
+      ['number word', (i) => `You are stacking ${NUMBERS[i % 10]} blocks. I love how you are stacking ${NUMBERS[i % 10]} blocks.`],
+      ['digit', (i) => `You are stacking ${i + 1} blocks. I love how you are stacking ${i + 1} blocks.`],
+      ['name', (i) => `You are stacking the blocks${NAMES[i % 9]}. I love how you are stacking the blocks${NAMES[i % 9]}.`],
+    ];
+    for (const live of [false, true]) {
+      for (const [label, template] of templates) {
+        let s = start300(live);
+        let i = 0;
+        for (let sec = 2; sec < 300; sec += 7) {
+          s = at(s, sec);
+          s = run([say(`${template(i++)} ${live ? '' : (s.child.lastSaid ?? '')}`)], s);
+        }
+        s = at(s, 300);
+        expect(s.result?.counts, `${label} ${live}`).toMatchObject({ description: MAX_SAME_PER_ROUND, specific_praise: MAX_SAME_PER_ROUND });
+        expect(s.result?.met, `${label} ${live}`).toBe(false);
+      }
+    }
+  });
+
+  it('the skeleton drops what a template swaps and keeps what makes a sentence new', () => {
+    expect(skeletonKey('You are stacking the red block.')).toBe(skeletonKey('You are stacking the blue block.'));
+    expect(skeletonKey('You are stacking 3 blocks, Anna.')).toBe(skeletonKey('Tom, you are stacking ten blocks again.'));
+    expect(skeletonKey('You are stacking the red block.')).not.toBe(skeletonKey('You are rolling the red block.'));
+    expect(skeletonKey('You are stacking the red block.')).not.toBe(skeletonKey('You are stacking the red cup.'));
+    // The repeat window still tells red from blue.
+    expect(repeatKey('You put the red one on top.')).not.toBe(repeatKey('You put the blue one on top.'));
+    // A sentence that is only a color keeps a key of its own.
+    expect(skeletonKey('Red.')).not.toBe(skeletonKey('Blue.'));
+  });
+
+  it('an honest parent is not caught: another color within twenty seconds, and the same words up to four times a round', () => {
+    let s = run([START, tick(2), say('You put the red one on top.'), tick(3), say('You put the blue one on top.')]);
+    expect(s.sentences.map((x) => x.code)).toEqual(['description', 'description']);
+    // Mia does the same thing again later, and the parent describes it again: four times count, the fifth is a repeat.
+    s = run([START]);
+    for (let n = 0; n < 5; n++) s = run([tick(REPEAT_WINDOW_SEC + 2), say('You are stacking the blocks.')], s);
+    expect(s.sentences.map((x) => x.rule)).toEqual(['you_are_doing', 'you_are_doing', 'you_are_doing', 'you_are_doing', 'repeat']);
+    // Her own line said back is not limited this way: each line of hers is a new chance.
+    s = run([START]);
+    for (let n = 0; n < 6; n++) {
+      s = { ...s, child: { ...s.child, lastSaid: 'I made a tower!' }, reflectedSinceChildSpoke: false, elapsedSec: s.elapsedSec + 25 };
+      s = run([say('You made a tower!')], s);
+    }
+    expect(s.sentences.map((x) => x.code)).toEqual(Array(6).fill('reflection'));
+  });
+});
+
+describe('the coach line after a repeat and during an outburst', () => {
+  const at = (s: RoundState, sec: number): RoundState => run([tick(sec - s.elapsedSec)], s);
+
+  it('every repeat-only turn gets the "already counted" line, also right after another line', () => {
+    let s = at(run([START]), 3);
+    s = run([say('You are stacking the blocks.')], s);
+    expect(s.coach?.kind).toBe('praise_parent');
+    s = run([say('You are stacking the blocks.')], at(s, 7));
+    expect(s.sentences[1]).toMatchObject({ code: 'neutral', rule: 'repeat' });
+    expect(s.coach).toEqual({ kind: 'swap', text: 'That one is already counted. Say something new you see.' });
+    // A near-repeat too.
+    let near = at(run([START]), 3);
+    near = run([say('You put the red block on top.')], near);
+    near = run([say('You put a red block on the top!')], at(near, 9));
+    expect(near.sentences[1].rule).toBe('repeat');
+    expect(near.coach?.text).toBe('That one is already counted. Say something new you see.');
+    // After the window the same sentence counts again.
+    s = run([say('You are stacking the blocks.')], at(s, 7 + REPEAT_WINDOW_SEC + 5));
+    expect(s.sentences[2].code).toBe('description');
+    expect(ringProgress(s).description.count).toBe(2);
+  });
+
+  it('a swap line typed during the second outburst beat in a row stays until the next beat', () => {
+    // Whine beats at 35 s and 42 s; "Don't do that." lands at 48 s.
+    let s = run([{ type: 'start', sceneId: 'blocks', seconds: 300, seed: 1 }]);
+    const turns = ['What are you building?', 'Good job!', 'Is that a tower?', 'Put it here.', 'Nice!', "Don't do that."];
+    turns.forEach((text, i) => {
+      s = run([say(text)], at(s, 8 * (i + 1)));
+    });
+    expect(s.beats.slice(-2).map((b) => [b.atSec, isOutburst(b.kind)])).toEqual([[35, true], [42, true]]);
+    expect(s.coach?.kind).toBe('swap');
+    const swap = s.coach;
+    for (let sec = 48.25; sec < 49; sec += 0.25) {
+      s = at(s, sec);
+      expect(s.coach, String(sec)).toEqual(swap);
+    }
+  });
+
+  it('wait_out still goes up at once on an outburst beat, and comes back on the next one after a swap line', () => {
+    let s = at(run([{ type: 'start', sceneId: 'blocks', seconds: 300, seed: 1 }]), 35);
+    expect(s.coach).toEqual({ kind: 'wait_out', text: WAIT_OUT_TEXT });
+    s = run([say('Stop that.')], at(s, 37));
+    expect(s.coach?.kind).toBe('swap');
+    s = at(s, 41.75);
+    expect(s.coach?.kind).toBe('swap');
+    s = at(s, 42);
+    expect(isOutburst(s.beats[s.beats.length - 1].kind)).toBe(true);
+    expect(s.coach).toEqual({ kind: 'wait_out', text: WAIT_OUT_TEXT });
+  });
+});
+
+describe('live play speaks of the parent’s own child', () => {
+  const at = (s: RoundState, sec: number): RoundState => run([tick(sec - s.elapsedSec)], s);
+
+  it('the coach says "your child" and "they" in live play, and "she" with Mia', () => {
+    for (const live of [true, false]) {
+      let s = run([{ type: 'start', sceneId: 'blocks', seconds: 300, seed: 1, live }]);
+      const lines: string[] = [];
+      for (const [sec, text] of [[2, 'Put it over there.'], [12, "You're stacking the blocks."], [22, 'Good job!']] as [number, string][]) {
+        s = run([say(text)], at(s, sec));
+        lines.push(s.coach?.text ?? '');
+      }
+      if (live) {
+        expect(lines).toEqual([
+          'Let your child lead for now. Say what they chose to do.',
+          'Nice description. You named exactly what your child did.',
+          'Warm. Now add exactly what your child did: “Good job stacking so gently.”',
+        ]);
+        s = at(s, 100);
+        expect(s.coach?.text).toBe('Praise one exact thing your child just did.');
+        s = at(s, 300);
+        expect(s.result?.leverText).toBe('Praise one exact thing your child did, not just “good job”.');
+        for (const line of [...lines, s.result?.leverText ?? '']) expect(line).not.toMatch(/\b(?:she|her|Mia)\b/i);
+      } else {
+        expect(lines[0]).toBe('Follow her lead for now. Say what she chose to do.');
+        expect(lines[1]).toBe('Nice description. You named exactly what she did.');
+      }
+    }
+  });
+
+  it('a live round ended early names its lever for "your child" too', () => {
+    const s = run([{ type: 'start', sceneId: 'blocks', seconds: 300, seed: 1, live: true }, tick(5), say('Put it here. Give me that. Sit down. Come here.'), { type: 'end' }]);
+    expect(s.result).toMatchObject({ short: true, lever: 'command', leverText: 'Let your child lead: describe what they chose instead of telling them what to do.' });
+  });
+});
+
+describe('the first-visit round of 40 seconds', () => {
+  it('asks for one sentence of each skill, and one of each meets it', () => {
+    // 40 seconds at the clinic pace is 1.33 of each skill. The round rounds to the nearest whole sentence:
+    // typed on a phone, two of each in 40 seconds is out of reach, and this round is there to show a first step.
+    const at = (s: RoundState, sec: number): RoundState => run([tick(sec - s.elapsedSec)], s);
+    let s = run([{ type: 'start', sceneId: 'drawing', seconds: 40, seed: 7 }]);
+    s = run([say('This is the grass.')], at(s, 3));
+    s = run([say("You're drawing with the green crayon.")], at(s, 13));
+    s = run([say('I love how carefully you are coloring.')], at(s, 23));
+    expect(ringProgress(s)).toMatchObject({ specific_praise: { count: 1, target: 1 }, reflection: { count: 1, target: 1 }, description: { count: 1, target: 1 } });
+    s = at(s, 40);
+    expect(s.result?.met).toBe(true);
   });
 });
 

@@ -125,3 +125,38 @@ describe('nudges on a quiet moment', () => {
     expect(coachPrompt({ ...base, nowSec: 55, lastPromptSec: 40 })?.kind).toBe('praise_now');
   });
 });
+
+describe('wording', () => {
+  const say = (code: Parameters<typeof codeSentence>[0], live = false) => coachPrompt({ ...base, live, justCoded: codeSentence(code) })?.text;
+
+  it('the line for a command reads for a son too once the screens swap the pronouns', () => {
+    // "Let her lead" became "Let his lead" for Leo: after "her" the screens take "lead" for a noun.
+    expect(say('Put it here.')).toBe('Follow her lead for now. Say what she chose to do.');
+  });
+
+  it('live play says "your child" and "they"; practice with Mia is unchanged', () => {
+    expect(say('Put it over there.', true)).toBe('Let your child lead for now. Say what they chose to do.');
+    expect(say("You're stacking the blocks.", true)).toBe('Nice description. You named exactly what your child did.');
+    expect(say('I love how gently you stack.', true)).toBe('Nice specific praise. Your child knows exactly what you liked.');
+    expect(say('Good job!', true)).toBe('Warm. Now add exactly what your child did: “Good job stacking so gently.”');
+    expect(coachPrompt({ ...base, live: true, nowSec: 100 })?.text).toBe('Praise one exact thing your child just did.');
+    expect(say('What is that?', true)).toBe(say('What is that?'));
+    expect(say("Don't do that.", true)).toBe(say("Don't do that."));
+    expect(say("You're stacking the blocks.")).toBe('Nice description. You named exactly what she did.');
+    expect(say('Good job!')).toBe('Warm. Now add exactly what she did: “Good job stacking so gently.”');
+    expect(coachPrompt({ ...base, nowSec: 100 })?.text).toBe('Praise one exact thing she just did.');
+  });
+
+  it('no live line says she or her, and no line shouts outside a quoted example', () => {
+    const lines: string[] = [];
+    for (const live of [true, false]) {
+      for (const text of ['Put it here.', 'What is that?', "Don't.", "You're stacking the blocks.", 'I love how gently you stack.', 'Good job!']) lines.push(say(text, live) ?? '');
+      lines.push(coachPrompt({ ...base, live, nowSec: 100 })?.text ?? '');
+      if (live) for (const line of lines) expect(line).not.toMatch(/\b(?:she|her|Mia)\b/i);
+    }
+    for (const line of lines) {
+      expect(line.replace(/“[^”]*”/g, ''), line).not.toContain('!');
+      expect(line).not.toMatch(/\b(wrong|bad|mistake|fail\w*|should|don['’]t|dont)\b/i);
+    }
+  });
+});

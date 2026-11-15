@@ -115,6 +115,19 @@ describe('the live notice', () => {
     const again = run([{ type: 'want', on: false }, { type: 'want', on: true }], allowed);
     expect(liveNotice(again.status, again.ready)).toBe(LIVE_NOTICE.waiting);
   });
+  it('a screen that passes the status alone keeps its "play" line through the browser\'s own pauses', () => {
+    // On some phones recognition ends after every sentence and is started again at once. The round screen calls
+    // liveNotice(status) with one argument; read as "waiting", its card flipped after every sentence.
+    const paused = run([{ type: 'want', on: true }, { type: 'started' }, { type: 'ended' }]);
+    expect(paused.status).toBe('starting');
+    expect(liveNotice(paused.status)).toBe(LIVE_NOTICE.on);
+    expect(liveNotice('listening')).toBe(LIVE_NOTICE.on);
+    // A screen that tracks the permission still gets the waiting line before it is answered.
+    const asked = run([{ type: 'want', on: true }]);
+    expect(liveNotice(asked.status, asked.ready)).toBe(LIVE_NOTICE.waiting);
+    // Off is off, with or without the second argument.
+    for (const status of ['idle', 'denied', 'failed', 'unsupported'] as SpeechStatus[]) expect(liveNotice(status)).toBe(liveNotice(status, false));
+  });
   it('offers the microphone button only where the browser has voice', () => {
     expect(liveNotice('denied', false)).toContain('Speak instead');
     expect(liveNotice('unsupported', false)).not.toContain('Speak instead');

@@ -26,8 +26,8 @@ export const BLOCKS: Scene = {
   meltdown: { does: 'Mia throws a block across the room.', says: 'No!' },
   scriptedWhineBeat: 5,
   farewell: {
-    high: 'Mia hugs your arm. "Play again tomorrow?"',
-    mid: 'Mia waves. "Bye-bye, blocks."',
+    high: 'Mia hugs your arm. “Play again tomorrow?”',
+    mid: 'Mia waves. “Bye-bye, blocks.”',
     low: 'Mia walks off without looking back.',
   },
 };
@@ -57,8 +57,8 @@ export const DRAWING: Scene = {
   meltdown: { does: 'Mia sweeps the crayons onto the floor.', says: 'No!' },
   scriptedWhineBeat: 4,
   farewell: {
-    high: 'Mia holds up the picture. "This one is for you."',
-    mid: 'Mia waves. "Bye-bye, crayons."',
+    high: 'Mia holds up the picture. “This one is for you.”',
+    mid: 'Mia waves. “Bye-bye, crayons.”',
     low: 'Mia leaves the picture on the floor and walks away.',
   },
 };
@@ -89,8 +89,8 @@ export const KITCHEN: Scene = {
   meltdown: { does: 'Mia sweeps the cups off the table.', says: 'No!' },
   scriptedWhineBeat: 6,
   farewell: {
-    high: 'Mia hands you the last toy cookie. "You can eat here tomorrow."',
-    mid: 'Mia waves the spoon. "Bye-bye, kitchen."',
+    high: 'Mia hands you the last toy cookie. “You can eat here tomorrow.”',
+    mid: 'Mia waves the spoon. “Bye-bye, kitchen.”',
     low: 'Mia leaves the pot on the floor and walks away.',
   },
 };
@@ -119,15 +119,15 @@ export const CLEANUP: Scene = {
   wander: { does: 'Mia lies down on the rug and stares at the lamp.' },
   whine: { does: 'Mia flops over the toy bin and whines.', says: 'There are too many!' },
   whineAlt: [
-    { does: 'Mia hugs her bear and turns away from the bin.', says: 'I am still playing.' },
-    { does: 'Mia drops a car and stamps her foot.', says: 'This takes forever.' },
+    { does: 'Mia hugs the bear and turns away from the bin.', says: 'I am still playing.' },
+    { does: 'Mia drops a car and stomps.', says: 'This takes forever.' },
   ],
   meltdown: { does: 'Mia tips the whole bin over and cries.', says: 'No!' },
   scriptedWhineBeat: 2,
   startTension: 38,
   farewell: {
-    high: 'Mia pats the full bin. "All the toys are home."',
-    mid: 'Mia waves at the shelf. "Night-night, toys."',
+    high: 'Mia pats the full bin. “All the toys are home.”',
+    mid: 'Mia waves at the shelf. “Night-night, toys.”',
     low: 'Mia leaves the last toys on the rug and walks off.',
   },
 };

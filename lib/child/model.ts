@@ -182,7 +182,7 @@ export function view(state: ChildState): ChildView {
 /** One-line reaction shown immediately after the parent's move, before the next beat. */
 export const MICRO_REACTION: Record<Move, string> = {
   specific_praise: 'Mia grins and holds it up for you to see.',
-  reflection: 'Mia nods. "Yeah!" She keeps talking.',
+  reflection: 'Mia nods. “Yeah!” She keeps talking.',
   description: 'Mia stays with it, concentrating.',
   general_praise: 'Mia glances up and smiles.',
   neutral: 'Mia keeps playing.',

@@ -68,10 +68,12 @@ export function isHearing(state: Pick<SpeechState, 'status' | 'ready'>): boolean
 }
 
 /**
- * `ready` says the browser has granted the microphone. Left out, a status of 'starting' is read as before:
- * the screen that does not track it still shows the right line once listening begins.
+ * `ready` says the browser has granted the microphone. Left out, a status of 'starting' is read as before,
+ * as being heard: a screen that passes the status alone keeps its "play" line through the browser's own
+ * pauses (some phones stop listening after every sentence) instead of flipping to "waiting" each time.
+ * A screen that passes `state.ready` gets the waiting line until the permission is answered.
  */
-export function liveNotice(status: SpeechStatus, ready = false): string {
+export function liveNotice(status: SpeechStatus, ready = true): string {
   if (isHearing({ status, ready })) return LIVE_NOTICE.on;
   // Asked for, and the browser has not answered yet: nothing is counted until the microphone is allowed.
   if (status === 'starting') return LIVE_NOTICE.waiting;
