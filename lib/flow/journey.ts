@@ -106,12 +106,16 @@ export function initialJourney(seed = 1, startAt: JourneyPhase = 'opener'): Jour
   };
 }
 
-/** What to tell the parent about their very first answer. The strongest code in the turn decides. */
+/**
+ * What to tell the parent about their very first answer. One code in the turn decides the headline.
+ * A to-swap sentence comes before any skill: "You made a tower. Now shut up." is not opened with praise
+ * for the reflection. Among the skills, saying her words back comes first.
+ */
 const INSIGHT_ORDER: Code[] = [
-  'reflection',
   'criticism',
   'command',
   'question',
+  'reflection',
   'specific_praise',
   'description',
   'general_praise',

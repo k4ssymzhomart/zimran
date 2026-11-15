@@ -47,6 +47,35 @@ describe('opener', () => {
     expect(s.opener.reflected).toBe(true);
     expect(s.opener.insight?.headline).toBe('You said her words back.');
   });
+  it('a to-swap sentence in the same turn takes the headline before any skill', () => {
+    // It used to open with praise for the reflection: "You said her words back."
+    const rude = run([{ type: 'answer_opener', text: 'You made a tower. Now shut up.' }]);
+    expect(rude.opener.first.map((c) => c.code)).toEqual(['reflection', 'criticism']);
+    expect(rude.opener.insight?.headline).toBe('That one corrected her.');
+    const turns: [string, string][] = [
+      ['You made a tower! What is it?', 'That was a question.'],
+      ['You made a tower. Now put the blue one on top.', 'That was a suggestion.'],
+      ['I love how carefully you stacked it. Is it a castle?', 'That was a question.'],
+      ["You're stacking the blocks. Not like that.", 'That one corrected her.'],
+      // A correction comes before a command, and a command before a question, whatever the order they were said in.
+      ['What is it? Put it here. No, not like that.', 'That one corrected her.'],
+      ['Is it a tower? Put it here.', 'That was a suggestion.'],
+    ];
+    for (const [text, headline] of turns) {
+      expect(run([{ type: 'answer_opener', text }]).opener.insight?.headline, text).toBe(headline);
+    }
+  });
+  it('with no to-swap sentence, the skills keep their order: her words back, then praise, then description', () => {
+    const turns: [string, string][] = [
+      ['Nice! You made a tower!', 'You said her words back.'],
+      ["You're stacking the blocks. I love how carefully you did that.", 'You named exactly what you liked.'],
+      ["Good job! You're stacking the blocks.", 'You said what she did.'],
+      ['Hmm. Good job!', 'Warm, and a little vague.'],
+    ];
+    for (const [text, headline] of turns) {
+      expect(run([{ type: 'answer_opener', text }]).opener.insight?.headline, text).toBe(headline);
+    }
+  });
   it('lets the parent try the reflection and shows a model answer after two tries', () => {
     let s = run([{ type: 'answer_opener', text: 'What is it?' }, { type: 'try_reflection', text: 'Nice.' }]);
     expect(s.opener.reflected).toBe(false);
