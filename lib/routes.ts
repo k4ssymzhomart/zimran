@@ -39,6 +39,11 @@ export const ROUTES = {
     /** The daily reminder as a calendar file (app/api/calendar/route.ts). */
     calendar: '/api/calendar',
   },
+
+  /** The daily five minutes in the Split design (app/daily): the day, its three sentences, the round, the result. Needs access. */
+  dailySession: '/daily',
+  /** A free one-minute practice round in the Split design (app/round), for the Practice tab. */
+  practiceRound: '/round',
 } as const;
 
 /** The four tab roots, in bar order. `art` names the icon pair in public/art: tab-{art}.png and tab-{art}-off.png. */
