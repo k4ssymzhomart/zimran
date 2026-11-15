@@ -8,7 +8,7 @@ import { Button, Divider, Icon, IconButton, Pattern, PatternRow, Rings, Tag, Tra
 import { useEntitlement } from '@/hooks/useEntitlement';
 import { ROUTES } from '@/lib/routes';
 import type { SavedSession } from '@/lib/types';
-import { lengthWords, reviewHeadline, reviewRows, signed } from './numbers';
+import { reviewHeadline, reviewRows, signed } from './numbers';
 
 /** Sentences shown before "Show all". */
 const FIRST_SHOWN = 5;
@@ -20,13 +20,24 @@ function longDay(date: string): string {
   return `${part({ weekday: 'long' })} ${day.getDate()} ${part({ month: 'long' })}`;
 }
 
-/** "Three minutes with Mia, typed": how long, with whom, how the parent answered. */
+const KIND: Record<SavedSession['kind'], string> = {
+  first_before: 'First round',
+  first_after: 'Second round',
+  daily: 'Daily session',
+  practice: 'Practice',
+  live: 'Live with your child',
+};
+
+/**
+ * "Daily session with Mia, typed": what kind, with whom, how the parent answered. The length is left out: a round
+ * ended early is measured as at least half its planned length (lib/round/session.ts), so the stored seconds are not
+ * how long it was played.
+ */
 function summaryOf(session: SavedSession): string {
-  const length = lengthWords(session.durationSec);
-  if (session.kind === 'live') return `${length} live with your child`;
+  if (session.kind === 'live') return KIND.live;
   const who = session.partner ? ` with ${CHILDREN[session.partner].name}` : '';
   const how = session.input === 'typed' ? ', typed' : session.input === 'mixed' ? ', typed and spoken' : '';
-  return `${length}${who}${how}`;
+  return `${KIND[session.kind]}${who}${how}`;
 }
 
 export interface SessionReviewProps {
