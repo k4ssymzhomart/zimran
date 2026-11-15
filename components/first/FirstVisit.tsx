@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { RoundRunner } from '@/components/round/RoundRunner';
+// The round in the Split design, built on the same props and engine as components/round/RoundRunner.
+// To use developer B's stage instead: import { RoundRunner } from '@/components/round/RoundRunner';
+import { FirstRound as RoundRunner } from './round/FirstRound';
 import { useFirstVisit, type FirstVisitFlow } from '@/hooks/useFirstVisit';
 import { lastTry, lessonDone, ROUND1, ROUND2 } from '@/lib/flow/journey';
 import { AnswerRead } from './AnswerRead';
