@@ -364,6 +364,11 @@ describe('sessionPatterns', () => {
       expect(find(session({ durationSec: 300, sentences: at([5, 20, 40, 250, 280]) }), 'pace')).toBeUndefined();
       expect(find(session({ durationSec: 60, sentences: at([1, 2, 3, 4, 5, 59]) }), 'pace')).toBeUndefined();
     });
+
+    it('says nothing about a last minute in which nothing was said: the round may have ended early', () => {
+      // Ended after seven seconds of a five-minute round: the engine measures it as 150 seconds, half the plan.
+      expect(find(session({ durationSec: 150, sentences: at([1, 2, 3, 4, 5, 6]) }), 'pace')).toBeUndefined();
+    });
   });
 
   describe('a sentence said again', () => {

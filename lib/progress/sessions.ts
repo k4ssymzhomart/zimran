@@ -236,6 +236,9 @@ function pace(said: SavedSentence[], durationSec: number): SessionPattern | null
   if (durationSec < 2 * MINUTE) return null;
   const first = said.filter((s) => s.startSec < MINUTE).length;
   const last = said.filter((s) => s.startSec >= durationSec - MINUTE).length;
+  // Nothing said in the last minute can mean the round was ended early: its measured length is never under half the
+  // planned one, so that "last minute" may be time nobody played. Say nothing rather than claim a minute that did not happen.
+  if (last === 0) return null;
   if (Math.abs(first - last) < MIN_PACE_GAP) return null;
   return {
     id: 'pace',

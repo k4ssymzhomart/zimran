@@ -7,7 +7,7 @@ import { useSessions } from '@/hooks/useSessions';
 import { sessionPatterns } from '@/lib/progress/sessions';
 import { ROUTES } from '@/lib/routes';
 import type { SavedSession, SessionKind } from '@/lib/types';
-import { clock, dayLabel } from '../../labels';
+import { dayLabel } from '../../labels';
 
 type Params = Promise<{ session: string }>;
 
@@ -105,8 +105,11 @@ function Review({ params }: { params: Params }) {
   );
 }
 
-/** "Practice with Mia, 5:00": what kind of session, with whom, how long. */
+/**
+ * "Practice with Mia": what kind of session and with whom. The length is left out: a round ended early is measured
+ * as at least half its planned length (lib/round/session.ts), so the stored seconds are not how long it was played.
+ */
 function summaryLine(session: SavedSession): string {
   const who = session.partner ? ` with ${CHILDREN[session.partner].name}` : '';
-  return `${KIND[session.kind]}${who}, ${clock(session.durationSec)}`;
+  return `${KIND[session.kind]}${who}`;
 }
