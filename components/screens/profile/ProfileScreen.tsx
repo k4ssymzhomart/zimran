@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useId, useState } from 'react';
+import { signOut } from '@/client/account';
 import { clearSummaries } from '@/client/aiSummary';
 import { clearEntitlement, renewsOn, type Entitlement } from '@/client/entitlement';
 import { profileStore } from '@/client/profileStore';
@@ -9,11 +10,13 @@ import { sessionStore } from '@/client/sessionStore';
 import { CHILDREN } from '@/components/child';
 import { Button, PARENT, Pattern, Picture, SettingRow, SettingsSection, Sheet, Tag, cn } from '@/components/kit';
 import { DEFAULT_PLAN, lengthOf, longDate, planOf, priceOf } from '@/components/pricing/plans';
+import { useAccount } from '@/hooks/useAccount';
 import { SCENES } from '@/lib/child/scenes';
 import { PLAN_DAYS } from '@/lib/progress/plan';
 import { planDayOf, streakOf } from '@/lib/progress/sessions';
 import { ROUTES } from '@/lib/routes';
 import type { Profile, SavedSession } from '@/lib/types';
+import { AccountSection } from './AccountSection';
 import { ChildEditor, ChildFields, childDraftOf, cleanName, type ChildDraft } from './ChildEditor';
 import { CodingGuide } from './CodingGuide';
 import { daysLabel, firstSwapOf, paceOf, strongestOf } from './facts';
@@ -53,6 +56,7 @@ export function ProfileScreen({ profile, update, sessions, entitlement, today }:
   const [view, setView] = useState<View>('main');
   const [erasing, setErasing] = useState(false);
   const [ending, setEnding] = useState(false);
+  const account = useAccount();
   const childTitle = useId();
 
   const open = (next: View): void => {
@@ -95,7 +99,7 @@ export function ProfileScreen({ profile, update, sessions, entitlement, today }:
   // The one action of an empty profile starts a session: the daily five minutes with access, the first visit without.
   const start = entitlement.paid
     ? { href: ROUTES.daily, label: 'Start today’s five minutes' }
-    : { href: ROUTES.start, label: 'Play the first round' };
+    : { href: ROUTES.start, label: 'Play your first round' };
 
   // Membership: the plan on this device, or the free first visit.
   const plan = planOf(entitlement.plan ?? DEFAULT_PLAN);
@@ -107,7 +111,9 @@ export function ProfileScreen({ profile, update, sessions, entitlement, today }:
       ? `Demo access: nothing is charged and nothing renews. The paid plan renews ${every}`
       : `Renews ${every}`;
 
-  const eraseAll = (): void => {
+  const eraseAll = async (): Promise<void> => {
+    // Signed in, the device signs out first: the account keeps its copy, and an emptied device is never sent to it.
+    if (account.status === 'signed-in') await signOut();
     sessionStore.clear();
     profileStore.reset();
     clearEntitlement();
@@ -137,7 +143,7 @@ export function ProfileScreen({ profile, update, sessions, entitlement, today }:
             <dl className="flex flex-1 flex-wrap justify-end gap-x-[40px] gap-y-[16px]">
               {pace !== null && (
                 <div className="flex flex-col-reverse">
-                  <dt className="text-label">of the clinic pace</dt>
+                  <dt className="text-label">of the clinic pace, last session</dt>
                   <dd className="text-title">{pace}%</dd>
                 </div>
               )}
@@ -161,7 +167,7 @@ export function ProfileScreen({ profile, update, sessions, entitlement, today }:
             <>
               <p className="flex items-baseline gap-[8px]">
                 <span className="text-title text-ink">{pace}%</span>
-                <span className="text-label text-gray">of the clinic pace</span>
+                <span className="text-label text-gray">of the clinic pace, last session</span>
               </p>
               <div aria-hidden className="mt-[12px] h-[6px] overflow-clip rounded-full bg-line">
                 <div className="h-full rounded-full bg-violet" style={{ width: `${pace}%` }} />
@@ -255,6 +261,8 @@ export function ProfileScreen({ profile, update, sessions, entitlement, today }:
             <SettingRow art="/art/search-speech.png" label="How coding works" chevron onClick={() => open('coding')} />
           </SettingsSection>
 
+          <AccountSection className={CARD} />
+
           <SettingsSection title="This device" className={CARD}>
             <SettingRow art="/art/document.png" label="Jury guide" href={ROUTES.jury} />
             <SettingRow art="/art/door.png" label="Erase everything on this device" onClick={() => setErasing(true)} />
@@ -275,10 +283,11 @@ export function ProfileScreen({ profile, update, sessions, entitlement, today }:
         onClose={() => setErasing(false)}
         title="Erase everything on this device?"
         art="/art/door.png"
-        primary={{ label: 'Erase everything', onClick: eraseAll }}
+        primary={{ label: 'Erase everything', onClick: () => void eraseAll() }}
         secondary={{ label: 'Keep my data', onClick: () => setErasing(false) }}
       >
         Your sessions, your child’s details, your plan and your membership on this device. This cannot be undone.
+        {account.status === 'signed-in' && ' You are signed out first, and your account keeps its copy.'}
       </Sheet>
 
       <Sheet

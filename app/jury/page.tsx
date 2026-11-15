@@ -10,6 +10,7 @@ import {
   SIMULATED,
   THERAPIST_LINK,
   TRIALS,
+  ACCOUNTS_ON,
   notBuilt,
   steps,
   type Checkout,
@@ -18,6 +19,7 @@ import {
 import { WayBack } from '@/components/jury/WayBack';
 import { Button, cn, focusRing } from '@/components/kit';
 import { ROUTES } from '@/lib/routes';
+import { accountsAvailable } from '../api/account/store';
 
 export const metadata: Metadata = {
   title: 'Jury guide: Fammy in three minutes',
@@ -64,6 +66,8 @@ function Facts({ items }: { items: readonly Fact[] }) {
 export default function JuryPage() {
   // The same rule as app/pricing/page.tsx, so the guide describes the paywall this deployment really has.
   const checkout: Checkout = process.env.STRIPE_SECRET_KEY ? 'stripe' : 'demo';
+  // With an account store the optional account exists, and only its password reset is missing.
+  const missing = notBuilt(checkout).map((fact) => (fact.title === 'Accounts' && accountsAvailable() ? ACCOUNTS_ON : fact));
 
   return (
     <div className="split-root flex flex-col pt-[env(safe-area-inset-top)]">
@@ -131,7 +135,7 @@ export default function JuryPage() {
             </div>
 
             <Part id="not-built" title="What is not built" className="gap-[4px] lg:col-start-1 lg:row-start-2">
-              <Facts items={notBuilt(checkout)} />
+              <Facts items={missing} />
             </Part>
           </div>
         </main>

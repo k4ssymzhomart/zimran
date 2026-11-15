@@ -42,6 +42,12 @@ export const ROUTES = {
     summary: '/api/summary',
     /** "Why?" next to one coded sentence (app/api/explain/route.ts), behind FEATURES.aiSummary. */
     explain: '/api/explain',
+    /** The optional account (app/api/account): who is signed in on this browser (GET), deleting it (DELETE). */
+    account: '/api/account',
+    /** Creating an account or signing in (POST), signing out (DELETE). */
+    accountSession: '/api/account/session',
+    /** The account's copy of this device's progress. */
+    accountData: '/api/account/data',
   },
 
   /** The daily five minutes in the Split design (app/daily): the day, its three sentences, the round, the result. Needs access. */

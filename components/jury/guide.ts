@@ -212,6 +212,12 @@ const PAYMENTS: Record<Checkout, string> = {
   stripe: 'The checkout is Stripe in test mode. No real card is charged.',
 };
 
+/** Replaces the Accounts line of notBuilt on a deployment with an account store (app/api/account/store.ts). */
+export const ACCOUNTS_ON: Fact = {
+  title: 'Password reset',
+  detail: 'The account in Profile is optional and has no password reset yet. No email is ever sent.',
+};
+
 export function notBuilt(checkout: Checkout): Fact[] {
   return [
     { title: 'Accounts', detail: 'No login and no server database. Clearing this site’s data erases your sessions.' },

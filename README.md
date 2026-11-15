@@ -15,7 +15,8 @@ daily session is five minutes.
 
 ## The three-minute path
 
-No login. Everything you do is kept in this browser. The site carries its own version of this guide at `/jury`.
+No login. Everything you do is kept in this browser. An optional account in Profile (an email and a password) keeps a
+copy for other devices; the walk never needs it. The site carries its own version of this guide at `/jury`.
 
 1. `/`: the landing. Answer Mia in the field on the page; the rules code your sentence in the browser and show what
    it counted. "Build my plan" carries it into the first visit.
@@ -174,6 +175,7 @@ answers stay in `localStorage` on their device.
 | `NEXT_PUBLIC_FEATURE_RECORDING` | Optional. Off unless set to `true` or `1`. Leave it off: the recorder is not built. |
 | `NEXT_PUBLIC_FEATURE_AI_SUMMARY` | Optional. `true` shows "Write an AI summary" on the session review. Needs `ANTHROPIC_API_KEY`; without it the button answers that the summary is not set up. |
 | `ANTHROPIC_API_KEY` | Optional. A Claude API key for the AI summary, read only by `app/api/summary/route.ts`. |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Optional. Upstash Redis, added by Vercel Marketplace → Upstash for Redis. With them, Profile offers the optional account: an email and a scrypt-hashed password, a sign-in cookie, and a copy of the device's saved progress (`app/api/account/`, `client/account.ts`). Without them there is no account section. `next dev` keeps accounts in memory. |
 
 `VERCEL_PROJECT_PRODUCTION_URL` is set by Vercel and gives link previews their address.
 

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { ChildProvider } from '@/components/child';
+import { AccountSync } from '@/components/shell/AccountSync';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ChildProvider>
           <div className="flex-1">{children}</div>
         </ChildProvider>
+        <AccountSync />
         <footer className="mx-auto w-full max-w-[520px] px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-8 text-center text-[12px] leading-relaxed text-fg-faint">
           Skill practice for parents. Not therapy and not a diagnosis. Mia and Leo are simulated children; real children vary. Worried
           about your child? Talk to your pediatrician.
