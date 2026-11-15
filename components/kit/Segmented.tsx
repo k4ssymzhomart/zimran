@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { cn, colorMotion, focusRingWithin } from './cn';
+import { cn, colorMotion, focusRingWithin, pickOnEnter } from './cn';
 
 export interface SegmentedOption<T extends string> {
   value: T;
@@ -47,6 +47,7 @@ export function Segmented<T extends string>({ label, options, value, onChange, f
               value={option.value}
               checked={selected}
               onChange={() => onChange(option.value)}
+              onKeyDown={pickOnEnter}
               className="sr-only"
             />
             {option.label}

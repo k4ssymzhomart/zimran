@@ -15,7 +15,7 @@ export interface PictureProps {
   className?: string;
 }
 
-/** Any file from the manifest in art.ts, on next/image. */
+/** Any file from the manifest in art-manifest.ts, on next/image. */
 export function Picture({ file, size, alt = '', priority = false, className }: PictureProps) {
   return (
     <Image

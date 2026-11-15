@@ -32,7 +32,7 @@ export function TranscriptRow({ sentence, playing = false, open = false, onToggl
   const tone: TagTone = bucket === 'target' ? 'skill' : swap ? 'swap' : 'quiet';
   const said = (
     <>
-      <span className={cn('text-body text-ink', swap && 'underline decoration-from-font')}>“{sentence.text}”</span>
+      <span className={cn('text-body text-ink', swap && 'underline decoration-from-font [text-underline-position:from-font]')}>“{sentence.text}”</span>
       <Tag tone={tone}>{swap ? `${LABEL[sentence.code]}, to swap` : LABEL[sentence.code]}</Tag>
     </>
   );
@@ -40,7 +40,7 @@ export function TranscriptRow({ sentence, playing = false, open = false, onToggl
 
   return (
     <div aria-current={playing || undefined} className={cn('flex items-start gap-[12px] rounded-[16px] py-[12px]', playing && 'bg-lilac px-[12px]', className)}>
-      <span className="w-[34px] shrink-0 text-small text-gray tabular-nums">{clock(sentence.startSec)}</span>
+      <span className="w-[34px] shrink-0 text-small text-gray">{clock(sentence.startSec)}</span>
       <div className={cn(stack, 'min-w-0 flex-1')}>
         {onToggle ? (
           <button type="button" onClick={onToggle} aria-expanded={open} className={cn(stack, 'rounded-[8px] text-left', focusRing)}>

@@ -4,7 +4,7 @@
  */
 
 // Helpers.
-export { cn, colorMotion, focusRing, focusRingWithin } from './cn';
+export { cn, colorMotion, focusRing, focusRingOnViolet, focusRingWithin, focusRingWithinOnViolet, pickOnEnter } from './cn';
 
 // Pictures.
 export { ART, Art, Picture, type ArtFile, type ArtName, type ArtProps, type PictureProps } from './Art';
@@ -26,6 +26,9 @@ export { Avatar, type AvatarProps } from './Avatar';
 export { Logo, LogoMark, type LogoMarkProps, type LogoProps, type LogoTone } from './Logo';
 export { Pattern, type PatternKind, type PatternProps, type PatternTone } from './Pattern';
 
+// Line icons.
+export { ICON_NAMES, Icon, type IconName, type IconProps } from './Icon';
+
 // Screen shells.
 export { PageScreen, SplitScreen, type PageScreenProps, type SplitScreenProps } from './Screen';
 
@@ -34,11 +37,12 @@ export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from '.
 export { IconButton, type IconButtonProps, type IconButtonVariant } from './IconButton';
 
 // Choices and fields.
-export { Chip, chipClasses, type ChipProps } from './Chip';
+export { Chip, chipClasses, type ChipProps, type ChipTone } from './Chip';
 export { ChipGroup, type ChipGroupProps, type ChipOption } from './ChipGroup';
 export { Option, type OptionProps } from './Option';
 export { ChoiceTile, type ChoiceTileProps } from './ChoiceTile';
 export { Tile, type TileProps } from './Tile';
+export { NumberTile, type NumberTileProps, type NumberTileSize } from './NumberTile';
 export { Segmented, type SegmentedOption, type SegmentedProps } from './Segmented';
 export { Toggle, type ToggleProps } from './Toggle';
 export { TextField, type TextFieldProps } from './TextField';
@@ -70,5 +74,5 @@ export { SummaryCard, type SummaryCardProps, type SummaryFact } from './SummaryC
 export { LastSessionCard, type LastSessionCardProps } from './LastSessionCard';
 export { RewriteCard, type RewriteCardProps } from './RewriteCard';
 export { AiSummaryCard, type AiSummaryCardProps } from './AiSummaryCard';
-export { Player, type PlayerHandle, type PlayerProps } from './Player';
+export { Player, type PlayerHandle, type PlayerProps, type PlayerTone } from './Player';
 export { ShareCard, type ShareCardProps } from './ShareCard';

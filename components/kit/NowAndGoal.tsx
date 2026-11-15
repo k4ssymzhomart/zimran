@@ -54,7 +54,7 @@ function Column({ title, values, note, violet = false }: { title: string; values
           {ROWS.map((row) => (
             <div key={row.key} className="flex items-center justify-between">
               <dt className={cn('text-small', quiet)}>{row.label}</dt>
-              <dd className="text-body-strong tabular-nums">{values[row.key]}</dd>
+              <dd className="text-body-strong">{values[row.key]}</dd>
             </div>
           ))}
         </dl>

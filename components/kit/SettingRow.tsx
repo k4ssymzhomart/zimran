@@ -20,6 +20,8 @@ export interface SettingRowProps {
   toggle?: { checked: boolean; onChange(checked: boolean): void };
   /** The arrow on the right. A row with `href` shows it unless told otherwise. */
   chevron?: boolean;
+  /** The 52px row of a short list, such as the lessons of Practice. The default is the 56px row of Profile. */
+  compact?: boolean;
   className?: string;
 }
 
@@ -33,8 +35,8 @@ export function RowChevron() {
 }
 
 /** One line of a settings list: object, label, then a value, an arrow or a switch. */
-export function SettingRow({ label, art, value, tag, href, onClick, toggle, chevron = Boolean(href), className }: SettingRowProps) {
-  const row = cn('flex min-h-[56px] w-full items-center gap-[14px] text-left', className);
+export function SettingRow({ label, art, value, tag, href, onClick, toggle, chevron = Boolean(href), compact = false, className }: SettingRowProps) {
+  const row = cn('flex w-full items-center gap-[14px] text-left', compact ? 'min-h-[52px]' : 'min-h-[56px]', className);
   const content = (
     <>
       {art ? <Image src={art} alt="" width={30} height={30} className="size-[30px] shrink-0 object-contain" /> : null}
@@ -58,7 +60,7 @@ export function SettingRow({ label, art, value, tag, href, onClick, toggle, chev
   }
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={cn(row, focusRing)}>
+      <button type="button" onClick={onClick} className={cn(row, 'cursor-pointer', focusRing)}>
         {content}
       </button>
     );

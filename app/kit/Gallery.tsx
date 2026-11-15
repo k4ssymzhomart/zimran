@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * The visual test bench of the Split kit: every kit and shell component, in labelled sections, with props.
+ * The visual test bench of the Split kit: every kit and shell component, in labeled sections, with props.
  *
  * The sample values in this file exist for this page only. Never import them, or this file, from product code:
  * product screens read real data from the stores and show an empty state when there is none.
  */
-import { useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import {
   ART,
   AiSummaryCard,
@@ -19,12 +19,15 @@ import {
   ChoiceTile,
   Composer,
   Divider,
+  ICON_NAMES,
+  Icon,
   IconButton,
   LastSessionCard,
   Logo,
   LogoMark,
   MonthCalendar,
   NowAndGoal,
+  NumberTile,
   Option,
   PARENT,
   PageScreen,
@@ -58,6 +61,7 @@ import {
   type ArtName,
   type MicState,
   type PatternKind,
+  type PlayerHandle,
   type WeekDay,
 } from '@/components/kit';
 import { AppShell } from '@/components/shell/AppShell';
@@ -171,7 +175,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-/** One labelled sample. `violet` puts it on the violet block, where the component lives in Figma. */
+/** One labeled sample. `violet` puts it on the violet block, where the component lives in Figma. */
 function Sample({ name, violet = false, className, children }: { name: string; violet?: boolean; className?: string; children: ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col gap-[8px]">
@@ -186,16 +190,6 @@ const ROW = 'flex flex-wrap items-center gap-[12px]';
 const PHONE = 'w-full max-w-[342px]';
 /** A phone-sized window on small screens, the whole width from 1024px, where the shells switch to their desktop layout. */
 const SCREEN = 'mx-auto flex h-[760px] w-full max-w-[390px] flex-col overflow-clip rounded-[32px] border border-line lg:h-dvh lg:max-w-none';
-
-function Icon({ d }: { d: string }) {
-  return (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={d} />
-    </svg>
-  );
-}
-const BACK = 'M15 6l-6 6 6 6';
-const CLOSE = 'M6 6l12 12M18 6L6 18';
 
 // ---------- sections ----------
 
@@ -226,6 +220,38 @@ function Brand() {
             </div>
           </Sample>
         ))}
+      </div>
+      <Sample name="Icon: every name, at 24">
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-[8px]">
+          {ICON_NAMES.map((name) => (
+            <li key={name} className="flex flex-col items-center gap-[8px] rounded-[16px] bg-mist px-[4px] py-[14px] text-small text-gray">
+              <Icon name={name} className="text-ink" />
+              {name}
+            </li>
+          ))}
+        </ul>
+      </Sample>
+      <div className={ROW}>
+        <Sample name="Icon, at the sizes Figma uses: 24, 22, 20, 18" className={ROW}>
+          <Icon name="mic" />
+          <Icon name="mic" size={22} />
+          <Icon name="chevron-right" size={20} className="text-faint" />
+          <Icon name="chevron-right" size={18} />
+          <Icon name="check" size={20} className="text-violet" />
+          <Icon name="check" size={18} className="text-violet" />
+          <Icon name="play" size={20} className="text-violet" />
+          <Icon name="play" size={18} className="text-violet" />
+          <Icon name="arrow-right" size={18} className="text-faint" />
+        </Sample>
+        <Sample name="Icon, on violet, with a name for screen readers" violet className={ROW}>
+          <Icon name="back" />
+          <Icon name="close" />
+          <Icon name="speaker" title="Sound is on" />
+          <Icon name="speaker-off" title="Sound is off" />
+          <Icon name="mic" size={22} />
+          <Icon name="arrow-up" size={22} strokeWidth={2.4} />
+          <Icon name="check" size={18} />
+        </Sample>
       </div>
     </Section>
   );
@@ -287,27 +313,27 @@ function Actions() {
       </Sample>
       <Sample name="IconButton: plain, ink, violet" className={ROW}>
         <IconButton label="Back">
-          <Icon d={BACK} />
+          <Icon name="back" />
         </IconButton>
         <IconButton label="Close" href={HERE}>
-          <Icon d={CLOSE} />
+          <Icon name="close" />
         </IconButton>
         <IconButton label="Close" variant="ink">
-          <Icon d={CLOSE} />
+          <Icon name="close" />
         </IconButton>
         <IconButton label="Back" variant="violet">
-          <Icon d={BACK} />
+          <Icon name="back" />
         </IconButton>
         <IconButton label="Back" disabled>
-          <Icon d={BACK} />
+          <Icon name="back" />
         </IconButton>
       </Sample>
       <Sample name="IconButton, on violet" violet className={ROW}>
         <IconButton label="Back" variant="on-violet">
-          <Icon d={BACK} />
+          <Icon name="back" />
         </IconButton>
         <IconButton label="Close" variant="on-violet">
-          <Icon d={CLOSE} />
+          <Icon name="close" />
         </IconButton>
       </Sample>
     </Section>
@@ -323,6 +349,11 @@ function Choices() {
   const [view, setView] = useState('trends');
   const [hard, setHard] = useState<string | null>(null);
   const [audio, setAudio] = useState(true);
+  const [scene, setScene] = useState<string | null>('blocks');
+  const scenes = [
+    { value: 'blocks', label: 'Blocks' },
+    { value: 'drawing', label: 'Drawing' },
+  ];
   const toggleMoment = (value: string, on: boolean) => setMoments((all) => (on ? [...all, value] : all.filter((m) => m !== value)));
 
   return (
@@ -338,6 +369,10 @@ function Choices() {
       </Sample>
       <Sample name="ChipGroup">
         <ChipGroup label="Age" options={AGES} value={age} onChange={setAge} />
+      </Sample>
+      <Sample name="Chip and ChipGroup, on violet: a label, then one choice" violet className={ROW}>
+        <Chip tone="on-violet">Simulated child</Chip>
+        <ChipGroup label="Scene" options={scenes} value={scene} onChange={setScene} tone="on-violet" />
       </Sample>
       <Sample name="Tag: skill, quiet, swap" className={ROW}>
         <Tag tone="skill">Specific praise</Tag>
@@ -366,6 +401,18 @@ function Choices() {
           ))}
         </div>
       </Sample>
+      <Sample name="NumberTile: the ages of the quiz, then the small size" className={cn(PHONE, 'flex flex-col gap-[16px]')}>
+        <div role="radiogroup" aria-label="Age" className="grid grid-cols-3 gap-[10px]">
+          {AGES.map((a) => (
+            <NumberTile key={a.value} name="kit-age" value={a.value} label={a.label} selected={age === a.value} onChange={() => setAge(a.value)} />
+          ))}
+        </div>
+        <div role="radiogroup" aria-label="Age, small" className="grid grid-cols-6 gap-[8px]">
+          {AGES.map((a) => (
+            <NumberTile key={a.value} size="sm" name="kit-age-small" value={a.value} label={a.label} selected={age === a.value} onChange={() => setAge(a.value)} disabled={a.value === '7'} />
+          ))}
+        </div>
+      </Sample>
       <Sample name="Tile" className={PHONE}>
         <div role="radiogroup" aria-label="Hardest moment" className="grid grid-cols-2 gap-[10px]">
           {MOMENTS.slice(0, 2).map((m) => (
@@ -384,6 +431,7 @@ function Choices() {
       <Sample name="Toggle: on or off, disabled" className={ROW}>
         <Toggle label="Keep audio" checked={audio} onChange={setAudio} />
         <Toggle label="AI summaries" checked={false} onChange={() => {}} disabled />
+        <Toggle label="Record live sessions" checked onChange={() => {}} disabled />
       </Sample>
     </Section>
   );
@@ -411,6 +459,9 @@ function Fields() {
       <Sample name="TextField" className={PHONE}>
         <TextField label="Your child’s name" value={name} onChange={setName} placeholder="Name" autoComplete="off" />
       </Sample>
+      <Sample name="TextField, compact" className={PHONE}>
+        <TextField compact label="Your child’s name, compact" value={name} onChange={setName} placeholder="Name" autoComplete="off" />
+      </Sample>
       <Sample name="Composer: empty, typing, listening, no microphone" className={cn(PHONE, 'flex flex-col gap-[12px]')}>
         <ComposerSample />
         <ComposerSample start="You are stacking the red one." />
@@ -424,6 +475,7 @@ function Fields() {
 function Rows() {
   const [audio, setAudio] = useState(true);
   const [sheet, setSheet] = useState(false);
+  const [calendar, setCalendar] = useState(false);
   return (
     <Section title="Rows and small pieces">
       <Sample name="SettingRow: a link, a value, a tag, a switch, an action" className={PHONE}>
@@ -442,6 +494,17 @@ function Rows() {
           <SettingRow label="Scene" art={ART.blocks.src} value="Blocks" href={HERE} />
         </SettingsSection>
       </Sample>
+      <Sample name="SettingRow, compact" className={PHONE}>
+        <SettingRow compact label="Praise" art={ART.praise.src} href={HERE} />
+        <Divider />
+        <SettingRow compact label="Reflect" art={ART.reflect.src} href={HERE} />
+      </Sample>
+      <Sample name="SettingsSection, card" className="w-full max-w-[403px]">
+        <SettingsSection card title="Recordings">
+          <SettingRow label="Keep audio" art={ART.cassette.src} toggle={{ checked: audio, onChange: setAudio }} />
+          <SettingRow label="14 recordings" art={ART.phone.src} value="38 MB" href={HERE} />
+        </SettingsSection>
+      </Sample>
       <Sample name="PlanRow: a link, an action, plain" className={PHONE}>
         <PlanRow label="Partner" value="Mia" href={HERE} />
         <Divider />
@@ -449,9 +512,18 @@ function Rows() {
         <Divider />
         <PlanRow label="Length" value="Five minutes" />
       </Sample>
-      <Sample name="PatternRow" className={cn(PHONE, 'flex flex-col gap-[12px]')}>
+      <Sample name="PlanRow, compact, as in a sheet" className={PHONE}>
+        <Divider />
+        <PlanRow compact label="Moment" value="After dinner" href={HERE} />
+        <Divider />
+        <PlanRow compact label="Repeats" value="Daily to 6 December" />
+      </Sample>
+      <Sample name="PatternRow, with a Divider between rows" className={PHONE}>
         <PatternRow label="Most questions began with" value="“What”" />
+        <Divider />
         <PatternRow label="Longest run without a question" value="48 seconds" />
+        <Divider />
+        <PatternRow label="To swap, first half then second" value="7, then 2" />
       </Sample>
       <Sample name="Divider and RowChevron" className={cn(PHONE, 'flex flex-col gap-[12px]')}>
         <Divider />
@@ -460,7 +532,7 @@ function Rows() {
       <Sample name="QuizProgress, step 3 of 9, on violet" violet className={PHONE}>
         <QuizProgress steps={9} current={3} />
       </Sample>
-      <Sample name="Sheet">
+      <Sample name="Sheet: a confirm, then rows in the body and a picture of its own" className={ROW}>
         <Button variant="soft" onClick={() => setSheet(true)}>
           Open the sheet
         </Button>
@@ -474,6 +546,29 @@ function Rows() {
         >
           Your sessions, recordings and plan. This cannot be undone.
         </Sheet>
+        <Button variant="soft" onClick={() => setCalendar(true)}>
+          Open the sheet with rows
+        </Button>
+        <Sheet
+          open={calendar}
+          onClose={() => setCalendar(false)}
+          title="Put five minutes in your calendar."
+          art={
+            <div className="relative flex size-[76px] shrink-0 items-center justify-center overflow-clip rounded-[22px] bg-violet">
+              <Pattern kind="reps" />
+              <Art name="bell" size={52} className="relative" />
+            </div>
+          }
+          primary={{ label: 'Add to calendar', onClick: () => setCalendar(false) }}
+          secondary={{ label: 'Not now', onClick: () => setCalendar(false) }}
+        >
+          <Divider />
+          <PlanRow compact label="Moment" value="After dinner" onClick={() => {}} />
+          <Divider />
+          <PlanRow compact label="Time" value="18:30" onClick={() => {}} />
+          <Divider />
+          <PlanRow compact label="Repeats" value="Daily to 6 December" />
+        </Sheet>
       </Sample>
     </Section>
   );
@@ -486,6 +581,7 @@ function shiftMonth(month: string, by: number): string {
 
 function Numbers() {
   const [month, setMonth] = useState(TODAY.slice(0, 7));
+  const [openDay, setOpenDay] = useState('2026-11-10');
   return (
     <Section title="Numbers and time">
       <Sample name="Ring: empty, part, full" className={ROW}>
@@ -506,40 +602,44 @@ function Numbers() {
       <Sample name="Rings, 76, centered">
         <Rings praise={RINGS.praise} reflect={RINGS.reflect} describe={RINGS.describe} size={76} className="justify-center gap-[22px]" />
       </Sample>
+      <Sample name="Rings, 76, on violet, 28 apart" violet className="w-fit max-w-full overflow-x-auto">
+        <Rings {...RINGS} size={76} tone="violet" className="gap-[28px]" />
+      </Sample>
       <Sample name="NowAndGoal" className={PHONE}>
         <NowAndGoal
           now={{ praise: '1.0', reflect: '0.8', describe: '1.2', swap: '1.6' }}
-          goal={{ praise: '2.0', reflect: '2.0', describe: '2.0', swap: '0.6' }}
+          goal={{ praise: '2', reflect: '2', describe: '2', swap: '0.6' }}
           nowNote="From round two"
-          goalNote="Checked over five minutes on 6 December"
+          goalNote="Checked over five minutes on 12 December"
         />
       </Sample>
       <Sample name="SummaryCard" className={PHONE}>
         <SummaryCard
-          percent={62}
+          percent={38}
           facts={[
-            { label: 'Strongest', value: 'Describe' },
+            { label: 'Strongest skill', value: 'Describe' },
             { label: 'First swap', value: 'Questions' },
-            { label: 'Streak', value: '4 days' },
+            { label: 'Daily moment', value: 'After dinner' },
           ]}
         />
       </Sample>
       <Sample name="WeekStrip" className={PHONE}>
         <WeekStrip days={WEEK} />
       </Sample>
-      <Sample name="MonthCalendar" className={PHONE}>
+      <Sample name="MonthCalendar, the 10th open: tap a played day to open it" className={PHONE}>
         <MonthCalendar
           month={month}
           played={PLAYED}
           dotted={DOTTED}
           today={TODAY}
+          selected={openDay}
           onPrev={() => setMonth(shiftMonth(month, -1))}
           onNext={() => setMonth(shiftMonth(month, 1))}
-          onSelectDay={() => {}}
+          onSelectDay={setOpenDay}
         />
       </Sample>
-      <Sample name="MonthCalendar, compact, no header" className="w-full max-w-[400px]">
-        <MonthCalendar month="2026-11" played={PLAYED} today={TODAY} compact hideHeader />
+      <Sample name="MonthCalendar, compact, no header" className="w-full max-w-[394px]">
+        <MonthCalendar month="2026-11" played={PLAYED} dotted={DOTTED} today={TODAY} compact hideHeader />
       </Sample>
     </Section>
   );
@@ -548,6 +648,7 @@ function Numbers() {
 function Sessions() {
   const [open, setOpen] = useState(true);
   const recording = useSyncExternalStore(never, silentRecording, noRecording);
+  const player = useRef<PlayerHandle>(null);
   return (
     <Section title="Sessions">
       <Sample name="LastSessionCard" className={PHONE}>
@@ -558,10 +659,19 @@ function Sessions() {
         <SessionRow title="Mon 9 Nov" detail="31 skills, 2 to swap" href={HERE} tag={{ label: 'Pace met', tone: 'skill' }} onPlay={() => {}} />
         <SessionRow title="Fri 6 Nov" detail="13 skills, 2 to swap. Reflections not counted" href={HERE} tag={{ label: 'Live', tone: 'quiet' }} />
       </Sample>
-      <Sample name="TranscriptRow: plain, playing, to swap and open, disputed" className={PHONE}>
-        <TranscriptRow sentence={SENTENCES[0]} />
+      <Sample name="TranscriptRow: plain, playing, to swap and open, disputed. A tap on the first or the third moves the first player below" className={PHONE}>
+        <TranscriptRow sentence={SENTENCES[0]} onToggle={() => player.current?.seek(SENTENCES[0].startSec)} />
         <TranscriptRow sentence={SENTENCES[1]} playing />
-        <TranscriptRow sentence={SENTENCES[2]} open={open} onToggle={() => setOpen(!open)} rewrite="You are building a tall tower." onChangeLabel={() => {}} />
+        <TranscriptRow
+          sentence={SENTENCES[2]}
+          open={open}
+          onToggle={() => {
+            setOpen(!open);
+            player.current?.seek(SENTENCES[2].startSec);
+          }}
+          rewrite="You are building a tall tower."
+          onChangeLabel={() => {}}
+        />
         <TranscriptRow sentence={SENTENCES[3]} />
         <TranscriptRow sentence={SENTENCES[4]} />
       </Sample>
@@ -572,8 +682,11 @@ function Sessions() {
         <AiSummaryCard text={AI_SUMMARY} />
       </Sample>
       <Sample name="Player: with loudness and marks, then a plain track" className={cn(PHONE, 'flex flex-col gap-[12px]')}>
-        <Player src={recording} durationSec={RECORDING_SEC} peaks={PEAKS} marks={[5, 12]} />
+        <Player ref={player} src={recording} durationSec={RECORDING_SEC} peaks={PEAKS} marks={[5, 12]} />
         <Player src={recording} durationSec={RECORDING_SEC} />
+      </Sample>
+      <Sample name="Player, on violet, 576 wide" violet className="w-full max-w-[624px]">
+        <Player src={recording} durationSec={RECORDING_SEC} peaks={PEAKS} tone="violet" />
       </Sample>
       <Sample name="ShareCard: a session, a live session" className="flex flex-wrap gap-[16px]">
         <ShareCard when="Tue 10 Nov · five minutes" headline={HEADLINE} counts={COUNTS} />
@@ -585,6 +698,7 @@ function Sessions() {
 
 function Shell() {
   const [partner, setPartner] = useState('mia');
+  const [view, setView] = useState('sessions');
   return (
     <Section title="Shell and screens">
       <Sample name="TopBar" className="border border-line">
@@ -616,7 +730,7 @@ function Shell() {
               embedded
               rest="bottom"
               pattern={<Pattern kind="reps" className="lg:[--pattern-size:1440px]" />}
-              bar={<Logo tone="white" className="px-[8px] lg:hidden" />}
+              bar={<Logo tone="white" className="px-[12px] lg:hidden" />}
               picture={<Portrait partner="mia" pose="body-waving" size={420} alt="Mia" className="size-[212px] lg:size-[420px]" />}
               action={
                 <Button href={HERE} fullWidth>
@@ -636,6 +750,32 @@ function Shell() {
           </AppShell>
         </div>
       </Sample>
+      <Sample name="SplitScreen on its own, with a dock (the first answer)">
+        <div className={SCREEN}>
+          <SplitScreen
+            className="min-h-0 flex-1"
+            pattern={<Pattern kind="sentences" size={1440} className="max-lg:hidden" />}
+            bar={
+              <IconButton label="Back" href={HERE} variant="on-violet">
+                <Icon name="back" />
+              </IconButton>
+            }
+            picture={
+              <>
+                <Portrait partner="mia" size={380} alt="Mia" className="size-[240px] lg:size-[380px]" />
+                <p className="mt-[4px] text-center text-label lg:mt-[10px] lg:text-lead">Mia stacks a red block on the tower.</p>
+                <p className="mt-[4px] text-center text-title lg:mt-[10px] lg:text-title-xl">“I made a tower!”</p>
+              </>
+            }
+            dock={
+              <>
+                <Chip>“Wow, good job! What is it?”</Chip>
+                <ComposerSample />
+              </>
+            }
+          />
+        </div>
+      </Sample>
       <Sample name="PageScreen, pushed, with a control beside the title">
         <div className={SCREEN}>
           <PageScreen
@@ -643,7 +783,7 @@ function Shell() {
             title="Practice"
             bar={
               <IconButton label="Back" href={HERE}>
-                <Icon d={BACK} />
+                <Icon name="back" />
               </IconButton>
             }
             aside={<Segmented label="Practice partner" options={PARTNERS} value={partner} onChange={setPartner} />}
@@ -653,6 +793,43 @@ function Shell() {
               <SessionRow title="Mon 9 Nov" detail="31 skills, 2 to swap" href={HERE} tag={{ label: 'Pace met', tone: 'skill' }} />
             </div>
           </PageScreen>
+        </div>
+      </Sample>
+      <Sample name="AppShell with a PageScreen: the title alone, then the page (Progress)">
+        <div className={SCREEN}>
+          <AppShell current="progress" className="min-h-0 flex-1">
+            <PageScreen embedded title="Progress">
+              <Segmented label="View" options={VIEWS} value={view} onChange={setView} fullWidth className="lg:max-w-[342px]" />
+              <div className="mt-[16px] w-full max-w-[640px] divide-y divide-line">
+                <SessionRow title="Tue 10 Nov" detail="17 skills, 9 to swap" href={HERE} onPlay={() => {}} />
+                <SessionRow title="Mon 9 Nov" detail="31 skills, 2 to swap" href={HERE} tag={{ label: 'Pace met', tone: 'skill' }} />
+              </div>
+            </PageScreen>
+          </AppShell>
+        </div>
+      </Sample>
+      <Sample name="AppShell with a PageScreen and a picture: the plain page on phones, a split from 1024px (Practice)">
+        <div className={SCREEN}>
+          <AppShell current="practice" className="min-h-0 flex-1">
+            <PageScreen
+              embedded
+              title="Practice"
+              rest="bottom"
+              pattern={<Pattern kind="reps" size={1440} />}
+              picture={<Portrait partner="mia" pose="body-waving" size={420} alt="" />}
+              aside={<Segmented label="Practice partner" options={PARTNERS} value={partner} onChange={setPartner} />}
+            >
+              <div className="flex flex-col gap-[12px] pt-[4px]">
+                <Button href={HERE} fullWidth>
+                  Start a round
+                </Button>
+                <div className="divide-y divide-line">
+                  <SessionRow title="Tue 10 Nov" detail="17 skills, 9 to swap" href={HERE} />
+                  <SessionRow title="Mon 9 Nov" detail="31 skills, 2 to swap" href={HERE} tag={{ label: 'Pace met', tone: 'skill' }} />
+                </div>
+              </div>
+            </PageScreen>
+          </AppShell>
         </div>
       </Sample>
     </Section>

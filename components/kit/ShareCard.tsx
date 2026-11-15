@@ -24,7 +24,7 @@ export function ShareCard({ when, headline, counts, live = false, className }: S
   ];
   return (
     <div className={cn('relative h-[430px] w-[342px] max-w-full overflow-clip rounded-[32px] bg-violet text-white', className)}>
-      <Pattern kind="reps" size={864} />
+      <Pattern kind="bars" size={864} />
       <div className="relative flex h-full flex-col gap-[14px] px-[24px] pt-[24px] pb-[28px]">
         <Logo tone="white" className="self-start" />
         <div className="flex-1" />
@@ -34,7 +34,7 @@ export function ShareCard({ when, headline, counts, live = false, className }: S
           {stats.map((stat) => (
             <div key={stat.label} className="flex min-w-0 flex-1 flex-col-reverse gap-[2px]">
               <dt className="text-small">{stat.label}</dt>
-              <dd className="text-title tabular-nums">{stat.value}</dd>
+              <dd className="text-title">{stat.value}</dd>
             </div>
           ))}
         </dl>

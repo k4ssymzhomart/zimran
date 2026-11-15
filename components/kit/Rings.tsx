@@ -65,9 +65,9 @@ export interface RingsProps {
 export function Rings({ praise, reflect, describe, swap, size = 56, tone = 'light', className }: RingsProps) {
   const large = size >= 72;
   const onViolet = tone === 'violet';
-  const value = cn(large ? 'text-heading' : 'text-body-strong', 'tabular-nums', onViolet ? 'text-white' : 'text-ink');
+  const value = cn(large ? 'text-heading' : 'text-body-strong', onViolet ? 'text-white' : 'text-ink');
   const label = cn(large ? 'text-label' : 'text-small', onViolet ? 'text-white' : 'text-gray');
-  const delta = cn('text-small-strong tabular-nums', onViolet ? 'text-white' : 'text-violet');
+  const delta = cn('text-small-strong', onViolet ? 'text-white' : 'text-violet');
 
   const stat = (name: string, s: Omit<RingStat, 'progress'>, picture: ReactNode) => (
     <div className="flex flex-col items-center gap-[6px]">

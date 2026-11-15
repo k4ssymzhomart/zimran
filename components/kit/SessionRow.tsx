@@ -5,7 +5,7 @@ import { Tag, type TagTone } from './Tag';
 export interface SessionRowProps {
   /** The day of the session: "Mon 9 Nov". */
   title: string;
-  /** One grey line: "31 skills, 2 to swap". */
+  /** One gray line: "31 skills, 2 to swap". */
   detail: string;
   /** The session's review. The whole row opens it. */
   href: string;

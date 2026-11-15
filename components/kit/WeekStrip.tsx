@@ -40,9 +40,9 @@ export function WeekStrip({ days, className }: WeekStripProps) {
             </span>
           </>
         );
-        const column = 'flex w-[44px] flex-col items-center gap-[6px]';
+        const column = 'flex w-[44px] max-w-full flex-col items-center gap-[6px]';
         return (
-          <li key={day.date} aria-current={day.today ? 'date' : undefined}>
+          <li key={day.date} aria-current={day.today ? 'date' : undefined} className="min-w-0">
             {day.href ? (
               <Link href={day.href} aria-label={day.name} className={cn(column, 'rounded-[12px]', focusRing)}>
                 {peg}

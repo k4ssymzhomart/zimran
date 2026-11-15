@@ -20,7 +20,7 @@ export interface PatternProps {
   kind: PatternKind;
   tone?: PatternTone;
   /**
-   * Side of the 1440 drawing in CSS pixels: 1008 on a phone block, 720 on a card, 1440 on desktop.
+   * Side of the 1440 drawing in CSS pixels: 1008 on a phone block, 864 on the share card, 720 on a small card, 1440 on desktop.
    * Leave it out to set `--pattern-size` from a class instead, for example `md:[--pattern-size:1440px]`.
    */
   size?: number;

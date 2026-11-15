@@ -20,8 +20,9 @@ export function Toggle({ checked, onChange, label, disabled, className }: Toggle
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
-        'relative h-[32px] w-[52px] shrink-0 rounded-full after:absolute after:inset-x-0 after:-inset-y-[6px]',
-        checked ? 'bg-violet' : 'bg-line',
+        'relative h-[32px] w-[52px] shrink-0 cursor-pointer rounded-full after:absolute after:inset-x-0 after:-inset-y-[6px]',
+        /* A switch that cannot be changed keeps its side and fades to the pale tone of its color. */
+        checked ? 'bg-violet disabled:bg-lilac-2' : 'bg-line disabled:bg-mist',
         'disabled:cursor-not-allowed',
         colorMotion,
         focusRing,

@@ -11,12 +11,14 @@ export interface PlanRowProps {
   href?: string;
   /** The row can be edited in place, for example in a sheet. */
   onClick?(): void;
+  /** The 52px row inside a sheet. The default is the 54px row of the plan. */
+  compact?: boolean;
   className?: string;
 }
 
 /** One line of the plan: a gray label, its value, and an arrow when the line can be changed. */
-export function PlanRow({ label, value, href, onClick, className }: PlanRowProps) {
-  const row = cn('flex min-h-[54px] w-full items-center gap-[10px] text-left', className);
+export function PlanRow({ label, value, href, onClick, compact = false, className }: PlanRowProps) {
+  const row = cn('flex w-full items-center text-left', compact ? 'min-h-[52px] gap-[8px]' : 'min-h-[54px] gap-[10px]', className);
   const content = (
     <>
       <span className="min-w-0 flex-1 text-body text-gray">{label}</span>
@@ -34,7 +36,7 @@ export function PlanRow({ label, value, href, onClick, className }: PlanRowProps
   }
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={cn(row, focusRing)}>
+      <button type="button" onClick={onClick} className={cn(row, 'cursor-pointer', focusRing)}>
         {content}
       </button>
     );

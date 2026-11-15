@@ -24,7 +24,7 @@ type ButtonAsLink = ButtonOwnProps & Omit<ComponentProps<typeof Link>, keyof But
 export type ButtonProps = ButtonAsButton | ButtonAsLink;
 
 const BASE =
-  'inline-flex shrink-0 items-center justify-center gap-[8px] whitespace-nowrap select-none ' +
+  'inline-flex shrink-0 cursor-pointer items-center justify-center gap-[8px] whitespace-nowrap select-none ' +
   'transition-[background-color,color,scale] duration-quick ease-out-quint motion-reduce:transition-none ' +
   'motion-safe:active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 ' +
   'disabled:pointer-events-none';

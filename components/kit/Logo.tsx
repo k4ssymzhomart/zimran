@@ -21,7 +21,8 @@ export interface LogoMarkProps {
 export function LogoMark({ tone = 'ink', size = 18, className }: LogoMarkProps) {
   const { bars, accent } = BARS[tone];
   return (
-    <svg viewBox="0 0 20.3 18" width={(size * 20.3) / 18} height={size} aria-hidden="true" className={cn('shrink-0', className)}>
+    /* The mark fills its 20.3 wide box to the edge, and a browser rounds that box to whole pixels before it clips: let the round end of the top bar paint past it. */
+    <svg viewBox="0 0 20.3 18" width={(size * 20.3) / 18} height={size} aria-hidden="true" className={cn('shrink-0 overflow-visible', className)}>
       <path
         className={bars}
         d="M2.874 5.76H18.863A1.44 1.44 0 0 0 19.12 2.903L3.386.047A2.88 2.88 0 1 0 2.874 5.76Z"

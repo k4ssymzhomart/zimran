@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { cn, colorMotion, focusRingWithin } from './cn';
+import { cn, colorMotion, focusRingWithin, pickOnEnter } from './cn';
 
 export interface ChoiceTileProps {
   label: string;
@@ -37,6 +37,7 @@ export function ChoiceTile({ label, art, selected, onChange, multiple = false, n
         checked={selected}
         disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
+        onKeyDown={pickOnEnter}
         className="sr-only"
       />
       <Image src={art} alt="" width={40} height={40} className="size-[40px] shrink-0 object-contain" />

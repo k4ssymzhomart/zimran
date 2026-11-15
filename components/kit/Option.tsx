@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { cn, colorMotion, focusRingWithin } from './cn';
+import { cn, colorMotion, focusRingWithin, pickOnEnter } from './cn';
 
 export interface OptionProps {
   label: string;
@@ -42,20 +42,22 @@ export function Option({ label, art, selected, onChange, multiple = false, name,
         checked={selected}
         disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
+        onKeyDown={pickOnEnter}
         className="sr-only"
       />
       {art ? <Image src={art} alt="" width={40} height={40} className="size-[40px] shrink-0 object-contain" /> : null}
       <span className="min-w-0 flex-1 text-body-strong">{label}</span>
+      {/* The mark is a touch heavier on the row with a picture, as drawn: a 2px ring and a 3px tick against 1.5px and 2.6px. */}
       <span
         aria-hidden
         className={cn(
           'flex size-[24px] shrink-0 items-center justify-center rounded-full',
-          selected ? 'bg-violet text-white' : 'border-[1.5px] border-line',
+          selected ? 'bg-violet text-white' : art ? 'border-2 border-line' : 'border-[1.5px] border-line',
         )}
       >
         {selected ? (
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2.9 7l2.8 2.7 5.4-5.6" />
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={art ? 3 : 2.6} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2.92 7.29l2.45 2.45 5.71-5.66" />
           </svg>
         ) : null}
       </span>

@@ -33,13 +33,29 @@ export interface SheetProps {
  */
 export function Sheet({ open, onClose, title, art, children, primary, secondary, className }: SheetProps) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  /** True while a press that began on the backdrop is down. A drag out of the sheet must not close it. */
+  const pressedBackdrop = useRef(false);
   const titleId = useId();
 
   useEffect(() => {
     const node = dialog.current;
-    if (!node) return;
-    if (open && !node.open) node.showModal();
-    if (!open && node.open) node.close();
+    if (!node || !open) return;
+    if (!node.open) node.showModal();
+    // Focus starts on the sheet itself, not on a control: the key that opened it cannot also confirm it.
+    // A control in the body that carries the autofocus attribute keeps the focus the browser gave it.
+    const focused = document.activeElement;
+    if (!(focused instanceof HTMLElement && focused.autofocus && node.contains(focused))) panel.current?.focus();
+    // The page behind stays where it is while the sheet is up.
+    const root = document.documentElement;
+    const before = root.style.overflow;
+    root.style.overflow = 'hidden';
+    return () => {
+      root.style.overflow = before;
+      // This also runs when a navigation hides the page with the sheet still up (Next keeps the page in the
+      // document). A modal dialog left open there would keep the next page inert.
+      if (node.open) node.close();
+    };
   }, [open]);
 
   return (
@@ -51,22 +67,29 @@ export function Sheet({ open, onClose, title, art, children, primary, secondary,
         event.preventDefault();
         onClose();
       }}
-      // A browser may still close the dialog by itself (a second Escape in Chrome); keep the parent in step.
-      onClose={() => {
-        if (open) onClose();
+      // The dialog can close while `open` still holds: a second Escape in Chrome, or the page was hidden by a
+      // navigation. Keep the parent in step. Our own close and reopen in one pass leaves it open, so that is skipped.
+      onClose={(event) => {
+        if (open && !event.currentTarget.open) onClose();
       }}
       className="fixed inset-0 m-0 size-full max-h-none max-w-none bg-transparent"
     >
-      {/* The flat backdrop. A tap on it, and not on the sheet, closes. */}
+      {/* The flat backdrop. A tap on it, and not on the sheet, closes. A finger on it cannot drag the page behind. */}
       <div
-        onClick={(event) => {
-          if (event.target === event.currentTarget) onClose();
+        onPointerDown={(event) => {
+          pressedBackdrop.current = event.target === event.currentTarget;
         }}
-        className="flex h-full items-end justify-center bg-faint md:items-center"
+        onClick={(event) => {
+          if (event.target === event.currentTarget && pressedBackdrop.current) onClose();
+          pressedBackdrop.current = false;
+        }}
+        className="flex h-full touch-pinch-zoom items-end justify-center bg-faint md:items-center"
       >
         <div
+          ref={panel}
+          tabIndex={-1}
           className={cn(
-            'flex max-h-full w-full flex-col gap-[14px] overflow-y-auto rounded-t-[32px] bg-white px-[24px] pt-[28px] text-ink',
+            'flex max-h-full w-full touch-pan-y touch-pinch-zoom flex-col gap-[14px] overflow-y-auto overscroll-contain rounded-t-[32px] bg-white px-[24px] pt-[28px] text-ink outline-none',
             'pb-[max(env(safe-area-inset-bottom),16px)] md:w-[390px] md:rounded-[32px] md:pb-[24px]',
             className,
           )}

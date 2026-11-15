@@ -22,10 +22,13 @@ export function monthLabel(month: string): string {
   return `${MONTHS[m - 1]} ${year}`;
 }
 
-/** Phone: 38px discs in 44 x 50 cells. Compact, for the desktop card: 36px discs in 52 x 46 cells. */
+/**
+ * Phone: 38px discs in 44 x 50 cells, rows 6px apart. Compact, for the desktop card: 36px discs in 52 x 46 cells, rows 4px apart.
+ * The columns spread over the width they are given and narrow on a screen too small for seven full cells.
+ */
 const SIZE = {
-  regular: { cell: 'h-[50px] w-[44px] gap-[3px]', disc: 'size-[38px]', dot: 'size-[5px]', grid: 'gap-y-[6px]' },
-  compact: { cell: 'h-[46px] w-[52px] gap-[2px]', disc: 'size-[36px]', dot: 'size-[4px]', grid: 'gap-y-[4px]' },
+  regular: { columns: 'grid-cols-[repeat(7,minmax(0,44px))]', cell: 'h-[50px] gap-[3px]', disc: 'size-[38px]', dot: 'size-[5px]', stack: 'gap-[6px]', rows: 'gap-y-[6px]' },
+  compact: { columns: 'grid-cols-[repeat(7,minmax(0,52px))]', cell: 'h-[46px] gap-[2px]', disc: 'size-[36px]', dot: 'size-[4px]', stack: 'gap-[4px]', rows: 'gap-y-[4px]' },
 };
 
 export interface MonthCalendarProps {
@@ -37,6 +40,8 @@ export interface MonthCalendarProps {
   dotted?: readonly string[];
   /** Today's local day, YYYY-MM-DD. It decides which open days are behind and which are ahead. */
   today?: string;
+  /** The day whose session is open below the calendar, YYYY-MM-DD. Its disc gets the ink outline. */
+  selected?: string;
   /** Each arrow shows only when its handler is given. */
   onPrev?(): void;
   onNext?(): void;
@@ -49,24 +54,26 @@ export interface MonthCalendarProps {
 }
 
 /** One month of practice, Monday first. Played days are filled; days ahead wait in lilac. */
-export function MonthCalendar({ month, played, dotted = [], today, onPrev, onNext, onSelectDay, compact = false, hideHeader = false, className }: MonthCalendarProps) {
+export function MonthCalendar({ month, played, dotted = [], today, selected, onPrev, onNext, onSelectDay, compact = false, hideHeader = false, className }: MonthCalendarProps) {
   const [year, m] = month.split('-').map(Number);
   const title = monthLabel(month);
   const size = compact ? SIZE.compact : SIZE.regular;
   const blanks = Array.from({ length: firstColumn(year, m) }, (_, i) => <span key={`blank-${i}`} />);
-  const grid = cn('grid grid-cols-[repeat(7,auto)] justify-between', size.grid);
+  const grid = cn('grid justify-between', size.columns);
 
   const days = Array.from({ length: daysIn(year, m) }, (_, i) => {
     const day = i + 1;
     const date = `${month}-${String(day).padStart(2, '0')}`;
     const isPlayed = played.includes(date);
     const isToday = date === today;
+    const isSelected = date === selected;
     const disc = cn(
-      'grid place-items-center rounded-full text-label tabular-nums',
+      'grid place-items-center rounded-full text-label',
       size.disc,
       isPlayed ? 'bg-violet text-white' : isToday ? 'border-2 border-ink bg-white text-ink' : today !== undefined && date > today ? 'bg-lilac text-ink' : 'text-faint',
+      isSelected && 'border-2 border-ink',
     );
-    const cell = cn('flex flex-col items-center justify-center', size.cell);
+    const cell = cn('flex w-full flex-col items-center justify-center', size.cell);
     const inside = (
       <>
         <span className={disc}>{day}</span>
@@ -74,7 +81,7 @@ export function MonthCalendar({ month, played, dotted = [], today, onPrev, onNex
       </>
     );
     return isPlayed && onSelectDay ? (
-      <button key={date} type="button" onClick={() => onSelectDay(date)} aria-label={`${day} ${title}`} className={cn(cell, 'rounded-[12px]', focusRing)}>
+      <button key={date} type="button" onClick={() => onSelectDay(date)} aria-label={`${day} ${title}`} aria-pressed={isSelected} className={cn(cell, 'rounded-[12px]', focusRing)}>
         {inside}
       </button>
     ) : (
@@ -85,7 +92,7 @@ export function MonthCalendar({ month, played, dotted = [], today, onPrev, onNex
   });
 
   return (
-    <div role="group" aria-label={title} className={className}>
+    <div role="group" aria-label={title} className={cn('flex flex-col', size.stack, className)}>
       {!hideHeader && (
         <div className="flex items-center justify-between pb-[8px]">
           <h3 className="text-heading text-ink">{title}</h3>
@@ -95,14 +102,14 @@ export function MonthCalendar({ month, played, dotted = [], today, onPrev, onNex
           </div>
         </div>
       )}
-      <div aria-hidden="true" className={cn(grid, 'pb-[6px]')}>
+      <div aria-hidden="true" className={grid}>
         {WEEKDAYS.map((letter, i) => (
-          <span key={i} className={cn('h-[22px] text-center text-small text-gray', compact ? 'w-[52px]' : 'w-[44px]')}>
+          <span key={i} className="h-[22px] text-center text-small text-gray">
             {letter}
           </span>
         ))}
       </div>
-      <div className={grid}>
+      <div className={cn(grid, size.rows)}>
         {blanks}
         {days}
       </div>

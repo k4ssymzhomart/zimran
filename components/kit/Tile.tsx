@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { cn, colorMotion, focusRingWithin } from './cn';
+import { cn, colorMotion, focusRingWithin, pickOnEnter } from './cn';
 
 export interface TileProps {
   label: string;
@@ -40,6 +40,7 @@ export function Tile({ label, art, selected, onChange, multiple = false, name, v
         checked={selected}
         disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
+        onKeyDown={pickOnEnter}
         className="sr-only"
       />
       <Image src={art} alt="" width={60} height={60} className="size-[60px] shrink-0 object-contain" />

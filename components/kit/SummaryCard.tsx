@@ -20,7 +20,7 @@ export function SummaryCard({ percent, caption = 'of the clinic pace', facts, cl
   return (
     <div className={cn('flex flex-col gap-[14px] rounded-[24px] bg-mist p-[18px]', className)}>
       <p className="flex items-baseline gap-[8px]">
-        <span className="text-title text-ink tabular-nums">{share}%</span>
+        <span className="text-title text-ink">{share}%</span>
         <span className="text-label text-gray">{caption}</span>
       </p>
       <div aria-hidden="true" className="h-[6px] overflow-hidden rounded-full bg-line">
@@ -30,7 +30,7 @@ export function SummaryCard({ percent, caption = 'of the clinic pace', facts, cl
         {facts.map((fact) => (
           <div key={fact.label} className="flex min-w-0 flex-1 flex-col gap-[2px]">
             <dt className="text-small text-gray">{fact.label}</dt>
-            <dd className="text-body-strong text-ink">{fact.value}</dd>
+            <dd className="text-label text-ink">{fact.value}</dd>
           </div>
         ))}
       </dl>

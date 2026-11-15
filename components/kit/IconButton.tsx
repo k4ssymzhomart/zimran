@@ -22,7 +22,7 @@ type IconButtonAsLink = IconButtonOwnProps & Omit<ComponentProps<typeof Link>, O
 export type IconButtonProps = IconButtonAsButton | IconButtonAsLink;
 
 const BASE =
-  'inline-flex size-[44px] shrink-0 items-center justify-center rounded-full ' +
+  'inline-flex size-[44px] shrink-0 cursor-pointer items-center justify-center rounded-full ' +
   'transition-colors duration-quick ease-out-quint motion-reduce:transition-none ' +
   'focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none';
 
