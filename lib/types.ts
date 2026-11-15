@@ -228,6 +228,12 @@ export interface SavedSession extends SessionDraft {
   id: string;
 }
 
+/** The quiz asks "What do you say most in play?". The answer is set against the real counts after round one. */
+export type PlayGuess = 'questions' | 'instructions' | 'praise' | 'unsure';
+
+/** The quiz asks "How often do they happen?" about the hardest moments. */
+export type HowOften = 'rarely' | 'some_days' | 'most_days' | 'every_day';
+
 /** What the parent told us in the quiz. Lives on this device only. */
 export interface Profile {
   childName: string | null;
@@ -235,8 +241,10 @@ export interface Profile {
   childAge: number | null;
   /** The hardest moments of the day the parent picked. */
   moments: string[];
-  /** The parent's guess: questions asked in one minute of play. */
-  guess: number | null;
+  /** How often the hardest moments happen. Absent or null until answered. */
+  frequency?: HowOften | null;
+  /** The parent's guess at what they say most in play. */
+  guess: PlayGuess | null;
   partner: PartnerId;
   /** Scene id for daily practice. */
   sceneId: string;

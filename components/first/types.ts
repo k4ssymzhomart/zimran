@@ -5,7 +5,7 @@
  */
 import type { Insight, TaskTry } from '@/lib/flow/journey';
 import type { Lesson } from '@/lib/lesson/lesson';
-import type { CodedSentence, PartnerId, RoundChange, RoundResult, SavedSentence } from '@/lib/types';
+import type { CodedSentence, PartnerId, PlayGuess, RoundChange, RoundResult, SavedSentence } from '@/lib/types';
 
 /** Who to practice with. Mobile 49:1316, desktop 32:74. One tap picks and moves on. */
 export interface PickPartnerProps {
@@ -60,8 +60,12 @@ export interface ReadyProps {
 export interface RoundOneResultProps {
   result: RoundResult;
   sentences: SavedSentence[];
-  /** The parent's guess from the quiz: questions in one minute. Null when the quiz was skipped. */
-  guess: number | null;
+  /**
+   * The parent's answer to the quiz question "What do you say most in play?" (questions, instructions, praise, or
+   * unsure). Frame 49:1371 sets it against the round: "You said praise. Round one: one praise, six questions."
+   * Null when the quiz was skipped: then that screen is not shown at all.
+   */
+  guess: PlayGuess | null;
   partner?: PartnerId;
   /** What the child said as the round ended. */
   farewell?: string | null;

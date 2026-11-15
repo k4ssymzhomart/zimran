@@ -2,7 +2,7 @@
  * What the parent told us in the quiz, kept on this device only.
  * Guest-only: localStorage, with a copy in memory so the page still works when storage is blocked.
  */
-import type { PartnerId, Profile } from '@/lib/types';
+import type { HowOften, PartnerId, PlayGuess, Profile } from '@/lib/types';
 
 export const PROFILE_KEY = 'playreps.profile.v1';
 /** The old screens keep the chosen child here as a bare 'mia' or 'leo' (components/child.tsx). */
@@ -23,6 +23,8 @@ export const DEFAULT_PROFILE: Profile = Object.freeze({
 });
 
 const isPartner = (x: unknown): x is PartnerId => x === 'mia' || x === 'leo';
+const isGuess = (x: unknown): x is PlayGuess => x === 'questions' || x === 'instructions' || x === 'praise' || x === 'unsure';
+const isHowOften = (x: unknown): x is HowOften => x === 'rarely' || x === 'some_days' || x === 'most_days' || x === 'every_day';
 const textOrNull = (x: unknown): string | null => (typeof x === 'string' && x.trim() !== '' ? x : null);
 
 /** Reads a saved profile field by field: a field that does not look right falls back to `base`, and nothing throws. */
@@ -41,11 +43,14 @@ export function parseProfile(json: unknown, base: Profile = DEFAULT_PROFILE): Pr
   const has = (key: keyof Profile): boolean => x[key] !== undefined;
   const age = x.childAge;
   const guess = x.guess;
+  /** Asked later than the other questions, so a profile saved before it has no such field: it stays absent. */
+  const frequency = has('frequency') ? (isHowOften(x.frequency) ? x.frequency : null) : base.frequency;
   return {
     childName: has('childName') ? textOrNull(x.childName) : base.childName,
     childAge: has('childAge') ? (typeof age === 'number' && Number.isInteger(age) && age >= 2 && age <= 7 ? age : null) : base.childAge,
     moments: Array.isArray(x.moments) ? x.moments.filter((m): m is string => typeof m === 'string' && m !== '') : base.moments,
-    guess: has('guess') ? (typeof guess === 'number' && Number.isFinite(guess) && guess >= 0 ? guess : null) : base.guess,
+    ...(frequency !== undefined ? { frequency } : {}),
+    guess: has('guess') ? (isGuess(guess) ? guess : null) : base.guess,
     partner: isPartner(x.partner) ? x.partner : base.partner,
     sceneId: textOrNull(x.sceneId) ?? base.sceneId,
     anchor: has('anchor') ? textOrNull(x.anchor) : base.anchor,

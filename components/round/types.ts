@@ -2,7 +2,7 @@
  * The contract of the round screen, frozen on day zero (docs/BUILD-PLAN.md).
  * The first-visit flow, the daily session, practice and live mode all mount the same screen through these props.
  */
-import type { InputMode, PartnerId, RoundResult, SavedSentence } from '@/lib/types';
+import type { InputMode, PartnerId, PlayGuess, RoundResult, SavedSentence } from '@/lib/types';
 
 /** Records the parent's voice during a round. The default does nothing; recording is opt-in. */
 export interface RecorderPort {
@@ -36,8 +36,8 @@ export interface RoundStageProps {
   /** Same seed and same parent moves give the same child. */
   seed?: number;
   title?: string;
-  /** The parent's guess from the quiz, shown against the real count at the end of round one. */
-  guess?: number | null;
+  /** The parent's answer to "What do you say most in play?", set against the real counts at the end of round one. */
+  guess?: PlayGuess | null;
   recorder?: RecorderPort;
   onDone(done: RoundDone): void;
 }

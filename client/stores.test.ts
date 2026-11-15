@@ -332,7 +332,7 @@ describe('profileStore', () => {
     vi.stubGlobal('window', fakeBrowser().window);
     const { profileStore } = await profiles();
     const before = profileStore.get();
-    profileStore.update({ guess: 3 });
+    profileStore.update({ guess: 'praise' });
     expect(profileStore.get()).not.toBe(before);
     expect(profileStore.get()).toBe(profileStore.get());
     expect(before.guess).toBeNull();
