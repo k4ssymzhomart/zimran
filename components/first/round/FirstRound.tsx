@@ -8,10 +8,9 @@ import { useRound } from '@/hooks/useRound';
 import { SplitRoundStage } from './SplitRoundStage';
 
 /**
- * One round of the first visit in the Split design, behind the same frozen props as
- * components/round/RoundRunner.tsx and with the same logic: it owns the engine (useRound) and the recorder,
- * starts the round as it mounts and calls `onDone` once when the round is over. Only the screen differs.
- * A fallback: when the round screen of components/round is rebuilt, the first visit goes back to RoundRunner.
+ * One round in the Split design, behind the frozen props of components/round/types.ts: it owns the engine
+ * (useRound) and the recorder, starts the round as it mounts and calls `onDone` once when the round is over.
+ * The first visit, the daily session, the practice round and live mode all play their rounds here.
  *
  * The props describe one round and are read when it starts: for another round, mount it again (a new `key`).
  */

@@ -53,8 +53,6 @@ No login. Everything you do is kept in this browser. The site carries its own ve
 
 - Mia and Leo: two simulated four-year-olds on one engine. Their reactions follow what the method teaches parents;
   they are not a validated model of children.
-- The 28-day demo on the old `/dashboard`: a seeded synthetic parent played through the real engine, labeled
-  "DEMO DATA", kept in page state and never saved.
 
 **Not built yet**
 
@@ -89,10 +87,10 @@ runs ESLint.
 
 | Folder | What lives there |
 | --- | --- |
-| `app/` | The routes: `/`, `/start`, `/pricing`, `/unlocked`, `/jury`, the four tabs and the session review in `app/(app)/`, and the earlier dark screens `/play`, `/dashboard`, `/live`. API routes in `app/api/`: `checkout`, `entitlement` and `cancel` (Stripe, test keys only), `calendar` and `ics` (calendar files). `/kit` and `app/preview/` are test benches for development; production answers 404 there. |
-| `components/` | `kit/` (the screen kit, every part on `/kit`), `shell/` (app shell, tab bar, rail, top bar), `first/` (the first visit, with its round screen in `first/round/`), `landing/`, `pricing/`, `jury/` (the guide's statements), `round/` (runs one round; `/live` uses it). `child.tsx` rewrites the engine's texts for Leo. The other files at the top of `components/`, with `dashboard/` and `play/`, belong to the earlier dark design; among them `RoundStage.tsx` still draws the rounds of `/play` and `/live`. |
-| `hooks/` | The browser side of the pure logic: `useRound` (round reducer plus a real clock), `useFirstVisit` (the first visit at `/start`), `useJourney` (the older first visit on `/play`), `useSpeech` (speech recognition and the spoken coach), `useWakeLock` (keeps the screen on in live play), and `useSessions`, `useProfile`, `useEntitlement` (the stores, for React). |
-| `client/` | What stays on the device, in `localStorage`: the sessions with their sentences (`sessionStore.ts`), the quiz answers (`profileStore.ts`), access (`entitlement.ts`), and the older progress the dark screens read (`progressStore.ts`). `firstAnswer.ts` carries the landing's answer to `/start` in `sessionStorage`. |
+| `app/` | The routes: `/`, `/start`, `/pricing`, `/unlocked`, `/jury`, the four tabs and the session review in `app/(app)/`, the daily session `/daily`, the practice round `/round` and live mode `/live`. The first addresses `/play` and `/dashboard` redirect to `/start`, `/daily` and `/today` (`next.config.ts`). API routes in `app/api/`: `checkout`, `entitlement` and `cancel` (Stripe, test keys only), `calendar` and `ics` (calendar files). `/kit` and `app/preview/` are test benches for development; production answers 404 there. |
+| `components/` | `kit/` (the screen kit, every part on `/kit`), `shell/` (app shell, tab bar, rail, top bar), `first/` (the first visit, with its round screen in `first/round/`), `landing/`, `pricing/`, `jury/` (the guide's statements), `daily/` (the daily session and the practice round), `live/` (live mode), `round/` (the frozen props of a round). `child.tsx` rewrites the engine's texts for Leo. |
+| `hooks/` | The browser side of the pure logic: `useRound` (round reducer plus a real clock), `useFirstVisit` (the first visit at `/start`), `useSpeech` (speech recognition and the spoken coach), `useWakeLock` (keeps the screen on in live play), and `useSessions`, `useProfile`, `useEntitlement` (the stores, for React). |
+| `client/` | What stays on the device, in `localStorage`: the sessions with their sentences (`sessionStore.ts`), the quiz answers (`profileStore.ts`), access (`entitlement.ts`), and the older progress format, still written beside the sessions (`progressStore.ts`). `firstAnswer.ts` carries the landing's answer to `/start` in `sessionStorage`. |
 | `lib/` | The engine. Pure TypeScript: no React, no network, no clock. Most tests are here. |
 | `docs/` | `docs/build/FOUNDATION.md` (the build guide, with the design rules), the Figma frames as images, the deck. |
 
@@ -110,14 +108,14 @@ runs ESLint.
 | `lib/coach/policy.ts` | When the coach speaks and what it says: one line at a time, no criticism. |
 | `lib/round/session.ts` | One round as a pure reducer, `(state, event) -> state`, with time arriving as `tick` events. It holds the repeat window, the cap of three counted sentences per turn, "Disagree?" and the early end. |
 | `lib/lesson/lesson.ts` | The 30-second lesson between rounds; every example in it is run through the real classifier in tests. |
-| `lib/lesson/days.ts` | A lesson for every day of the plan, each sentence run through the classifier in tests. No screen shows them yet. |
+| `lib/lesson/days.ts` | A lesson for every day of the plan, each sentence run through the classifier in tests. The daily session shows the day's idea and its three sentences. |
 | `lib/progress/targets.ts` | The clinic pace for any round length, counts, the round summary, the before and after. |
-| `lib/progress/history.ts` | Progress over days: streak (one missed day in any seven is forgiven), trend, the calm check-in, and the older progress format the dark screens save. Dates are passed in. |
+| `lib/progress/history.ts` | Progress over days: streak (one missed day in any seven is forgiven), trend, the calm check-in, and the older progress format. Dates are passed in. |
 | `lib/progress/plan.ts` | The 28-day plan: Follow, Describe, Reflect, Praise, one week each; day 28 is a skill check. |
 | `lib/progress/sessions.ts` | What the saved sessions say: streak, month calendar, week totals, plan day, the before and after, patterns in one session. |
 | `lib/progress/calendar.ts` | The daily reminder as a calendar file, served at `/api/calendar` and linked from the first visit. |
 | `lib/reminder/calendar.ts` | A second calendar file, for four fixed moments, served at `/api/ics`. No screen links to it now. |
-| `lib/demo/simulate.ts` | The demo on the old `/dashboard`: a seeded synthetic parent played through the real engine, labeled as demo data. |
+| `lib/demo/simulate.ts` | A seeded synthetic parent played through the real engine, used only by its own tests. No screen shows it. |
 | `lib/flow/journey.ts` | The core of the first visit as a pure state machine: first answer, round one, result, lesson, round two, before and after, setup, plan. |
 | `lib/flow/visit.ts` | The first visit around the journey: the personalization screens before and after it, and the way back from each. |
 | `lib/speech/speech.ts` | Voice input, the pure part: microphone states, and which transcripts are passed on (repeats and the coach's own echo are dropped). |
@@ -165,7 +163,7 @@ answers stay in `localStorage` on their device.
 | Name | Value |
 | --- | --- |
 | `STRIPE_SECRET_KEY` | Optional. A Stripe **test** key (`sk_test_...`). Without it the paywall runs in demo mode: no payment is taken and "Continue" gives demo access. With it, "Continue" opens Stripe's test checkout. The routes refuse any key that is not a test key. To set it locally, copy `.env.example` to `.env.local`. |
-| `NEXT_PUBLIC_FEATURE_LIVE` | Optional. `false` takes live mode off the Practice tab and the jury guide; the `/live` page and the old `/dashboard` link to it stay. On by default. |
+| `NEXT_PUBLIC_FEATURE_LIVE` | Optional. `false` takes live mode off the Practice tab and the jury guide, and `/live` answers 404. On by default. |
 | `NEXT_PUBLIC_FEATURE_RECORDING`, `NEXT_PUBLIC_FEATURE_AI_SUMMARY` | Optional. Off unless set to `true` or `1`. Leave them off: the recorder and the summary are not built. |
 
 `VERCEL_PROJECT_PRODUCTION_URL` is set by Vercel and gives link previews their address.
@@ -195,13 +193,11 @@ answers stay in `localStorage` on their device.
 - Voice uses the browser's own speech recognition: the microphone shows only where the browser has it (Chrome and
   Edge do), and typing works everywhere. One microphone cannot tell the parent's voice from the child's, so in live
   play a clear sentence from the child may be counted as the parent's, and reflections are not counted there.
-- Access is saved on the device and locks nothing yet (`isLocked` in `client/entitlement.ts` is never called): the
-  daily session and live mode open without it, and the old `/dashboard` uses it only to choose between its
-  daily-session link and the plans. In demo mode the terms under the plans still name the day a paid plan would
-  renew. A route that stops the renewal of a Stripe test subscription exists (`app/api/cancel/route.ts`), but no
-  screen calls it, so there is no cancel control.
-- PlayReps was built during the hackathon. `/play`, `/dashboard` and `/live` are still in the earlier dark design
-  and stay until they are replaced. The round and daily-session buttons of the tabs open `/play`.
+- Access is saved on the device only, so it does not follow the parent to another browser. The daily session and
+  live mode need it (`isLocked` in `client/entitlement.ts`); without it they open the plans page. In demo mode the
+  terms under the plans still name the day a paid plan would renew. A route that stops the renewal of a Stripe test
+  subscription exists (`app/api/cancel/route.ts`); no screen calls it.
+- PlayReps was built during the hackathon.
 
 ## Business model and sources
 

@@ -78,7 +78,7 @@ function measure(): Visible {
 /**
  * The visible part of the screen. On a phone the keyboard covers the bottom of the layout viewport, so the
  * round sizes itself to the visual viewport: the child, the counters and the field stay in view together.
- * The logic of the old components/RoundStage.tsx, kept. The stage mounts in the browser, once the round has
+ * The stage mounts in the browser, once the round has
  * started, so its first frame is measured already; rendered on a server it would fill the screen until measured.
  */
 function useVisibleViewport(): Visible | null {

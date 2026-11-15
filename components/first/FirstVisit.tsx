@@ -1,9 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-// The round in the Split design, built on the same props and engine as components/round/RoundRunner.
-// To use developer B's stage instead: import { RoundRunner } from '@/components/round/RoundRunner';
-import { FirstRound as RoundRunner } from './round/FirstRound';
+import { FirstRound } from './round/FirstRound';
 import { useFirstVisit, type FirstVisitFlow } from '@/hooks/useFirstVisit';
 import { lastTry, lessonDone, ROUND1, ROUND2 } from '@/lib/flow/journey';
 import { AnswerRead } from './AnswerRead';
@@ -137,7 +135,7 @@ function StepScreen({ flow, onChangeMoment }: { flow: FirstVisitFlow; onChangeMo
 
     case 'round1':
       return (
-        <RoundRunner
+        <FirstRound
           key={`round1-${state.seed}`}
           mode="practice"
           sceneId={ROUND1.sceneId}
@@ -185,7 +183,7 @@ function StepScreen({ flow, onChangeMoment }: { flow: FirstVisitFlow; onChangeMo
 
     case 'round2':
       return (
-        <RoundRunner
+        <FirstRound
           key={`round2-${state.seed + 1}`}
           mode="practice"
           sceneId={ROUND2.sceneId}
