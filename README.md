@@ -1,6 +1,6 @@
 # PlayReps
 
-Live: <add the Vercel URL here>
+Live: https://playreps.vercel.app
 
 Track: Skills. Business Cup 2.0.
 

@@ -1,7 +1,7 @@
 // Everything on the slides that can change before submission. Edit, then run ./build.sh
 window.DECK = {
   // The production link, for example "playreps.vercel.app". Empty shows a dashed placeholder on slides 1 and 10.
-  url: '',
+  url: 'playreps.vercel.app',
   repo: 'github.com/k4ssymzhomart/zimran',
   // The number `npm test` prints. Update it after the last engine change.
   tests: 423,

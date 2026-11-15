@@ -10,9 +10,9 @@ const origin = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.en
 
 export const metadata: Metadata = {
   metadataBase: new URL(origin),
-  title: 'PlayReps — practise the five minutes of play clinics teach',
+  title: 'PlayReps: practice tonight, use it tomorrow',
   description:
-    'Practise with Mia or Leo, a simulated four-year-old. Every sentence you say is coded as you say it, and three rings fill toward the clinic pace.',
+    'Practice with Mia or Leo, a simulated four-year-old. Every sentence you say is coded as you say it, and three rings fill toward the clinic pace.',
 };
 
 export const viewport: Viewport = {
@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </ChildProvider>
         <footer className="mx-auto w-full max-w-[520px] px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-8 text-center text-[12px] leading-relaxed text-fg-faint">
           Skill practice for parents. Not therapy and not a diagnosis. Mia and Leo are simulated children; real children vary. Worried
-          about your child? Talk to your paediatrician.
+          about your child? Talk to your pediatrician.
         </footer>
       </body>
     </html>
