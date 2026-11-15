@@ -152,17 +152,18 @@ Every component is on one page: run the dev server and open `/kit`. Import from 
 
 | Group | Components |
 |---|---|
-| Screen shells (`components/kit/Screen.tsx`) | `SplitScreen` (slots: `picture`, `pattern`, `bar`, the words as children, `action`, `below`; `rest="center"` for portraits, `"bottom"` for full-body poses; the violet block becomes the left half on desktop), `PageScreen` (`title`, `aside`, `bar`, children) |
+| Screen shells (`components/kit/Screen.tsx`) | `SplitScreen` (slots: `picture`, `pattern`, `bar`, the words as children, `action`, `below`, and `dock` for the chips and the answer field of a talking screen; `rest="center"` for portraits, `"bottom"` for full-body poses; the violet block becomes the left half on desktop, where `lg:[--split-column:460px]` on `className` sets the width of the words), `PageScreen` (`title`, `aside`, `bar`, children; with a `picture` or a `pattern`, and `rest`, it is a split from 1024px) |
 | App shell (`components/shell/`) | `AppShell`, `TabBar` (phones), `Rail` (from 1024px), `TopBar` (landing: `logo`, `links`, `action`) |
-| Actions | `Button` (`variant`: ink, violet, white, soft, ghost; `size`: lg, md; with `href` it is a link), `IconButton` (`label`, icon as children) |
-| Choices | `Option`, `ChoiceTile`, `Tile` (single or `multiple`; `art` is a public path such as `/art/sun.png`), `Chip`, `ChipGroup`, `Segmented`, `Toggle`, `CheckIn` |
-| Text in | `Composer` (the answer field: `value`, `onChange`, `onSubmit`, `placeholder`, `onMic`, `micState`: idle, listening, unavailable), `TextField` |
-| Labels and rows | `Tag` (`tone`: skill, quiet, swap), `Divider`, `SettingRow`, `SettingsSection`, `PlanRow`, `PatternRow`, `QuizProgress` |
-| Overlays | `Sheet` (bottom sheet on phones, dialog from 768px; title, body, up to two actions) |
+| Icons (`components/kit/Icon.tsx`) | `Icon` (`name`, `size`, `strokeWidth`, `title`), 25 line icons drawn with `currentColor`: back, close, chevron-left, chevron-right, chevron-up, chevron-down, check, plus, minus, arrow-up, arrow-right, mic, mic-off, speaker, speaker-off, play, pause, more, info, lock, calendar, share, trash, external, search. `ICON_NAMES` lists them. A glossy 3D object is `Art`, not an icon |
+| Actions | `Button` (`variant`: ink, violet, white, soft, ghost; `size`: lg, md; with `href` it is a link), `IconButton` (`label`; `variant`: plain, on-violet, ink, violet; the icon as children: `<Icon name="back" />`) |
+| Choices | `Option`, `ChoiceTile`, `Tile` (single or `multiple`; `art` is a public path such as `/art/sun.png`), `NumberTile` (the age tiles of the quiz, three to a row; `size="sm"` is the 48px tile of the desktop Profile), `Chip`, `ChipGroup` (both take `tone="on-violet"` on a violet card), `Segmented`, `Toggle`, `CheckIn` |
+| Text in | `Composer` (the answer field: `value`, `onChange`, `onSubmit`, `placeholder`, `onMic`, `micState`: idle, listening, unavailable), `TextField` (`compact`: the 56px field of a settings card) |
+| Labels and rows | `Tag` (`tone`: skill, quiet, swap), `Divider`, `SettingRow` (`compact`: the 52px row of a short list), `RowChevron`, `SettingsSection` (`card`: the bordered desktop card), `PlanRow` (`compact`: the 52px row inside a sheet), `PatternRow`, `QuizProgress` |
+| Overlays | `Sheet` (bottom sheet on phones, dialog from 768px; title, `art` as a public path or any node, body, up to two actions) |
 | Pictures | `Art` (`name`, `size`), `Picture` (`file`, `size`), `Portrait` (`partner`, `pose`, `size`), `Avatar`, `Logo`, `LogoMark` (`tone`), `Pattern` (`kind`: bars, sentences, reps) |
-| Numbers | `Rings`, `Ring`, `NowAndGoal`, `SummaryCard`, `WeekStrip`, `MonthCalendar` |
-| Sessions | `LastSessionCard`, `SessionRow`, `TranscriptRow`, `RewriteCard`, `ShareCard`, `Player` and `AiSummaryCard` (both render nothing without data and are shown only behind their flags) |
-| Helpers (`components/kit/cn.ts`) | `cn`, `focusRing`, `focusRingWithin`, `colorMotion` |
+| Numbers | `Rings`, `Ring`, `NowAndGoal`, `SummaryCard`, `WeekStrip`, `MonthCalendar` (`selected` is the open day; `compact` for the desktop card) |
+| Sessions | `LastSessionCard`, `SessionRow`, `TranscriptRow`, `RewriteCard`, `ShareCard`, `Player` (`tone="violet"` on the desktop review) and `AiSummaryCard` (both render nothing without data and are shown only behind their flags) |
+| Helpers (`components/kit/cn.ts`) | `cn`, `focusRing`, `focusRingWithin`, `focusRingOnViolet` and `focusRingWithinOnViolet` (the white ring of a control on violet), `colorMotion`, `pickOnEnter` (Enter picks a radio or a checkbox that is not in a form) |
 
 Things that will trip you up:
 
@@ -172,13 +173,20 @@ Things that will trip you up:
   this disk it is the same file as `Art.tsx`.
 - The parent of `<Pattern>` needs `relative` and a clip (`overflow-clip` or a radius); anything drawn over the pattern
   needs `relative`. On desktop blocks pass `size={1440}`.
-- Radios of one question (`Option`, `ChoiceTile`, `Tile`) share a `name` and sit in an element with
+- Radios of one question (`Option`, `ChoiceTile`, `Tile`, `NumberTile`) share a `name` and sit in an element with
   `role="radiogroup"` and a label. That is what makes the arrow keys work.
 - `Composer` is controlled: clear `value` after `onSubmit`, feed interim speech into `value` while listening.
 - `TabBar` and `Rail` read the pathname, so outside `AppShell` they need a `<Suspense>` around them
   (`cacheComponents` is on).
-- Not in the kit yet: an icon set (back, close, chevrons are inline SVG for now, marked `TODO kit`), the age tiles of
-  the quiz, and the second tab bar style. `app/layout.tsx` still sets a dark `themeColor`.
+- Icons come from the kit: `<Icon name="back" />`, not inline SVG. `size` scales the drawing and keeps the stroke
+  Figma draws. Three places use another weight and pass `strokeWidth`: the check at 14px (2.6), the arrow-up at 22px
+  in the composer (2.4), the play at 30px in the desktop player (2).
+- `Sheet` puts the focus on the sheet itself, not on the black pill, so the key that opened it cannot also confirm
+  it. To start in a field, focus it from an effect of the screen when `open` turns true: React's `autoFocus` is not
+  reliable inside a sheet. An action that navigates closes the sheet first.
+- Pass the image itself as the `picture` of `SplitScreen` (in a fragment when words follow it), not wrapped in an
+  element: only then does it scale down on a short screen, so the action stays in view.
+- Not in the kit yet: the second tab bar style.
 
 If a component you need is missing or differs from Figma: developer A fixes it in the kit. Developer B builds the
 piece next to the screen, marks it `// TODO kit`, tells A, and moves on.
@@ -192,7 +200,7 @@ piece next to the screen, marks it `// TODO kit`, tells A, and moves on.
 | `public/parent/mum.png`, `dad.png`; `public/scene/mum-mia.png`, `dad-leo.png` | Parents, and a parent with a child |
 | `public/brand/` | The logo files |
 | `public/pattern/` | The three background patterns as SVG |
-| `components/kit/art.ts` | A typed manifest of all of the above with pixel sizes. Use `<Art name="..." />` and the portrait components; do not write image paths by hand |
+| `components/kit/art-manifest.ts` | A typed manifest of all of the above with pixel sizes. Use `<Art name="..." />` and the portrait components; do not write image paths by hand |
 | `docs/figma/image-hashes.json` | Maps the image hash Figma reports for a fill to the file name in `public/`. When `get_design_context` shows an image fill, look the hash up here |
 | `docs/figma/new-assets.png`, `docs/asset-library.png` | Contact sheets of the whole library |
 
@@ -229,7 +237,7 @@ Rules:
 - A screen reads sessions and the profile through the hooks and derives everything else with the pure selectors.
   Dates are passed into selectors as strings. Do not call `new Date()` during render.
 - With no sessions a screen shows its empty state and one action that starts a session. No placeholder numbers.
-- Sample values live in test files and in `app/kit/page.tsx` only.
+- Sample values live in test files and in `app/kit/Gallery.tsx` only.
 - Nothing leaves the device. There is no account and no server database.
 
 ### The round screen (`components/round/`)

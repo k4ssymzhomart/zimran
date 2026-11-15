@@ -602,7 +602,7 @@ function Numbers() {
       <Sample name="Rings, 76, centered">
         <Rings praise={RINGS.praise} reflect={RINGS.reflect} describe={RINGS.describe} size={76} className="justify-center gap-[22px]" />
       </Sample>
-      <Sample name="Rings, 76, on violet, 28 apart" violet className="w-fit max-w-full overflow-x-auto">
+      <Sample name="Rings, 76, on violet, 28 apart: a desktop row, it scrolls sideways on a phone" violet className="w-fit max-w-full overflow-x-auto">
         <Rings {...RINGS} size={76} tone="violet" className="gap-[28px]" />
       </Sample>
       <Sample name="NowAndGoal" className={PHONE}>
