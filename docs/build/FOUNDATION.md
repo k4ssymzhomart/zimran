@@ -242,7 +242,7 @@ Rules:
 
 ### The round screen (`components/round/`)
 
-`RoundRunner` (`components/round/RoundRunner.tsx`) takes exactly `RoundStageProps` from `components/round/types.ts`:
+`FirstRound` (`components/first/round/FirstRound.tsx`) takes exactly `RoundStageProps` from `components/round/types.ts`:
 `{ mode, sceneId, partner, durationSec, seed?, title?, guess?, recorder?, onDone(done) }`. It owns `useRound`, starts
 the round on mount, and calls `onDone` once with a `RoundDone`: the engine's `RoundResult`, the sentences as
 `SavedSentence[]`, the input mode, `startedAt`, `durationSec`, the child's goodbye line, and an `audioId` when a
@@ -251,10 +251,10 @@ recorder was passed.
 - To play a second round, mount it again with a new `key`.
 - To save a finished round: `sessionStore.add(sessionDraft(done, { kind, date: todayISO(), sceneId, partner }))`, with
   `sessionDraft` from `@/hooks/useRound` and `todayISO` from `@/client/progressStore`.
-- Today it renders the old dark `components/RoundStage.tsx` in one line. Developer B replaces that one line with the
-  new stage. The stage receives the full return of `useRound()` (`state`, `view`, `rings`, and the moves `say`,
-  `saySpoken`, `copy`, `wait`, `dispute`, `end`) plus `partner` and `guess` from the props. Typed sentences go through
-  `say` and microphone sentences through `saySpoken`; that is how the input mode is known.
+- It draws the round in the Split design (`SplitRoundStage.tsx`, frames 21:139 to 21:468 and 32:109). The first
+  visit, the daily session (`/daily`), the practice round (`/round`) and live mode (`/live`) all use it. Typed
+  sentences go through `say` and microphone sentences through `saySpoken`; that is how the input mode is known.
+  The old dark `RoundStage` and `RoundRunner` were removed with the dark screens.
 - The default recorder does nothing (`noopRecorder`). A real one implements `RecorderPort` (`start`, `stop`,
   `cancel`).
 

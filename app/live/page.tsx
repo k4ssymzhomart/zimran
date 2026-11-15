@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
-import { LiveSession } from '@/components/screens/live/LiveSession';
+import { notFound } from 'next/navigation';
+import { LiveSession } from '@/components/live/LiveSession';
+import { FEATURES } from '@/lib/features';
 
 export const metadata: Metadata = { title: 'PlayReps: live with your child' };
 
-/**
- * /live — five minutes of play with the parent's own child (beta). Needs access.
- * Before you start, microphone and privacy, the live round screen, the result: components/screens/live/.
- */
+/** Five minutes of play with the parent's own child (beta). Needs access; with the live flag off there is no such page. */
 export default function LivePage() {
+  if (!FEATURES.live) notFound();
   return <LiveSession />;
 }

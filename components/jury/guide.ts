@@ -41,7 +41,7 @@ const PRICING: Record<Checkout, string> = {
 const LIVE: Step = {
   label: 'Live, optional',
   href: ROUTES.live,
-  detail: 'Beta. Five minutes with your own child. Voice needs Chrome or Edge and a microphone.',
+  detail: 'Beta, after the plans page gives access. Five minutes with your own child. Voice needs Chrome or Edge and a microphone.',
 };
 
 export function steps(checkout: Checkout): Step[] {

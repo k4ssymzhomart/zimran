@@ -115,13 +115,13 @@ describe('reminderDays', () => {
 
 describe('repeatsLabel', () => {
   it('names the last day: the first day plus the days, minus one', () => {
-    expect(repeatsLabel('2026-11-09', 28)).toBe('Daily to 6 December');
-    expect(repeatsLabel('2026-11-15', 2)).toBe('Daily to 16 November');
+    expect(repeatsLabel('2026-11-09', 28)).toBe('Daily to December 6');
+    expect(repeatsLabel('2026-11-15', 2)).toBe('Daily to November 16');
   });
 
   it('crosses a year and a leap day', () => {
-    expect(repeatsLabel('2026-12-20', 28)).toBe('Daily to 16 January');
-    expect(repeatsLabel('2028-02-27', 4)).toBe('Daily to 1 March');
+    expect(repeatsLabel('2026-12-20', 28)).toBe('Daily to January 16');
+    expect(repeatsLabel('2028-02-27', 4)).toBe('Daily to March 1');
   });
 
   it('says so when one day is left', () => {

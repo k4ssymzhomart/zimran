@@ -36,14 +36,14 @@ describe('the renewal date', () => {
   });
 
   it('is written as day, month, year', () => {
-    expect(longDate('2026-12-13')).toBe('13 December 2026');
-    expect(longDate('2027-02-07')).toBe('7 February 2027');
+    expect(longDate('2026-12-13')).toBe('December 13, 2026');
+    expect(longDate('2027-02-07')).toBe('February 7, 2027');
   });
 
   it('makes the terms under the plans', () => {
-    expect(termsLine(planOf('four_weeks'), '2026-11-15')).toBe('$29 every 4 weeks. Renews 13 December 2026. Cancel anytime.');
-    expect(termsLine(planOf('twelve_weeks'), '2026-11-15')).toBe('$69 every 12 weeks. Renews 7 February 2027. Cancel anytime.');
-    expect(termsLine(planOf('four_weeks'), null)).toBe('$29 every 4 weeks. Cancel anytime.');
+    expect(termsLine(planOf('four_weeks'), '2026-11-15')).toBe('$29 every 4 weeks. Renews December 13, 2026. Cancel anytime in Profile.');
+    expect(termsLine(planOf('twelve_weeks'), '2026-11-15')).toBe('$69 every 12 weeks. Renews February 7, 2027. Cancel anytime in Profile.');
+    expect(termsLine(planOf('four_weeks'), null)).toBe('$29 every 4 weeks. Cancel anytime in Profile.');
   });
 });
 
