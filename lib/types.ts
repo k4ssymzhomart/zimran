@@ -19,7 +19,7 @@ export type Code =
 /** target = fills a ring, avoid = goes to the "to swap" tray, neutral = no effect, none = not counted. */
 export type Bucket = 'target' | 'neutral' | 'avoid' | 'none';
 
-/** Behaviours a parent can name in a specific praise; the simulated child then shows them more often. */
+/** Behaviors a parent can name in a specific praise; the simulated child then shows them more often. */
 export type Habit = 'gentle' | 'sharing' | 'patient' | 'tidy';
 
 export interface CodedSentence {
@@ -30,7 +30,7 @@ export interface CodedSentence {
   confidence: number;
   /** Name of the rule that fired. Shown in the replay and checked in tests. */
   rule: string;
-  /** For specific praise: which behaviour was named, if recognised. */
+  /** For specific praise: which behavior was named, if recognized. */
   namedBehavior?: Habit;
 }
 
@@ -59,7 +59,7 @@ export const LABEL: Record<Code, string> = {
   neutral: 'Neutral talk',
   question: 'Question',
   command: 'Command',
-  criticism: 'Criticism',
+  criticism: 'Correction',
   unknown: 'Not coded',
 };
 
@@ -134,6 +134,8 @@ export interface Scene {
   meltdown: SceneAction;
   /** On this beat she whines whatever the parent said. Not every tantrum is the parent's doing. */
   scriptedWhineBeat: number;
+  /** Tension she starts the round with, 0..100. Left out, she starts calm. A harder scene sets it higher. */
+  startTension?: number;
   farewell: { high: string; mid: string; low: string };
 }
 
@@ -163,12 +165,23 @@ export interface RoundResult {
   leverText: string | null;
 }
 
+/**
+ * How round 2 reads next to round 1, for the one sentence the screen opens with:
+ * improved, held the pace (round 2 met it), about the same, harder this time, or nothing said in round 2.
+ */
+export type ChangeVerdict = 'improved' | 'held' | 'same' | 'harder' | 'silent';
+
 export interface RoundChange {
   /** Per-minute change, round 2 minus round 1, rounded to one decimal. */
   perMinute: Record<'specific_praise' | 'reflection' | 'description' | 'avoid', number>;
-  /** Short lines for the change summary, best news first. */
+  /**
+   * Short lines for the change summary, best news first. A skill is listed as up only when more of it
+   * was said, and as down only when round 2 fell short of its target for that skill.
+   */
   lines: string[];
+  /** Same as `verdict === 'improved'`. */
   improved: boolean;
+  verdict: ChangeVerdict;
 }
 
 // ---------- coach ----------

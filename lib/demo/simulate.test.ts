@@ -10,7 +10,7 @@ const perMinute = (days: DemoDay[], key: 'specific_praise' | 'reflection' | 'des
   days.reduce((sum, d) => sum + (d.result.counts[key] * 60) / d.result.seconds, 0) / days.length;
 
 describe('simulated family', () => {
-  it('is labelled as demo data', () => {
+  it('is labeled as demo data', () => {
     expect(DEMO_LABEL).toBe('DEMO DATA - simulated family');
   });
 
@@ -22,7 +22,7 @@ describe('simulated family', () => {
     expect(simulateFamily(1, START).days).not.toEqual(simulateFamily(2, START).days);
   });
 
-  it('gives 28 five-minute sessions of 40 to 50 sentences, and honours a shorter run', () => {
+  it('gives 28 five-minute sessions of 40 to 50 sentences, and honors a shorter run', () => {
     const { days, progress } = simulateFamily(1, START);
     expect(days).toHaveLength(28);
     expect(progress.sessions).toHaveLength(28);

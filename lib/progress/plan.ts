@@ -1,7 +1,8 @@
 /**
  * The 28-day plan: one small idea a day, one skill a week.
  * Week 1 Follow (fewer questions and commands), week 2 Describe, week 3 Reflect, week 4 Praise.
- * Day 28 is the mastery check: a full five minutes against the clinic norm.
+ * Day 28 is the skill check: a full five minutes against the clinic norm.
+ * After day 28 there are no new lessons: the same skills go on, live with the parent's own child and here with Mia.
  */
 import type { Lever } from '../types';
 
@@ -13,6 +14,7 @@ export interface PlanDay {
   title: string;
   /** One line shown at the end of the day about what comes next. */
   teaser: string;
+  /** Day 28, the skill check. (The field keeps its first name; the screens call the day "Skill check".) */
   isMasteryCheck: boolean;
 }
 
@@ -28,9 +30,9 @@ const DAYS: [Lever, string, string][] = [
   ['command', 'Let her choose the game', 'Tomorrow: how to join her play without steering it.'],
   ['command', 'Copy what she does', 'Tomorrow: the quiet move to try during minor whining.'],
   ['question', 'Wait quietly', 'Tomorrow: a whole minute with her fully in charge.'],
-  ['command', 'A minute of pure following', 'Tomorrow: week 2 begins, and you become her sports commentator.'],
+  ['command', 'A minute of pure following', 'Tomorrow: week 2 begins, and you become her sportscaster.'],
   // ----- week 2: Describe -----
-  ['description', 'Be her commentator', 'Tomorrow: why her hands are more interesting than the toy.'],
+  ['description', 'Be her sportscaster', 'Tomorrow: why her hands are more interesting than the toy.'],
   ['description', 'Describe her hands', 'Tomorrow: the two words that start almost every description.'],
   ['description', 'Start with "You are"', 'Tomorrow: describing the calm moments as they happen.'],
   ['description', 'Describe the calm moments', 'Tomorrow: what to say when the tower falls.'],
@@ -51,8 +53,8 @@ const DAYS: [Lever, string, string][] = [
   ['specific_praise', 'Praise sharing', 'Tomorrow: praising waiting, the hardest thing for a small person.'],
   ['specific_praise', 'Praise waiting', 'Tomorrow: praising the opposite of what wears you out.'],
   ['specific_praise', 'Praise the opposite', 'Tomorrow: all three skills together, a dress rehearsal.'],
-  ['specific_praise', 'Dress rehearsal', 'Tomorrow: your five-minute mastery check. You are ready.'],
-  ['specific_praise', 'Mastery check', 'Next: Phase 2, where your five minutes stay a daily habit.'],
+  ['specific_praise', 'Dress rehearsal', 'Tomorrow: your five-minute skill check. You are ready.'],
+  ['specific_praise', 'Skill check', 'Next: the same skills, live with your own child and here with Mia.'],
 ];
 
 export const PLAN: PlanDay[] = DAYS.map(([focus, title, teaser], i) => {
@@ -60,7 +62,7 @@ export const PLAN: PlanDay[] = DAYS.map(([focus, title, teaser], i) => {
   return { day: i + 1, week, theme: THEMES[week - 1], focus, title, teaser, isMasteryCheck: i + 1 === PLAN_DAYS };
 });
 
-/** The plan for a day number. Before day 1 is day 1; after day 28 the family is in Phase 2. */
+/** The plan for a day number. Before day 1 is day 1; after day 28 the same skills simply continue. */
 export function planDay(day: number): PlanDay {
   const n = Math.floor(day);
   if (n > PLAN_DAYS) {
@@ -69,8 +71,8 @@ export function planDay(day: number): PlanDay {
       week: 4,
       theme: 'Praise',
       focus: 'specific_praise',
-      title: 'Phase 2: keep your five minutes',
-      teaser: 'Tomorrow: the same five minutes. Small and daily is what makes it stick.',
+      title: 'Keep your five minutes',
+      teaser: 'Tomorrow: the same skills again, live with your own child or here with Mia.',
       isMasteryCheck: false,
     };
   }

@@ -1,7 +1,7 @@
 import type { Code } from '../types';
 
 /**
- * A blind check of the classifier: 80 turns labelled from the category table alone,
+ * A blind check of the classifier: 80 turns labeled from the category table alone,
  * before the author had read the rules or the other example sets.
  * Typed the way people type in a chat box: lower case, missing apostrophes, small typos,
  * non-native grammar, a few two-sentence turns. Ten turns per main category.

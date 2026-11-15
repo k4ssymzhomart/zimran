@@ -25,6 +25,21 @@ describe("saying Mia's words back", () => {
       ['You messed up.', 'I messed up.'],
       ["It's not good.", 'It is not good.'],
       ["It doesn't look right.", "It doesn't look right!"],
+      // play kitchen
+      ["You're making soup.", "I'm making soup."],
+      ['This plate is for me.', 'This plate is for you.'],
+      ['Your juice is all gone.', 'My juice is all gone.'],
+      ['The soup is ruined.', 'The soup is ruined!'],
+      ['The lid keeps falling off.', 'The lid keeps falling off.'],
+      // clean-up
+      ['So many toys.', 'There are so many toys.'],
+      ['The lid is for me.', 'The lid is for you.'],
+      ['My block goes first.', 'Your block goes first.'],
+      ['You found the last piece.', 'I found the last piece.'],
+      ['You dumped them all out.', 'I dumped them all out!'],
+      ['There are too many.', 'There are too many!'],
+      ['You are still playing.', 'I am still playing.'],
+      ['It takes forever.', 'This takes forever.'],
     ];
     for (const [parent, child] of pairs) expect(codes(parent, child), parent).toEqual(['reflection']);
   });

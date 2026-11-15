@@ -6,6 +6,7 @@
  * (Praise in question form, "Did you do a good job?", is a question, so questions are checked first.)
  */
 import { BUCKET, type Code, type CodedSentence, type CodingContext, type Habit } from '../types';
+import { isSafetyConcern } from './safety';
 
 // ---------- text helpers ----------
 
@@ -96,12 +97,16 @@ const LEAD =
 // ---------- criticism ----------
 
 const CRITICISM: [RegExp, string][] = [
-  [/^no\b(?!\s+(?:problem|worries|way|wonder))/, 'starts_with_no'],
-  [/^(?:don't|dont|do not|stop|quit)\b/, 'negative_command'],
+  [/^(?:no\b(?!\s+(?:problem|worries|way|wonder))|nope\b|nah\b|enough(?:$|,| (?:of|already|now|with)\b))/, 'starts_with_no'],
+  [/^(?:don't|dont|do not|stop|quit)\b(?! (?:worry|give up))/, 'negative_command'],
   [/\byou (?:shouldn't|should not|can't|cannot|must not|mustn't)\b/, 'you_cant'],
   [/\b(?:that's|that is|it's|it is|this is|you're|you are|those are|these are) not\b/, 'correction'],
-  [/\bnot (?:like that|that way|right|nice|good|okay|ok|how)\b/, 'correction'],
-  [/\b(?:wrong|bad|naughty|messy|sloppy|ugly|stupid|dumb|lazy|rude|gross|yucky)\b/, 'negative_word'],
+  [/\bnot (?:like that|that way|right|nice|good|okay|ok|how|there(?! yet)|that one|this one|those)\b/, 'correction'],
+  [/\b(?:doesn't|does not) (?:go|belong)\b/, 'correction'],
+  [/\bi said no\b/, 'correction'],
+  [/\b(?:wrong|bad(?! (?:guys?|wolf))|naughty|messy|sloppy|ugly|stupid|dumb|lazy|rude|gross|yucky|terrible|awful(?! lot)|horrible|annoying|boring|disgusting|bossy|brat|idiot|shut up)\b/, 'negative_word'],
+  [/\b(?:you're|you are) (?:ruining|breaking|wrecking|embarrassing|driving me)\b/, 'negative_word'],
+  [/\byou (?:broke|ruined|wrecked)\b/, 'negative_word'],
   [/\btoo (?:rough|loud|fast|slow|hard|messy|much)\b/, 'too_much'],
   [/\b(?:being|so|are|you're) mean\b/, 'negative_word'],
   [/\bi (?:don't|do not) like\b/, 'dislike'],
@@ -118,7 +123,7 @@ const COMMAND_PHRASES: [RegExp, string][] = [
   [/^(?:can|could|will|would) you\b/, 'can_you'],
   [/^(?:why don't (?:you|we)|why not|how about|what about (?:you|we)|shall we)\b/, 'suggestion'],
   [
-    /^(?:you (?:need|have|ought) to|you must|you should|you'd better|you better|i (?:want|need) you to|we (?:need|have) to|we should|it's time to|time to)\b/,
+    /^(?:you (?:need|have|ought) to|you must|you should(?! be (?:so |very |really )?proud)|you'd better|you better|i (?:want|need) you to|we (?:need|have) to|we should|it's time to|time to)\b/,
     'you_need_to',
   ],
 ];
@@ -128,7 +133,7 @@ const IMPERATIVE = new Set(
     'put give hand take look come go sit stand try make draw build use pick place move push pull turn open close ' +
     'clean tidy tell show say watch listen wait hold bring get let do keep be stack color colour add share throw ' +
     'count find help finish start play leave pass press cut pour mix wash read touch grab choose point roll line ' +
-    'fix set drop lift follow see check stay hurry slow calm ask write paint feed hide knock connect match sort ' +
+    'fix set drop lift follow check stay hurry slow calm ask write paint feed hide knock connect match sort ' +
     'fill drive fly cook careful'
   ).split(' '),
 );
@@ -148,7 +153,7 @@ const WANNA = /^(?:you )?(?:wanna|want to)\b/;
 
 const NOT_PRAISE = /\bgood (?:morning|night|bye|afternoon|evening)\b|\bgoodbye\b/;
 const PRAISE =
-  /\b(?:good|great|nice|nicely|awesome|excellent|fantastic|terrific|wonderful|amazing|super|perfect|beautiful|beautifully|lovely|gorgeous|cute|brilliant|impressive|incredible|cool|neat|smart|clever|proud|bravo|well done|way to go|not bad)\b|\bi (?:really |just |do )?(?:like|love)\b|\b(?:thank you|thanks)\b|\byou did it\b/;
+  /\b(?:good|great|nice|nicely|awesome|excellent|fantastic|terrific|wonderful|amazing|super|perfect|beautiful|beautifully|lovely|gorgeous|cute|brilliant|impressive|incredible|cool|neat|smart|clever|proud|bravo|well done|way to go|not bad)\b|\bi (?:really |just |do )?(?:like|love)\b|\b(?:thank you|thanks)\b|\byou did it\b|\byou got it(?=$|,| (?:right|again)\b)|\bthere you go\b|\bhigh five\b|\b(?:so|very|really|how|looks|that's|it's|is) pretty(?=$|,| (?:too|and|on|in|with|like|there|here|today|now)\b)|\ba pretty\b(?! (?:good|big|tall|much|fast|hard|cool|well|close|sure|soon))/;
 
 /** "You are so careful with the blocks": a positive word about how she is behaving is specific praise. */
 const POSITIVE_TRAIT =
@@ -158,11 +163,13 @@ const POSITIVE_TRAIT =
 const PRAISE_FILLER = new Set(
   (
     'good great nice nicely awesome excellent fantastic terrific wonderful amazing super perfect beautiful ' +
-    'gorgeous cute looks look no ' +
+    'gorgeous cute looks look no got high five pretty ' +
     "beautifully lovely brilliant impressive incredible cool neat smart clever proud bravo well done way go not bad " +
     "like love thank thanks job work that that's this is it it's so very really such a an the what you you're are " +
     "did do doing i i'm im am of for to with just how too and there thing one stuff me my your we on in at be been " +
-    'was were yeah yes yay wow oh have has buddy sweetie sweetheart honey mia baby kiddo girl boy dear bud champ pal'
+    'was were yeah yes yay wow oh see have has buddy sweetie sweetheart honey mia baby kiddo girl boy dear bud champ pal ' +
+    // When, not what: "Good job today" still does not say what she did.
+    'today tonight again now always everyone guys'
   ).split(' '),
 );
 
@@ -233,7 +240,7 @@ const DESC_VERB = new RegExp(`^${SEEING}you(?:'ve| have)? (?:just |now |also |al
 const DESC_SEEN = /^(?:i see|i saw|i notice|i noticed|i can see) you (?:\w+ ){0,1}?(\w+ing)\b/;
 /** Words ending in -ing that are not actions. */
 const NOT_ACTION_ING = new Set(
-  'king thing something nothing anything everything ring string wing spring morning evening ceiling darling sibling'.split(
+  'king thing something nothing anything everything ring string wing spring morning evening ceiling darling sibling being interesting kidding exhausting irritating frustrating tiring confusing surprising charming'.split(
     ' ',
   ),
 );
@@ -254,6 +261,8 @@ export function codeSentence(sentence: string, ctx: CodingContext = {}): CodedSe
   });
 
   if (!/[a-z]/.test(s)) return make('unknown', 1, 'no_english_words');
+  // Not play talk: it is not coded and counts for nothing. The screen shows where to find support.
+  if (isSafetyConcern(text)) return make('unknown', 1, 'safety');
 
   const core = s.replace(LEAD, '').trim();
   const endsWithQuestionMark = /\?\s*$/.test(core);
@@ -274,6 +283,20 @@ export function codeSentence(sentence: string, ctx: CodingContext = {}): CodedSe
   // 2. Command, including commands dressed as questions ("Can you hand me that?")
   for (const [re, rule] of COMMAND_PHRASES) if (re.test(bare)) return make('command', 0.9, rule);
   if (IMPERATIVE.has(first) && !AUX_INVERSION.test(bare)) return make('command', 0.85, 'imperative');
+  {
+    // After "You ..." a clause is usually more narration ("You picked it up, put it on top"), so there an
+    // order is read only when it is announced: "You're doing great, now give me the red one."
+    const youFirst = first === 'you' || first === "you're";
+    const tails = bare
+      .split(/,\s*/)
+      .slice(1)
+      .map((c) => c.replace(/^(?:and|then)\s+/, ''))
+      .filter((c) => !youFirst || /^(?:now|please)\b/.test(c))
+      .map((c) => c.replace(LEAD, '').trim());
+    for (const c of tails) {
+      if (COMMAND_PHRASES.some(([re]) => re.test(c)) || (IMPERATIVE.has(words(c)[0] ?? '') && !AUX_INVERSION.test(c))) return make('command', 0.75, 'command_after_comma');
+    }
+  }
 
   // 3. Question
   const questionForm =

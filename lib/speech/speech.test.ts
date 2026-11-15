@@ -5,6 +5,7 @@ import {
   cleanTranscript,
   initialSpeech,
   isEcho,
+  isHearing,
   isRepeat,
   LISTENING_HINT,
   LIVE_NOTICE,
@@ -83,19 +84,41 @@ describe('microphone state', () => {
 });
 
 describe('the live notice', () => {
-  it('says sentences are counted only while the microphone is on or starting', () => {
-    expect(liveNotice('listening')).toBe(LIVE_NOTICE.on);
-    expect(liveNotice('starting')).toBe(LIVE_NOTICE.on);
+  it('says sentences are counted only while the microphone is on, or restarting after it was allowed', () => {
+    expect(liveNotice('listening', true)).toBe(LIVE_NOTICE.on);
+    expect(liveNotice('starting', true)).toBe(LIVE_NOTICE.on);
     for (const status of ['idle', 'denied', 'failed', 'unsupported'] as SpeechStatus[]) {
-      expect(liveNotice(status)).toMatch(/nothing is being heard/);
-      expect(liveNotice(status)).toMatch(/type what you say/i);
-      expect(liveNotice(status)).not.toMatch(/counted as you speak/);
+      expect(liveNotice(status, false)).toMatch(/nothing is being heard/);
+      expect(liveNotice(status, false)).toMatch(/type what you say/i);
+      expect(liveNotice(status, false)).not.toMatch(/counted as you speak/);
     }
   });
+  it('while the browser still asks for the microphone, it says it is waiting and claims nothing', () => {
+    const asked = run([{ type: 'want', on: true }]);
+    expect(asked).toMatchObject({ status: 'starting', ready: false });
+    expect(isHearing(asked)).toBe(false);
+    expect(liveNotice(asked.status, asked.ready)).toBe(LIVE_NOTICE.waiting);
+    expect(LIVE_NOTICE.waiting).not.toMatch(/counted as you speak|coach talks/);
+    expect(LIVE_NOTICE.waiting).toMatch(/type what you say/i);
+  });
+  it('once allowed, it stays "on" through the automatic restarts, and goes back when voice is turned off or refused', () => {
+    const allowed = run([{ type: 'want', on: true }, { type: 'started' }]);
+    expect(allowed.ready).toBe(true);
+    const restarting = run([{ type: 'ended' }], allowed);
+    expect(restarting).toMatchObject({ status: 'starting', ready: true });
+    expect(isHearing(restarting)).toBe(true);
+    expect(liveNotice(restarting.status, restarting.ready)).toBe(LIVE_NOTICE.on);
+    expect(run([{ type: 'want', on: false }], allowed).ready).toBe(false);
+    expect(run([{ type: 'error', code: 'not-allowed' }], allowed).ready).toBe(false);
+    expect(run([{ type: 'error', code: 'no-speech' }], allowed).ready).toBe(true);
+    // Turned on again: waiting until the browser starts.
+    const again = run([{ type: 'want', on: false }, { type: 'want', on: true }], allowed);
+    expect(liveNotice(again.status, again.ready)).toBe(LIVE_NOTICE.waiting);
+  });
   it('offers the microphone button only where the browser has voice', () => {
-    expect(liveNotice('denied')).toContain('Speak instead');
-    expect(liveNotice('unsupported')).not.toContain('Speak instead');
-    expect(liveNotice('unsupported')).toMatch(/Chrome or Edge/);
+    expect(liveNotice('denied', false)).toContain('Speak instead');
+    expect(liveNotice('unsupported', false)).not.toContain('Speak instead');
+    expect(liveNotice('unsupported', false)).toMatch(/Chrome or Edge/);
   });
   it("does not claim to leave the child's voice out", () => {
     expect(LIVE_NOTICE.on).toMatch(/cannot tell voices apart/);
@@ -154,8 +177,8 @@ describe('transcripts', () => {
     expect(isEcho(example, { text: line, endedAtMs: 1000 }, 3000)).toBe(false);
     expect(acceptTranscript('Good job stacking so gently', 3000, null, { text: line, endedAtMs: 1000 })).toBe('Good job stacking so gently');
     // The rest of the line is never the parent's, quoted example included.
-    expect(isEcho('add what exactly she did', { text: line, endedAtMs: 1000 }, 3000)).toBe(true);
-    expect(isEcho('warm add what exactly she did good job stacking so gently', { text: line, endedAtMs: 1000 }, 3000)).toBe(true);
+    expect(isEcho('add exactly what she did', { text: line, endedAtMs: 1000 }, 3000)).toBe(true);
+    expect(isEcho('warm now add exactly what she did good job stacking so gently', { text: line, endedAtMs: 1000 }, 3000)).toBe(true);
   });
   it('passes on a clean sentence and nothing else', () => {
     expect(acceptTranscript(' um you made a tower ', 1000, null, null)).toBe('you made a tower');

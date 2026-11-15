@@ -20,8 +20,11 @@ describe('28-day plan', () => {
     expect(focus(4)).toEqual(new Set(['specific_praise']));
   });
 
-  it('has only day 28 as the mastery check', () => {
+  it('has only day 28 as the skill check, and calls it that', () => {
     expect(PLAN.filter((d) => d.isMasteryCheck).map((d) => d.day)).toEqual([28]);
+    expect(PLAN[27].title).toBe('Skill check');
+    expect(PLAN[26].teaser).toContain('skill check');
+    for (const d of [...PLAN, planDay(29)]) expect(`${d.title} ${d.teaser}`).not.toMatch(/mastery/i);
   });
 
   it('gives every day its own short title and a one-line teaser', () => {
@@ -41,7 +44,7 @@ describe('28-day plan', () => {
     }
   });
 
-  it('clamps early days and moves on to Phase 2 after day 28', () => {
+  it('clamps early days and keeps the same skills going after day 28', () => {
     expect(planDay(0)).toBe(PLAN[0]);
     expect(planDay(-5)).toBe(PLAN[0]);
     expect(planDay(Number.NaN)).toBe(PLAN[0]);
@@ -49,6 +52,19 @@ describe('28-day plan', () => {
     expect(planDay(28).isMasteryCheck).toBe(true);
     const later = planDay(40);
     expect(later).toMatchObject({ day: 40, week: 4, theme: 'Praise', focus: 'specific_praise', isMasteryCheck: false });
-    expect(later.title.startsWith('Phase 2')).toBe(true);
+    expect(later.title).toBe('Keep your five minutes');
+    expect(later.title.length).toBeLessThanOrEqual(30);
+    expect(later.teaser).toMatch(/^Tomorrow: /);
+    expect(later.teaser.length).toBeLessThanOrEqual(80);
+  });
+
+  it('promises no second phase and no new lessons after day 28', () => {
+    for (const d of [PLAN[27], planDay(29), planDay(60)]) {
+      const text = `${d.title} ${d.teaser}`;
+      expect(text).not.toMatch(/phase|new lesson|unlock|next level/i);
+      expect(text).toMatch(/same skills/);
+      expect(text).toMatch(/live with your own child/);
+      expect(text).toMatch(/with Mia/);
+    }
   });
 });

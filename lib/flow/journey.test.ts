@@ -30,9 +30,19 @@ describe('opener', () => {
     expect(s.phase).toBe('opener_reveal');
     expect(s.opener.first.map((c) => c.code)).toEqual(['general_praise', 'question']);
     expect(s.opener.insight?.headline).toBe('That was a question.');
+    // A question is not a fault: the five minutes are the exception, not the rule.
+    expect(s.opener.insight?.body).toContain('Questions are great the rest of the day.');
     expect(s.opener.reflected).toBe(false);
   });
-  it('recognises a reflection on the first answer', () => {
+  it('does not code or teach on a sentence that is not play talk, and says where support is', () => {
+    const s = run([{ type: 'answer_opener', text: "I can't do this anymore." }]);
+    expect(s.phase).toBe('opener_reveal');
+    expect(s.opener.first.map((c) => [c.code, c.rule])).toEqual([['unknown', 'safety']]);
+    expect(s.opener.insight?.body).toContain('988');
+    expect(s.opener.insight?.body).toContain('1-800-422-4453');
+    expect(s.opener.reflected).toBe(false);
+  });
+  it('recognizes a reflection on the first answer', () => {
     const s = run([{ type: 'answer_opener', text: 'You made a tower!' }]);
     expect(s.opener.reflected).toBe(true);
     expect(s.opener.insight?.headline).toBe('You said her words back.');
@@ -99,7 +109,13 @@ describe('rounds and lesson', () => {
     const s = run([{ type: 'begin_lesson' }, { type: 'begin_round2' }, { type: 'round_ended', result: betterRound }], afterRound1);
     expect(s.phase).toBe('change');
     expect(s.change?.improved).toBe(true);
+    expect(s.change?.verdict).toBe('improved');
     expect(s.change?.lines.length).toBeGreaterThan(0);
+  });
+  it('does not praise a second round in which nothing was said', () => {
+    const silent = result([], 40);
+    const s = run([{ type: 'begin_round2' }, { type: 'round_ended', result: silent }], afterRound1);
+    expect(s.change).toMatchObject({ improved: false, verdict: 'silent' });
   });
   it('lets the lesson be skipped', () => {
     expect(run([{ type: 'begin_round2' }], afterRound1).phase).toBe('round2');

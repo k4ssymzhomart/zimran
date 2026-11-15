@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ChildState, Move } from '../types';
 import { actionWeights, applyMove, EFFECTS, farewell, initialChild, tick, view } from './model';
-import { BLOCKS, DRAWING, SCENES } from './scenes';
+import { BLOCKS, CLEANUP, DRAWING, KITCHEN, sceneForDay, SCENES } from './scenes';
 
 describe('each skill has its own effect', () => {
   const base = initialChild();
@@ -32,8 +32,8 @@ describe('each skill has its own effect', () => {
   });
 });
 
-describe('praise shapes behaviour', () => {
-  it('naming a behaviour makes it more likely, and only that one', () => {
+describe('praise shapes behavior', () => {
+  it('naming a behavior makes it more likely, and only that one', () => {
     let s = initialChild();
     const before = actionWeights(BLOCKS, s);
     for (let i = 0; i < 4; i++) s = applyMove(s, 'specific_praise', 'gentle');
@@ -145,7 +145,7 @@ describe('waiting quietly', () => {
   it('does nothing in calm play', () => {
     expect(applyMove(initialChild(), 'wait').waitArmed).toBe(0);
   });
-  it('is cancelled by talking at her', () => {
+  it('is canceled by talking at her', () => {
     const s = applyMove(applyMove({ ...initialChild(), tension: 55 }, 'wait'), 'command');
     expect(s.waitArmed).toBe(0);
   });
@@ -179,5 +179,101 @@ describe('view and farewell', () => {
         expect(scene.actions.some((a) => a.habit === habit)).toBe(true);
       expect(scene.scriptedWhineBeat).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('the four scenes', () => {
+  it('are four different scenes, each complete', () => {
+    expect(SCENES.map((s) => s.id)).toEqual(['blocks', 'drawing', 'kitchen', 'cleanup']);
+    for (const scene of SCENES) {
+      expect(scene.title.length).toBeGreaterThan(0);
+      expect(scene.intro).toContain('Mia');
+      // She speaks first, so there is always something to say back.
+      expect(scene.actions[0].says).toBeTruthy();
+      expect(scene.actions[0].rough).toBeFalsy();
+      expect(scene.actions.length).toBeGreaterThanOrEqual(10);
+      expect(scene.actions.filter((a) => a.rough).length).toBeGreaterThanOrEqual(2);
+      expect(new Set(scene.actions.map((a) => a.says)).size).toBe(scene.actions.length);
+      for (const a of [...scene.actions, scene.wander, scene.whine, ...(scene.whineAlt ?? []), scene.meltdown]) expect(a.does.startsWith('Mia ')).toBe(true);
+      expect(scene.wander.says).toBeUndefined();
+      expect(scene.whine.says).toBeTruthy();
+      expect(scene.whineAlt?.length).toBeGreaterThanOrEqual(2);
+      expect(new Set(Object.values(scene.farewell)).size).toBe(3);
+    }
+  });
+
+  const play = (scene: typeof BLOCKS, seed: number, move: Move | null, beats: number): string[] => {
+    let state: ChildState = { ...initialChild(seed), tension: scene.startTension ?? initialChild(seed).tension };
+    const kinds: string[] = [];
+    for (let i = 0; i < beats; i++) {
+      if (move) state = applyMove(state, move);
+      const out = tick(state, scene);
+      state = out.state;
+      kinds.push(out.beat.kind);
+    }
+    return kinds;
+  };
+
+  it('warm play never melts down in any scene, and she whines on the scripted beat', () => {
+    for (const scene of SCENES) {
+      for (let seed = 1; seed <= 20; seed++) {
+        const kinds = play(scene, seed, 'description', 40);
+        expect(kinds, `${scene.id} seed ${seed}`).not.toContain('meltdown');
+        expect(kinds[scene.scriptedWhineBeat - 1]).toBe('scripted_whine');
+      }
+    }
+  });
+
+  it('a stream of commands ends in a meltdown in any scene', () => {
+    for (const scene of SCENES) expect(play(scene, 5, 'command', 10), scene.id).toContain('meltdown');
+  });
+
+  it('clean-up is the harder one: she starts wound up and whines earlier, whatever the parent does', () => {
+    expect(CLEANUP.startTension ?? 0).toBeGreaterThan(initialChild().tension);
+    expect(CLEANUP.scriptedWhineBeat).toBeLessThan(Math.min(BLOCKS.scriptedWhineBeat, DRAWING.scriptedWhineBeat, KITCHEN.scriptedWhineBeat));
+    expect(CLEANUP.actions.filter((a) => a.rough).length).toBeGreaterThan(BLOCKS.actions.filter((a) => a.rough).length);
+    // With a silent parent she whines again within the first minute; in blocks she does not.
+    const firstMinute = (scene: typeof BLOCKS) => play(scene, 1, null, 8).filter((k) => k === 'whine' || k === 'scripted_whine').length;
+    expect(firstMinute(CLEANUP)).toBeGreaterThan(firstMinute(BLOCKS));
+    // One command in the first seconds costs more there than in blocks.
+    const afterOneCommand = (scene: typeof BLOCKS) => {
+      let s: ChildState = { ...initialChild(1), tension: scene.startTension ?? initialChild(1).tension };
+      s = applyMove(s, 'command');
+      const kinds: string[] = [];
+      for (let i = 0; i < 4; i++) {
+        const out = tick(s, scene);
+        s = out.state;
+        kinds.push(out.beat.kind);
+      }
+      return kinds.filter((k) => k !== 'play').length;
+    };
+    expect(afterOneCommand(CLEANUP)).toBeGreaterThan(afterOneCommand({ ...BLOCKS, scriptedWhineBeat: 2 }));
+  });
+
+  it('the kitchen is the calm one: the scripted whine comes latest', () => {
+    expect(KITCHEN.startTension).toBeUndefined();
+    expect(KITCHEN.scriptedWhineBeat).toBeGreaterThan(Math.max(BLOCKS.scriptedWhineBeat, DRAWING.scriptedWhineBeat, CLEANUP.scriptedWhineBeat));
+  });
+});
+
+describe('the scene of the day', () => {
+  it('does not replay the free first visit on paid day 1 or day 2', () => {
+    // The first visit plays blocks, then drawing.
+    expect(['blocks', 'drawing']).not.toContain(sceneForDay(1).id);
+    expect(['blocks', 'drawing']).not.toContain(sceneForDay(2).id);
+  });
+  it('never repeats a scene on consecutive days and comes round to all four', () => {
+    for (let day = 1; day <= 60; day++) expect(sceneForDay(day).id, `day ${day}`).not.toBe(sceneForDay(day + 1).id);
+    expect(new Set([1, 2, 3, 4].map((d) => sceneForDay(d).id))).toEqual(new Set(SCENES.map((s) => s.id)));
+    for (let day = 1; day <= 28; day++) expect(sceneForDay(day + 4)).toBe(sceneForDay(day));
+  });
+  it('shows three different scenes on the three days the jury can jump to', () => {
+    expect(new Set([2, 9, 28].map((d) => sceneForDay(d).id)).size).toBe(3);
+    expect(sceneForDay(2)).toBe(CLEANUP);
+    expect(sceneForDay(9)).toBe(KITCHEN);
+  });
+  it('plays day 1 for anything that is not a day number', () => {
+    for (const odd of [0, -3, Number.NaN, Number.POSITIVE_INFINITY, 0.4]) expect(sceneForDay(odd)).toBe(sceneForDay(1));
+    expect(sceneForDay(2.9)).toBe(sceneForDay(2));
   });
 });

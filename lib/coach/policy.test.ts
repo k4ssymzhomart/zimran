@@ -23,7 +23,7 @@ describe('reacting to a sentence', () => {
     expect(p?.text).toContain('description');
   });
   it('turns general praise into a hint to be specific', () => {
-    expect(coachPrompt({ ...base, justCoded: codeSentence('Good job!') })?.text).toContain('what exactly');
+    expect(coachPrompt({ ...base, justCoded: codeSentence('Good job!') })?.text).toContain('exactly what');
   });
   it('stays quiet about neutral talk', () => {
     expect(coachPrompt({ ...base, justCoded: codeSentence("That's a red one.") })).toBeNull();

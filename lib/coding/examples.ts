@@ -1,7 +1,7 @@
 import type { Code } from '../types';
 
 /**
- * Labelled sentences written by the team (not copied from any manual).
+ * Labeled sentences written by the team (not copied from any manual).
  * [what the parent says, expected code, what the child just said (for reflections)]
  * The test file checks every line.
  */
@@ -19,9 +19,13 @@ export const EXAMPLES: [string, Code, string?][] = [
   ['Awesome job sharing with me.', 'specific_praise'],
   ['You are so good at building bridges.', 'specific_praise'],
   ['I love your train.', 'specific_praise'],
+  ['You should be so proud of that tower.', 'specific_praise'],
+  ['You drew a pretty flower.', 'specific_praise'],
 
   // ----- general praise -----
   ['Good job!', 'general_praise'],
+  ['Good job today.', 'general_praise'],
+  ['Nice work again!', 'general_praise'],
   ['Awesome!', 'general_praise'],
   ['Nice!', 'general_praise'],
   ['Great work!', 'general_praise'],
@@ -32,6 +36,10 @@ export const EXAMPLES: [string, Code, string?][] = [
   ['Well done!', 'general_praise'],
   ['Yay, you did it!', 'general_praise'],
   ['Not bad!', 'general_praise'],
+  ["That's so pretty!", 'general_praise'],
+  ['You got it!', 'general_praise'],
+  ['See, you did it!', 'general_praise'],
+  ["That's pretty good.", 'general_praise'],
 
   // ----- reflection -----
   ['You made a big tower.', 'reflection', 'I made a big tower!'],
@@ -42,6 +50,8 @@ export const EXAMPLES: [string, Code, string?][] = [
   ["You're making soup.", 'reflection', "I'm making soup."],
   ['A train!', 'reflection', 'It is a train.'],
   ['It is wobbly.', 'reflection', 'It is wobbly.'],
+  // "pretty" as "rather" is not praise: her line said back stays a reflection.
+  ["It's pretty wobbly.", 'reflection', 'It is wobbly.'],
 
   // ----- description -----
   ["You're putting the blue block on top.", 'description'],
@@ -54,6 +64,7 @@ export const EXAMPLES: [string, Code, string?][] = [
   ["You're lining up all the animals.", 'description'],
   ["I see you're adding another block.", 'description'],
   ['Now you are rolling the ball.', 'description'],
+  ['You got it on top.', 'description'],
 
   // ----- neutral talk -----
   ["That's a red one.", 'neutral'],
@@ -66,6 +77,10 @@ export const EXAMPLES: [string, Code, string?][] = [
   ['Good morning!', 'neutral'],
   ['What a tall tower!', 'neutral'],
   ["You're the king of the castle.", 'neutral'],
+  ["Don't worry, we can fix it.", 'neutral'],
+  ['The bad guys are coming!', 'neutral'],
+  ["That's pretty heavy.", 'neutral'],
+  ["That's an awful lot of toys.", 'neutral'],
 
   // ----- question -----
   ['What are you making?', 'question'],
@@ -97,6 +112,11 @@ export const EXAMPLES: [string, Code, string?][] = [
   ['Come here, Mia.', 'command'],
   ['Show me your tower.', 'command'],
   ['Now put the roof on, okay?', 'command'],
+  // A command after a praise is still a command: the lead is hers only until the order arrives.
+  ['Good job, now put the blue one on top.', 'command'],
+  ['Thank you for sharing, now give me the red one.', 'command'],
+  ["You're doing great, now give me the red one.", 'command'],
+  ['You did it, now put it away.', 'command'],
 
   // ----- criticism -----
   ['No, not like that.', 'criticism'],
@@ -110,6 +130,14 @@ export const EXAMPLES: [string, Code, string?][] = [
   ["You're making a mess, that's bad.", 'criticism'],
   ["I don't like that.", 'criticism'],
   ["You shouldn't bang them.", 'criticism'],
+  // Put-downs and bare corrections are never a description of what she is doing.
+  ["You're so annoying.", 'criticism'],
+  ["You're boring.", 'criticism'],
+  ["You're ruining it.", 'criticism'],
+  ['Shut up.', 'criticism'],
+  ['Not there.', 'criticism'],
+  ["That doesn't go there.", 'criticism'],
+  ['You broke it.', 'criticism'],
 
   // ----- not coded -----
   ['...', 'unknown'],

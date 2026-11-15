@@ -48,7 +48,7 @@ export function coachPrompt(i: CoachInput): CoachPrompt | null {
     const praise = PRAISE_PARENT[i.justCoded.code];
     if (praise) return { kind: 'praise_parent', text: praise };
     if (i.justCoded.code === 'general_praise') {
-      return { kind: 'swap', text: 'Warm! Add what exactly she did: “Good job stacking so gently.”' };
+      return { kind: 'swap', text: 'Warm! Now add exactly what she did: “Good job stacking so gently.”' };
     }
     return null;
   }

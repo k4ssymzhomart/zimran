@@ -3,8 +3,8 @@
  * Dates are YYYY-MM-DD strings passed in by the caller; nothing here reads the clock.
  * Every function returns a new object, so a Progress can live in React state or localStorage as is.
  */
-import type { Counts, RoundResult } from '../types';
-import { MAX_AVOID_5MIN, NORM_PER_SKILL, NORM_SECONDS } from './targets';
+import type { Counts, Lever, RoundResult } from '../types';
+import { biggestLever, LEVER_NAME, LEVER_TEXT, MAX_AVOID_5MIN, NORM_PER_SKILL, NORM_SECONDS, paceTargets } from './targets';
 
 /** Tantrums today: none, 1-2, 3-5, 6 or more. */
 export type TantrumBucket = 0 | 1 | 2 | 3;
@@ -15,6 +15,11 @@ export interface SessionRecord {
   counts: Counts;
   met: boolean;
   mode: 'practice' | 'live';
+  /**
+   * The one thing to work on that the round ended with; null when it met the pace.
+   * Records saved before this field existed do not have it: `lastLever` then works it out from the counts.
+   */
+  lever?: Lever | null;
 }
 
 export interface Checkin {
@@ -40,11 +45,54 @@ export function emptyProgress(): Progress {
   return { v: 1, startDate: null, anchor: null, sessions: [], checkins: [] };
 }
 
-/** Record a finished round. The first session fixes day 1 of the plan. */
+/**
+ * A round in which no sentence was coded: started and ended at once, or played in silence.
+ * It is not a session. It is not saved, and it counts for no streak, trend or mastery.
+ */
+export const isEmptyResult = (r: { counts: Counts }): boolean =>
+  r.counts.target + r.counts.avoid + r.counts.neutral + r.counts.general_praise === 0;
+
+/**
+ * Record a finished round. The first session fixes day 1 of the plan.
+ * An empty round is not recorded: the same Progress comes back.
+ */
 export function addSession(p: Progress, result: RoundResult, date: string, mode: 'practice' | 'live'): Progress {
-  const record: SessionRecord = { date, seconds: result.seconds, counts: { ...result.counts }, met: result.met, mode };
+  if (isEmptyResult(result)) return p;
+  const record: SessionRecord = { date, seconds: result.seconds, counts: { ...result.counts }, met: result.met, mode, lever: result.lever };
   return { ...p, startDate: p.startDate ?? date, sessions: [...p.sessions, record] };
 }
+
+const sameCounts = (a: Counts, b: Counts): boolean => (Object.keys(a) as (keyof Counts)[]).every((k) => a[k] === b[k]);
+
+/**
+ * Progress with one session's record brought up to date. With no `before` the result is simply recorded.
+ * With one (the parent tapped "Disagree?" on the result screen after it was saved), the record written for
+ * `before` is replaced by `result`, so the plan page shows the same numbers as that screen; a result
+ * emptied this way takes its record out, and when that was the only session the plan has not started:
+ * day 1 is counted from a session that exists. When the earlier record is no longer in storage, nothing is touched.
+ */
+export function replaceSession(
+  p: Progress,
+  before: RoundResult | null,
+  result: RoundResult,
+  date: string,
+  mode: 'practice' | 'live',
+): Progress {
+  let base = p;
+  if (before && !isEmptyResult(before)) {
+    let at = -1;
+    p.sessions.forEach((s, i) => {
+      if (s.date === date && s.mode === mode && s.seconds === before.seconds && sameCounts(s.counts, before.counts)) at = i;
+    });
+    if (at < 0) return p;
+    base = { ...p, sessions: p.sessions.filter((_, i) => i !== at) };
+  }
+  const next = addSession(base, result, date, mode);
+  return next.startDate === null || next.sessions.some((s) => !isEmptyResult(s)) ? next : { ...next, startDate: null };
+}
+
+/** The sessions that count. Empty records saved by an older build are still in storage and are passed over. */
+const countedSessions = (p: Progress): SessionRecord[] => p.sessions.filter((s) => !isEmptyResult(s));
 
 /** One check-in per day: a second answer on the same date replaces the first. */
 export function addCheckin(p: Progress, date: string, tantrums: TantrumBucket): Progress {
@@ -79,6 +127,8 @@ export function dayNumber(p: Progress, date: string): number {
  * One missed day in any 7 is a "life happens" day: it is skipped, not counted, and the streak goes on.
  */
 export function streak(p: Progress, today: string): { days: number; freeDayUsed: boolean; activeToday: boolean } {
+  // Every record given counts as a played day: an empty round is never recorded (addSession), and empty records
+  // of an older build are dropped when storage is read (parseProgress).
   const played = new Set(p.sessions.map((s) => s.date));
   const activeToday = played.has(today);
   const first = [...played].sort()[0];
@@ -135,7 +185,7 @@ function standsFor(s: SessionRecord, kept: SessionRecord): boolean {
 /** The session that stands for each day, oldest day first. */
 function bestPerDay(p: Progress): SessionRecord[] {
   const best = new Map<string, SessionRecord>();
-  for (const s of p.sessions) {
+  for (const s of countedSessions(p)) {
     const kept = best.get(s.date);
     if (!kept || standsFor(s, kept)) best.set(s.date, s);
   }
@@ -177,9 +227,80 @@ export function masteryShare(
     specific_praise,
     reflection,
     description,
-    avoidOk: latest.seconds > 0 && avoidOnNormScale(latest) <= MAX_AVOID_5MIN,
+    // Staying under the limit by saying nothing is not the skill.
+    avoidOk: !isEmptyResult(latest) && latest.seconds > 0 && avoidOnNormScale(latest) <= MAX_AVOID_5MIN,
     overall: measured.reduce((a, b) => a + b, 0) / measured.length,
   };
+}
+
+export interface WeekAverage {
+  /** How many days of that week had such a session. */
+  days: number;
+  specific_praise: number;
+  reflection: number;
+  description: number;
+  avoid: number;
+}
+
+/**
+ * The parent's own week 1 next to their week 4 of the plan: the average day of each, on the five-minute
+ * scale, from saved practice sessions of at least `minSeconds` (the two short rounds of the first visit
+ * are left out, so they cannot make week 1 look weak). Null until both weeks have such a day.
+ */
+export function weekOneAndFour(p: Progress, minSeconds: number): { first: WeekAverage; fourth: WeekAverage } | null {
+  const daily = { ...p, sessions: p.sessions.filter((s) => s.mode === 'practice' && s.seconds >= minSeconds) };
+  const points = skillTrend(daily).map((point) => ({ ...point, week: Math.ceil(dayNumber(p, point.date) / 7) }));
+  const mean = (values: number[]): number => round1(values.reduce((a, b) => a + b, 0) / values.length);
+  const average = (week: number): WeekAverage | null => {
+    const days = points.filter((point) => point.week === week);
+    if (days.length === 0) return null;
+    return {
+      days: days.length,
+      specific_praise: mean(days.map((d) => d.specific_praise)),
+      reflection: mean(days.map((d) => d.reflection ?? 0)),
+      description: mean(days.map((d) => d.description)),
+      avoid: mean(days.map((d) => d.avoid)),
+    };
+  };
+  const first = average(1);
+  const fourth = average(4);
+  return first && fourth ? { first, fourth } : null;
+}
+
+// ---------- personalization ----------
+
+export interface LeverNote {
+  /** The date of the session the lever comes from. */
+  date: string;
+  lever: Lever;
+  /** The lever as a phrase: "saying her words back". */
+  name: string;
+  /** What to do about it, the same line the result screen shows. */
+  text: string;
+  /** Ready to print at the top of the next session. */
+  line: string;
+}
+
+const LEVERS: readonly string[] = ['question', 'command', 'criticism', 'specific_praise', 'reflection', 'description'];
+
+/**
+ * The parent's biggest lever from their latest counted session, the same notion the first visit uses:
+ * the most frequent of questions, commands and corrections when over the limit, else the skill furthest
+ * from its target. Null with no counted session yet, or when that session met the clinic pace.
+ * A record saved without its lever is read from its counts against the pace for its length.
+ */
+export function lastLever(p: Progress): LeverNote | null {
+  let latest: SessionRecord | undefined;
+  for (const s of countedSessions(p)) if (!latest || s.date >= latest.date) latest = s;
+  if (!latest) return null;
+  let lever = latest.lever;
+  if (lever === undefined) {
+    const pace = paceTargets(latest.seconds);
+    lever = latest.met ? null : biggestLever(latest.counts, latest.mode === 'live' ? { ...pace, reflection: 0 } : pace);
+  }
+  if (!lever) return null;
+  const name = LEVER_NAME[lever];
+  return { date: latest.date, lever, name, text: LEVER_TEXT[lever], line: `Last session your biggest lever was ${name}.` };
 }
 
 /** Average tantrum bucket per 7-day week, counted from the first session. Weeks without a check-in are null. */
@@ -218,6 +339,7 @@ function isSession(x: unknown): x is SessionRecord {
     isCount(x.seconds) &&
     typeof x.met === 'boolean' &&
     (x.mode === 'practice' || x.mode === 'live') &&
+    (x.lever === undefined || x.lever === null || LEVERS.includes(x.lever as string)) &&
     isObject(x.counts) &&
     COUNT_KEYS.every((k) => isCount((x.counts as Record<string, unknown>)[k]))
   );
@@ -253,7 +375,15 @@ export function parseProgress(json: unknown): Progress {
     v: 1,
     startDate: data.startDate,
     anchor: data.anchor,
-    sessions: data.sessions.map((s) => ({ date: s.date, seconds: s.seconds, counts: { ...s.counts }, met: s.met, mode: s.mode })),
+    // An empty record (saved by an older build) is not a session: it is left behind here.
+    sessions: data.sessions.filter((s) => !isEmptyResult(s)).map((s) => ({
+      date: s.date,
+      seconds: s.seconds,
+      counts: { ...s.counts },
+      met: s.met,
+      mode: s.mode,
+      ...(s.lever !== undefined ? { lever: s.lever } : {}),
+    })),
     checkins: data.checkins.map((c) => ({ date: c.date, tantrums: c.tantrums })),
   };
 }

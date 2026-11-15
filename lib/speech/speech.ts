@@ -20,6 +20,11 @@ export interface SpeechState {
   interim: string;
   /** A calm line for the screen, or null. */
   message: string | null;
+  /**
+   * The browser has started recognition since the parent turned voice on, so the microphone was allowed.
+   * False while the permission prompt is still unanswered; it stays true between automatic restarts.
+   */
+  ready: boolean;
 }
 
 export type SpeechEvent =
@@ -50,19 +55,31 @@ export const LIVE_NOTICE = {
   on:
     'Put the phone down and play. Your sentences are counted as you speak, and the coach talks to you. ' +
     'The microphone hears the whole room and cannot tell voices apart, so a clear sentence from your child may be counted as yours. ' +
-    'Reflections are not counted in live play yet; practise those with Mia.',
+    'Reflections are not counted in live play yet; practice those with Mia.',
+  waiting: 'Waiting for the microphone. Allow it when your browser asks, or type what you say below.',
   off: 'The microphone is off, so nothing is being heard. Turn it on with “Speak instead”, or type what you say below.',
   unsupported:
     'Voice does not work in this browser, so nothing is being heard. Type what you say below, or open this page in Chrome or Edge.',
 } as const;
 
-export function liveNotice(status: SpeechStatus): string {
-  if (status === 'listening' || status === 'starting') return LIVE_NOTICE.on;
+/** True while the parent is really being heard: listening, or between two automatic restarts. */
+export function isHearing(state: Pick<SpeechState, 'status' | 'ready'>): boolean {
+  return state.status === 'listening' || (state.status === 'starting' && state.ready);
+}
+
+/**
+ * `ready` says the browser has granted the microphone. Left out, a status of 'starting' is read as before:
+ * the screen that does not track it still shows the right line once listening begins.
+ */
+export function liveNotice(status: SpeechStatus, ready = false): string {
+  if (isHearing({ status, ready })) return LIVE_NOTICE.on;
+  // Asked for, and the browser has not answered yet: nothing is counted until the microphone is allowed.
+  if (status === 'starting') return LIVE_NOTICE.waiting;
   return status === 'unsupported' ? LIVE_NOTICE.unsupported : LIVE_NOTICE.off;
 }
 
 export function initialSpeech(): SpeechState {
-  return { status: 'idle', wanted: false, interim: '', message: null };
+  return { status: 'idle', wanted: false, interim: '', message: null, ready: false };
 }
 
 /** Errors the browser reports during ordinary use; they change nothing. */
@@ -76,9 +93,9 @@ export function speechReducer(state: SpeechState, event: SpeechEvent): SpeechSta
       if (state.status === 'unsupported') return state;
       return event.on
         ? { ...state, wanted: true, status: 'starting', message: null }
-        : { ...state, wanted: false, status: 'idle', interim: '' };
+        : { ...state, wanted: false, status: 'idle', interim: '', ready: false };
     case 'started':
-      return state.wanted ? { ...state, status: 'listening' } : state;
+      return state.wanted ? { ...state, status: 'listening', ready: true } : state;
     case 'interim':
       return state.status === 'listening' ? { ...state, interim: event.text } : state;
     case 'accepted':
@@ -89,7 +106,7 @@ export function speechReducer(state: SpeechState, event: SpeechEvent): SpeechSta
       return { ...state, interim: '', status: state.wanted ? 'starting' : 'idle' };
     case 'error': {
       if (BENIGN.has(event.code)) return state;
-      const off = { ...state, wanted: false, interim: '' };
+      const off = { ...state, wanted: false, interim: '', ready: false };
       if (event.code === 'not-allowed' || event.code === 'service-not-allowed') {
         return { ...off, status: 'denied', message: MESSAGES.denied };
       }
@@ -107,7 +124,7 @@ export function shouldStart(state: SpeechState): boolean {
 
 const FILLER = /^(?:(?:um+|uh+|er+|erm+|hmm+|mm+)\b[,.]?\s*)+/i;
 
-/** Tidy what the recogniser heard: trim, collapse spaces, drop leading "um". */
+/** Tidy what the recognizer heard: trim, collapse spaces, drop leading "um". */
 export function cleanTranscript(raw: string): string {
   return raw.replace(/\s+/g, ' ').trim().replace(FILLER, '').trim();
 }

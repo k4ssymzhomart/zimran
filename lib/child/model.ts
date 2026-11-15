@@ -1,7 +1,7 @@
 /**
  * Simulated child. Deterministic: the same seed and the same parent moves give the same child.
  * It models cause and effect, not a body: each skill has its own effect.
- *   specific praise -> connection, and the named behaviour shows up more often
+ *   specific praise -> connection, and the named behavior shows up more often
  *   reflection      -> she talks more
  *   description     -> she stays with the toy
  *   question / command / criticism -> focus drops, tension rises

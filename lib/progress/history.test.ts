@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { CodedSentence, Code } from '../types';
 import { BUCKET } from '../types';
 import {
-  addCheckin, addDays, addSession, calmTrend, dayNumber, emptyProgress, masteryShare, parseProgress,
-  skillTrend, streak, type Progress,
+  addCheckin, addDays, addSession, calmTrend, dayNumber, emptyProgress, isEmptyResult, lastLever, masteryShare,
+  parseProgress, replaceSession, skillTrend, streak, weekOneAndFour, type Progress, type SessionRecord,
 } from './history';
 import { summarizeRound } from './targets';
 
@@ -93,6 +93,110 @@ describe('streak', () => {
     expect(streak(played(dates), '2026-11-14')).toEqual({ days: 12, freeDayUsed: true, activeToday: true });
     const close = run('2026-11-01', 14).filter((d) => d !== '2026-11-06' && d !== '2026-11-11');
     expect(streak(played(close), '2026-11-14').days).toBe(7);
+  });
+});
+
+describe('an empty session is not a session', () => {
+  const EMPTY = round({});
+  /** What an older build saved for "Start, then End round at once": zero counts over half the planned time. */
+  const oldEmptyRecord = (date: string): SessionRecord => ({ date, seconds: 150, counts: { ...EMPTY.counts }, met: false, mode: 'practice' });
+
+  it('tells an empty result from one with any coded sentence', () => {
+    expect(isEmptyResult(EMPTY)).toBe(true);
+    expect(isEmptyResult(oldEmptyRecord('2026-11-14'))).toBe(true);
+    for (const code of ['specific_praise', 'reflection', 'description', 'general_praise', 'neutral', 'question', 'command', 'criticism'] as Code[]) {
+      expect(isEmptyResult(round({ [code]: 1 })), code).toBe(false);
+    }
+  });
+
+  it('is not recorded and does not start the plan', () => {
+    const empty = emptyProgress();
+    expect(addSession(empty, EMPTY, '2026-11-14', 'practice')).toBe(empty);
+    const one = addSession(empty, EARLY, '2026-11-14', 'practice');
+    expect(addSession(one, EMPTY, '2026-11-15', 'live')).toBe(one);
+  });
+
+  it('is no day of the streak, even when an older build saved it', () => {
+    const onlyEmpty: Progress = { ...emptyProgress(), startDate: '2026-11-14', sessions: [oldEmptyRecord('2026-11-14')] };
+    expect(streak(parseProgress(onlyEmpty), '2026-11-14')).toEqual({ days: 0, freeDayUsed: false, activeToday: false });
+    const p = played(['2026-11-12', '2026-11-13']);
+    const withEmptyToday: Progress = { ...p, sessions: [...p.sessions, oldEmptyRecord('2026-11-14')] };
+    expect(streak(parseProgress(withEmptyToday), '2026-11-14')).toEqual({ days: 2, freeDayUsed: false, activeToday: false });
+  });
+
+  it('is never praised for staying within the clinic pace', () => {
+    const onlyEmpty: Progress = { ...emptyProgress(), startDate: '2026-11-14', sessions: [oldEmptyRecord('2026-11-14')] };
+    expect(masteryShare(onlyEmpty)).toEqual({ specific_praise: 0, reflection: 0, description: 0, avoidOk: false, overall: 0 });
+    expect(skillTrend(onlyEmpty)).toEqual([]);
+  });
+
+  it('does not hide the last real session from the mastery reading', () => {
+    const real = addSession(emptyProgress(), NORM, '2026-11-14', 'practice');
+    const p: Progress = { ...real, sessions: [...real.sessions, oldEmptyRecord('2026-11-15')] };
+    expect(masteryShare(p)).toEqual({ specific_praise: 1, reflection: 1, description: 1, avoidOk: true, overall: 1 });
+    expect(skillTrend(p).map((d) => d.date)).toEqual(['2026-11-14']);
+  });
+});
+
+describe('last session, biggest lever', () => {
+  it('is null before any counted session and after a session that met the pace', () => {
+    expect(lastLever(emptyProgress())).toBeNull();
+    expect(lastLever(addSession(emptyProgress(), NORM, '2026-11-14', 'practice'))).toBeNull();
+  });
+
+  it('is the lever the latest session ended with, the same one its result screen showed', () => {
+    const p = addSession(emptyProgress(), EARLY, '2026-11-14', 'practice');
+    expect(EARLY.lever).toBe('question');
+    expect(lastLever(p)).toEqual({
+      date: '2026-11-14',
+      lever: 'question',
+      name: 'turning questions into statements',
+      text: EARLY.leverText,
+      line: 'Last session your biggest lever was turning questions into statements.',
+    });
+  });
+
+  it('follows the latest day, and the last session of that day', () => {
+    const fewPraises = round({ specific_praise: 2, reflection: 10, description: 10 });
+    const fewReflections = round({ specific_praise: 10, reflection: 1, description: 10 });
+    let p = addSession(emptyProgress(), fewReflections, '2026-11-15', 'practice');
+    p = addSession(p, EARLY, '2026-11-14', 'practice');
+    expect(lastLever(p)?.lever).toBe('reflection');
+    p = addSession(p, fewPraises, '2026-11-15', 'practice');
+    expect(lastLever(p)).toMatchObject({ date: '2026-11-15', lever: 'specific_praise' });
+    expect(lastLever(addSession(p, NORM, '2026-11-16', 'practice'))).toBeNull();
+  });
+
+  it('never names reflections after live play, which does not count them', () => {
+    const live = { ...round({ specific_praise: 10, description: 4 }), lever: 'description' as const };
+    expect(lastLever(addSession(emptyProgress(), live, '2026-11-14', 'live'))?.lever).toBe('description');
+  });
+
+  it('works out the lever for a record saved before the lever was stored', () => {
+    const old = (r: ReturnType<typeof round>, mode: 'practice' | 'live'): Progress => ({
+      ...emptyProgress(),
+      startDate: '2026-11-14',
+      sessions: [{ date: '2026-11-14', seconds: r.seconds, counts: { ...r.counts }, met: r.met, mode }],
+    });
+    expect(lastLever(parseProgress(JSON.stringify(old(EARLY, 'practice'))))?.lever).toBe('question');
+    expect(lastLever(old(round({ specific_praise: 10, reflection: 1, description: 10 }), 'practice'))?.lever).toBe('reflection');
+    // Live: reflections were not counted, so the widest gap is looked for in the other two skills.
+    expect(lastLever(old(round({ specific_praise: 10, description: 4 }), 'live'))?.lever).toBe('description');
+    expect(lastLever(old(NORM, 'practice'))).toBeNull();
+  });
+
+  it('passes over an empty record', () => {
+    const p = addSession(emptyProgress(), EARLY, '2026-11-14', 'practice');
+    const withEmpty: Progress = { ...p, sessions: [...p.sessions, { ...p.sessions[0], date: '2026-11-15', counts: { ...round({}).counts } }] };
+    expect(lastLever(withEmpty)?.date).toBe('2026-11-14');
+  });
+
+  it('never scolds', () => {
+    for (const n of [{ question: 9 }, { command: 9 }, { criticism: 9 }, { description: 1 }, { reflection: 1, description: 10 }, { reflection: 10, description: 10 }]) {
+      const note = lastLever(addSession(emptyProgress(), round(n), '2026-11-14', 'practice'));
+      expect(note).not.toBeNull();
+      expect(`${note?.line} ${note?.text}`).not.toMatch(/\b(wrong|bad|mistake|should|don't|dont)\b/i);
+    }
   });
 });
 
@@ -197,6 +301,21 @@ describe('parseProgress', () => {
     expect(parseProgress(JSON.stringify(saved))).toEqual(saved);
   });
 
+  it('keeps the lever of a session, and still reads data saved before the lever was stored', () => {
+    const withLever = addSession(emptyProgress(), EARLY, '2026-11-14', 'practice');
+    expect(withLever.sessions[0].lever).toBe('question');
+    expect(parseProgress(JSON.stringify(withLever)).sessions[0].lever).toBe('question');
+    expect(saved.sessions[0].lever).toBeNull();
+    expect(parseProgress(JSON.stringify(saved)).sessions[0].lever).toBeNull();
+
+    const old = { ...saved, sessions: saved.sessions.map((s) => ({ date: s.date, seconds: s.seconds, counts: s.counts, met: s.met, mode: s.mode })) };
+    const parsed = parseProgress(JSON.stringify(old));
+    expect(parsed.sessions).toHaveLength(1);
+    expect('lever' in parsed.sessions[0]).toBe(false);
+    expect(parsed).toEqual(old);
+    expect(parseProgress({ ...saved, sessions: [{ ...saved.sessions[0], lever: 'everything' }] })).toEqual(emptyProgress());
+  });
+
   it('starts fresh on anything invalid', () => {
     const broken: unknown[] = [
       null, undefined, 42, 'not json', [], {},
@@ -208,5 +327,101 @@ describe('parseProgress', () => {
       { ...saved, checkins: [{ date: '2026-11-14', tantrums: 7 }] },
     ];
     for (const b of broken) expect(parseProgress(b)).toEqual(emptyProgress());
+  });
+});
+
+describe('replaceSession: a result changed after it was saved', () => {
+  const DAY = '2026-11-20';
+  const first = round({ description: 4, question: 3 });
+  const edited = round({ description: 4, question: 2 });
+
+  it('records the result when nothing was saved for it before', () => {
+    expect(replaceSession(emptyProgress(), null, first, DAY, 'practice')).toEqual(addSession(emptyProgress(), first, DAY, 'practice'));
+  });
+
+  it('replaces the record it wrote, and only that one', () => {
+    const other = addSession(played(['2026-11-14']), NORM, DAY, 'live');
+    const saved = replaceSession(other, null, first, DAY, 'practice');
+    const after = replaceSession(saved, first, edited, DAY, 'practice');
+    expect(after.sessions).toHaveLength(saved.sessions.length);
+    expect(after.sessions.slice(0, 2)).toEqual(other.sessions);
+    expect(after.sessions.at(-1)?.counts.question).toBe(2);
+    expect(after.startDate).toBe('2026-11-14');
+  });
+
+  it('takes the record out when every sentence was set aside, and puts it back when one counts again', () => {
+    const saved = replaceSession(emptyProgress(), null, first, DAY, 'practice');
+    const emptied = replaceSession(saved, first, round({}), DAY, 'practice');
+    expect(emptied.sessions).toHaveLength(0);
+    expect(streak(emptied, DAY).activeToday).toBe(false);
+    const back = replaceSession(emptied, round({}), edited, DAY, 'practice');
+    expect(back.sessions).toHaveLength(1);
+    expect(back.sessions[0].counts.question).toBe(2);
+  });
+
+  it('a first session emptied by "Disagree?" does not start the plan; counting it again does', () => {
+    const saved = replaceSession(emptyProgress(), null, first, DAY, 'practice');
+    expect(saved.startDate).toBe(DAY);
+    const emptied = replaceSession(saved, first, round({}), DAY, 'practice');
+    expect(emptied.startDate).toBeNull();
+    expect(dayNumber(emptied, addDays(DAY, 5))).toBe(1);
+    const back = replaceSession(emptied, round({}), edited, DAY, 'practice');
+    expect(back.startDate).toBe(DAY);
+    expect(dayNumber(back, addDays(DAY, 5))).toBe(6);
+    // With an earlier session still there, the plan keeps its first day.
+    const later = replaceSession(played(['2026-11-14']), null, first, DAY, 'practice');
+    expect(replaceSession(later, first, round({}), DAY, 'practice').startDate).toBe('2026-11-14');
+  });
+
+  it('touches nothing when the earlier record is no longer there', () => {
+    const elsewhere = played(['2026-11-14']);
+    expect(replaceSession(elsewhere, first, edited, DAY, 'practice')).toBe(elsewhere);
+  });
+
+  it('with two equal records on one day replaces one of them', () => {
+    const twice = addSession(addSession(emptyProgress(), first, DAY, 'practice'), first, DAY, 'practice');
+    const after = replaceSession(twice, first, edited, DAY, 'practice');
+    expect(after.sessions.map((s) => s.counts.question).sort()).toEqual([2, 3]);
+  });
+});
+
+describe('weekOneAndFour', () => {
+  const START = '2026-11-01';
+  const weak = round({ description: 2, question: 6 });
+  const strong = round({ specific_praise: 8, reflection: 6, description: 10, question: 1 });
+  const on = (p: Progress, offset: number, r = weak, mode: 'practice' | 'live' = 'practice') => addSession(p, r, addDays(START, offset), mode);
+
+  it('is null until both weeks have a full session with Mia', () => {
+    expect(weekOneAndFour(emptyProgress(), 150)).toBeNull();
+    expect(weekOneAndFour(on(on(emptyProgress(), 0), 3), 150)).toBeNull();
+    // Live play in week 4 is not a session with Mia.
+    expect(weekOneAndFour(on(on(emptyProgress(), 0), 24, strong, 'live'), 150)).toBeNull();
+  });
+
+  it('averages the days of each week on the five-minute scale', () => {
+    let p = on(on(emptyProgress(), 0), 2, round({ description: 4, question: 3 }));
+    p = on(on(p, 21, strong), 27, round({ specific_praise: 10, reflection: 10, description: 10 }));
+    expect(weekOneAndFour(p, 150)).toEqual({
+      first: { days: 2, specific_praise: 0, reflection: 0, description: 3, avoid: 4.5 },
+      fourth: { days: 2, specific_praise: 9, reflection: 8, description: 10, avoid: 0.5 },
+    });
+  });
+
+  it('leaves the short rounds of the first visit out, so they do not stand for week 1', () => {
+    // Day 1: the two short first-visit rounds only. Day 2: the first daily session.
+    let p = addSession(emptyProgress(), round({ description: 1 }, 60), START, 'practice');
+    p = addSession(p, round({ description: 2 }, 40), START, 'practice');
+    p = on(on(p, 1, round({ description: 6 })), 22, strong);
+    const weeks = weekOneAndFour(p, 150);
+    expect(weeks?.first).toEqual({ days: 1, specific_praise: 0, reflection: 0, description: 6, avoid: 0 });
+    expect(weeks?.fourth.days).toBe(1);
+  });
+
+  it('ignores days outside weeks 1 and 4', () => {
+    const p = on(on(on(on(emptyProgress(), 0), 10, strong), 21, strong), 30, weak);
+    const weeks = weekOneAndFour(p, 150);
+    expect(weeks?.first.days).toBe(1);
+    expect(weeks?.fourth.days).toBe(1);
+    expect(weeks?.fourth.description).toBe(10);
   });
 });
