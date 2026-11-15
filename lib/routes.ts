@@ -40,6 +40,8 @@ export const ROUTES = {
     calendar: '/api/calendar',
     /** The optional AI summary of one session (app/api/summary/route.ts), behind FEATURES.aiSummary. */
     summary: '/api/summary',
+    /** "Why?" next to one coded sentence (app/api/explain/route.ts), behind FEATURES.aiSummary. */
+    explain: '/api/explain',
   },
 
   /** The daily five minutes in the Split design (app/daily): the day, its three sentences, the round, the result. Needs access. */

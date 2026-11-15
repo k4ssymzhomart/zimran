@@ -133,7 +133,9 @@ one place a model is used is the optional AI summary of a session, off by defaul
 device sends that session's sentence text and the counts the rules already computed, and Claude puts them into
 words (`lib/ai/summary.ts`, `app/api/summary/route.ts`). It may also suggest what to say instead of a question or a
 command; a suggestion is shown only when the same rules code it as specific praise, a reflection or a description,
-so the model suggests and the rules decide. With the summary off, the only calls out from the server are to Stripe.
+so the model suggests and the rules decide. Behind the same switch, "Why this label?" next to a sentence asks Claude
+to say in plain words what made the rules give that label (`lib/ai/explain.ts`, `app/api/explain/route.ts`); the label
+never changes. With the switch off, the only calls out from the server are to Stripe.
 Voice input is optional and uses the browser's speech recognition, which in Chrome sends the audio to Google's
 speech service; PlayReps receives the text only and keeps no audio. Because the engine is pure and deterministic,
 the same sentences at the same moments give the same round every time. The product is a path, not a chat: a first

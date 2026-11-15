@@ -133,10 +133,44 @@ export function SessionReview({ session, previous }: SessionReviewProps) {
                 {shown.map((sentence, i) => {
                   // A rewrite the model suggested and the rules coded as a skill (lib/ai/summary.ts).
                   const rewrite = ai.rewriteFor(sentence.text);
+                  const why = ai.available && sentence.code !== 'unknown' ? ai.whyFor(sentence) : null;
                   return (
                     <li key={`${sentence.startSec}-${i}`}>
                       <TranscriptRow sentence={sentence} />
                       {rewrite && <RewriteCard text={rewrite} source="AI tip, checked by the rules" className="mb-[8px] ml-[46px]" />}
+                      {ai.available && sentence.code !== 'unknown' && (
+                        <div className="mb-[8px] ml-[46px] flex flex-col gap-[6px]">
+                          {why === null && (
+                            <button
+                              type="button"
+                              onClick={() => ai.askWhy(sentence)}
+                              className={cn('self-start rounded-[8px] py-[4px] text-label text-violet', focusRing)}
+                            >
+                              Why this label?
+                            </button>
+                          )}
+                          {why?.status === 'loading' && (
+                            <p role="status" className="text-small text-gray">
+                              Asking the AI…
+                            </p>
+                          )}
+                          {why?.status === 'error' && (
+                            <p role="status" className="text-small text-gray">
+                              {why.message}
+                            </p>
+                          )}
+                          {why?.status === 'done' && (
+                            <>
+                              <p className="rounded-[12px] bg-lilac px-[12px] py-[10px] text-small text-ink">
+                                <span className="font-semibold">Why: </span>
+                                {why.why}
+                                <span className="block pt-[4px] text-gray">Explained by AI. The label stays as the rules set it.</span>
+                              </p>
+                              {why.tryInstead && !rewrite && <RewriteCard text={why.tryInstead} source="AI tip, checked by the rules" />}
+                            </>
+                          )}
+                        </div>
+                      )}
                     </li>
                   );
                 })}
@@ -185,9 +219,9 @@ export function SessionReview({ session, previous }: SessionReviewProps) {
           <Sheet
             open={ai.phase === 'consent'}
             onClose={ai.decline}
-            title="Write an AI summary?"
+            title={ai.consentFor === 'why' ? 'Explain with AI?' : 'Write an AI summary?'}
             art={<Art name="sparkle" size={64} />}
-            primary={{ label: 'Write summary', onClick: ai.accept }}
+            primary={{ label: ai.consentFor === 'why' ? 'Explain' : 'Write summary', onClick: ai.accept }}
             secondary={{ label: 'Not now', onClick: ai.decline }}
           >
             <dl className="flex flex-col">
