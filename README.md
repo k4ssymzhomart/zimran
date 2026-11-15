@@ -25,10 +25,11 @@ No login. Everything you do is kept in this browser. The site carries its own ve
    moments, how often they happen (asked when a moment is picked), scene, when you play (with a calendar reminder);
    then your plan from your answers and the 28 days. The first answer is typed; in the rounds and the lesson you can
    also tap the microphone (voice works in Chrome and Edge).
-3. `/pricing`: the two plans and their price. No Stripe key is set for the hackathon, so no payment is taken:
-   "Continue" gives demo access at once, and `/unlocked` confirms it. With a Stripe test key on the server the same
-   button opens Stripe's test checkout instead (card `4242 4242 4242 4242`, any future date, any CVC), with "Jury:
-   unlock without paying (demo)" under it; `/jury` says which of the two the deployment runs.
+3. `/pricing`: the two plans and their price. "Continue" opens Stripe's checkout in test mode: card
+   `4242 4242 4242 4242`, any future date, any CVC, any name and ZIP. Stripe sends you back to `/unlocked`, which
+   asks the server whether the session was really paid before it gives access. "Jury: unlock without paying (demo)"
+   under the button skips the card. Without a Stripe key on the server, "Continue" gives demo access at once;
+   `/jury` says which of the two the deployment runs.
 4. `/today`: your plan day, your week and your last session. Empty until you have played. The other tabs are
    `/practice`, `/progress` and `/profile`.
 5. `/progress`: every session you played. Open one to read your sentences as they were coded.
@@ -57,8 +58,8 @@ No login. Everything you do is kept in this browser. The site carries its own ve
 **Not built yet**
 
 - Accounts: no login and no server database. Clearing this site's data erases your sessions.
-- Real payments: without a Stripe key no card is asked for and nothing is charged. With one, the three Stripe routes
-  accept only a test key, so no real card is charged.
+- Real payments: the live site uses a Stripe test key, and the three Stripe routes refuse any key that is not a
+  test key, so no real card is charged.
 - Measured renewal: the code takes no real payment, so no renewal has been measured. The renewal rates below are
   assumptions.
 - Results with real families: not measured. PlayReps has no real users yet.
