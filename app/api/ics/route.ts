@@ -26,7 +26,11 @@ export async function GET(req: Request) {
   const near = Number.isFinite(askedMs) && Math.abs(askedMs - Date.parse(`${serverDay}T00:00:00Z`)) <= 86_400_000;
   const stamp = now.toISOString().slice(0, 19).replace(/[-:]/g, '') + 'Z';
 
-  const body = buildCalendar({ anchor, today: near ? asked : serverDay, stamp, origin: url.origin });
+  // How many plan days are left; anything else falls back to the full 28 inside buildCalendar.
+  const asksDays = Number(url.searchParams.get('days'));
+  const days = Number.isFinite(asksDays) && asksDays >= 1 ? asksDays : undefined;
+
+  const body = buildCalendar({ anchor, today: near ? asked : serverDay, stamp, origin: url.origin, days });
   if (!body) return Response.json({ error: 'That reminder time is not available.' }, { status: 400 });
 
   return new Response(body, {

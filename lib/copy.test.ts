@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BUCKET, CALENDAR_LINK_TEXT, candidateTasks, CHANGE_TEXT, checkAnswer, coachPrompt, CRISIS_LINES, DEMO_LABEL, initialJourney,
+  BUCKET, CALENDAR_LINK_TEXT, CALM_PRAISE_TEXT, candidateTasks, CHANGE_TEXT, checkAnswer, coachPrompt, CRISIS_LINES, dayLesson, DEMO_LABEL, GOOGLE_CALENDAR_LINK_TEXT, initialJourney,
   journeyReducer, LABEL, lessonFor, LEVER_NAME, LEVER_TEXT, LISTENING_HINT, LIVE_NOTICE, MAX_TRIES, MESSAGES, MICRO_REACTION,
-  openerInsight, PLAN, planDay, REPEAT_NOTE, SAFETY_NOTE, SCENES, skillMix, type Code, type CodedSentence, type Lever,
+  openerInsight, PLAN, planDay, REPEAT_NOTE, SAFETY_NOTE, SCENES, SHORT_ROUND_NOTE, skillMix, TURN_CAP_NOTE, WAIT_OUT_TEXT, type Code, type CodedSentence, type Lever,
 } from './index';
 
 /**
@@ -18,7 +18,12 @@ const coded = (code: Code): CodedSentence => ({ text: 'x', code, bucket: BUCKET[
 /** What the product itself says to the parent. */
 function productVoice(): string[] {
   const out: string[] = [];
-  for (const d of [...PLAN, planDay(29)]) out.push(d.title, d.teaser, d.theme);
+  for (const d of [...PLAN, ...[29, 30, 31, 32, 33, 34, 35].map(planDay)]) out.push(d.title, d.teaser, d.theme);
+  out.push(WAIT_OUT_TEXT, CALM_PRAISE_TEXT, TURN_CAP_NOTE, SHORT_ROUND_NOTE, GOOGLE_CALENDAR_LINK_TEXT);
+  for (let day = 1; day <= 35; day++) {
+    const lesson = dayLesson(day);
+    out.push(lesson.idea, lesson.task.setup, lesson.task.hint);
+  }
   out.push(...Object.values(LEVER_TEXT), ...Object.values(LEVER_NAME), ...Object.values(CHANGE_TEXT), ...Object.values(LABEL));
   out.push(...Object.values(MICRO_REACTION), ...Object.values(MESSAGES), ...Object.values(LIVE_NOTICE), LISTENING_HINT);
   out.push(SAFETY_NOTE.headline, SAFETY_NOTE.body, ...CRISIS_LINES, REPEAT_NOTE, DEMO_LABEL, CALENDAR_LINK_TEXT);
