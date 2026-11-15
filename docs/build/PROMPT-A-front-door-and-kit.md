@@ -43,30 +43,26 @@ Not mine (developer B): `app/(app)/**`, `app/play/**`, `app/session/**`, `app/li
 `lib/coach/**`, `lib/speech/**`, `lib/demo/**`. `lib/types.ts` and `components/round/types.ts` are frozen for both.
 `lib/routes.ts` is append-only for both.
 
-## Step 0, before any redesign work: the safety net (20 minutes)
+## Step 0: the safety net (done, keep it alive)
 
-The repository has never been deployed, and without a live link the work is not scored at all. So the first thing is
-a production link that works, even in the old design.
+Production is live at **https://playreps.vercel.app** (Vercel project `playreps`), deployed from this branch. Every
+route answers. The Stripe test checkout is not set up yet: I add the test key myself (`STRIPE_SECRET_KEY`, it must
+start with `sk_test_`; never print it, never commit it). Until then the paywall says so and the jury link works.
 
-1. Run `npm run typecheck`, `npm test`, `npm run build` on the branch as it is.
-2. Deploy it to Vercel as the production deployment. I will log in and add the Stripe **test** secret key myself
-   when you ask (`STRIPE_SECRET_KEY`, it must start with `sk_test_`; never print it, never commit it). Ask me before
-   the first production deploy and before every push.
-3. Walk `/` → `/start` → `/play` → `/pricing` → pay with `4242 4242 4242 4242` → `/unlocked` in an incognito
-   window. Fix only what blocks the walk.
-4. Put the URL at the top of `README.md` with the line "Track: Skills".
+Rules for production from now on:
 
-From now on production changes only when a newer build has passed the same walk. The redesign goes to preview
-deployments until the freeze check.
+- It changes only when a newer build has passed `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` and
+  a walk of the jury path in an incognito window. The redesign goes to preview deployments until the freeze check.
+- Deploy from a clean checkout of a pushed commit, never from a working tree with uncommitted files:
+  `git worktree add --detach <dir> <commit>`, `vercel link --yes --project playreps` in it once, then
+  `vercel deploy --prod --yes` (without `--prod` for a preview).
+- Ask me before every production deploy and before every push to `main`. Pushing to `redesign/premium-ui` is fine.
 
-## Step 1: finish the kit (30 minutes at most)
+## Step 1: the kit (already checked against Figma)
 
-Developer B is blocked by every kit defect, so this comes before my own screens.
-
-Put `/kit` beside the Components page in Figma (holders `18:3`, `42:3`, `55:27`; patterns `73:63`, `73:1370`,
-`42:875`) at 390 and 1440. Fix every mismatch in size, radius, padding, type style, color and state. Add what is
-missing. Check that the three patterns tile cleanly and use `violet-tint`. When it matches, commit and tell B.
-Later kit requests from B (`// TODO kit`) take priority over my current screen when more than three are open.
+The kit was compared with the Components page component by component before you started, and an icon set
+(`Icon`) and the quiz age tile (`NumberTile`) were added. Open `/kit` to see it. Developer B is blocked by every kit
+defect, so a kit request from B (`// TODO kit`) takes priority over my current screen when more than three are open.
 
 ## Step 2: first priority, the path the jury walks
 

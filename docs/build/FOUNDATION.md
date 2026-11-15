@@ -11,7 +11,7 @@ them means the work is not scored.
 
 | Time | What is true |
 |---|---|
-| 07:15 | Foundation is committed and pushed. Both developers start. |
+| 07:20 | Foundation is committed and pushed, production is live at https://playreps.vercel.app. Both developers start. |
 | 08:30 | Checkpoint 1. Each developer's first-priority screens render on real data. Merge, preview deploy. |
 | 09:45 | Checkpoint 2. The whole jury path works in the preview in the new design. Second priority starts. |
 | 10:30 | **Freeze.** No new screens. Walk the path in an incognito window at 390 and 1440 and on a real iPhone. |

@@ -31,7 +31,7 @@ The first version of this plan had A build the kit while B waited for it. Instea
 
 | Time | What is true |
 |---|---|
-| 07:15 | Foundation is committed and pushed. Both developers start. A deploys the current build first, so a live link exists. |
+| 07:20 | Foundation is committed and pushed. Production is live at https://playreps.vercel.app. Both developers start. |
 | 08:30 | Checkpoint 1. Each developer's first-priority screens render on real data. Merge, preview deploy. |
 | 09:45 | Checkpoint 2. The whole jury path works in the preview in the new design. Second priority starts. |
 | 10:30 | Freeze. No new screens. Walk the path in an incognito window at 390 and 1440 and on a real iPhone. |
@@ -40,7 +40,7 @@ The first version of this plan had A build the kit while B waited for it. Instea
 
 ## Risks to watch
 
-1. **No live link.** Nothing has been deployed yet, and without a link the work is not scored. A's step 0 is a production deploy of the build as it is.
+1. **The live link must stay good.** Production is at https://playreps.vercel.app. It changes only when a newer build has passed every check and a walk of the jury path.
 2. **Two designs at once.** Old dark screens and new light screens can run side by side during the build, but must not ship together. At the freeze, anything still dark is rebuilt from the kit shells in ten minutes or removed from the navigation.
 3. **The session contract drifts.** Keep the save-and-load round-trip test and the v1 migration test green. The first thing the jury does after the first visit is reload.
 4. **The optional features eat the morning.** Recording and the AI summary are not on the jury path. They start only if everything else is done by 09:45.
