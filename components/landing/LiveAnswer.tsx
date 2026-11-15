@@ -87,9 +87,7 @@ export function LiveAnswer({ id = ANSWER_ID }: LiveAnswerProps) {
       <h2 className="text-title lg:text-title-xl">Say one thing to {child.name}.</h2>
 
       {/* Under 360px the card and the panel keep 8px at the sides, so the field has room for its own words. */}
-      <div
-        className="relative flex flex-col gap-[12px] overflow-clip rounded-[28px] bg-violet px-[14px] pt-[18px] pb-[14px] text-white max-[360px]:px-[8px] lg:min-h-[440px] lg:flex-row lg:items-center lg:gap-[44px] lg:rounded-[32px] lg:py-0 lg:pr-[40px] lg:pl-[48px]"
-      >
+      <div className="relative flex flex-col gap-[12px] overflow-clip rounded-[28px] bg-violet px-[14px] pt-[18px] pb-[14px] text-white max-[360px]:px-[8px] lg:min-h-[440px] lg:flex-row lg:items-center lg:gap-[44px] lg:rounded-[32px] lg:py-0 lg:pr-[40px] lg:pl-[48px]">
         <Pattern kind="sentences" className="[--pattern-size:864px] lg:[--pattern-size:1440px]" />
 
         {/* The child and her line: beside the portrait on phones, above it from 1024px. */}

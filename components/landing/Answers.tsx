@@ -1,8 +1,9 @@
 'use client';
 
 import { useId, useState, type ReactNode } from 'react';
-// The helpers come from their own file, so this client component does not pull the whole kit into the browser.
+// The helpers and the icon come from their own files, so this client component does not pull the whole kit into the browser.
 import { cn, focusRing } from '@/components/kit/cn';
+import { Icon } from '@/components/kit/Icon';
 import { FEATURES } from '@/lib/features';
 import { Section } from './Section';
 
@@ -87,24 +88,17 @@ const ANSWERS: Answer[] = [
   },
 ];
 
-// TODO kit: the accordion chevron, until the kit has an icon set. 20px on phones, 24px from 1024px.
+/**
+ * The chevron of a question: 20px on phones, 24px from 1024px, turned over while its answer is open.
+ * The kit's icon keeps its stroke at the size it is given, so each size is its own icon and the breakpoint shows one.
+ */
 function Chevron({ open }: { open: boolean }) {
+  const turn = cn('text-faint transition-[rotate] duration-quick ease-out-quint motion-reduce:transition-none', open && 'rotate-180');
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={cn(
-        'size-[20px] shrink-0 text-faint transition-[rotate] duration-quick ease-out-quint motion-reduce:transition-none lg:size-[24px]',
-        open && 'rotate-180',
-      )}
-    >
-      <path d="M6 9l6 6 6-6" vectorEffect="non-scaling-stroke" />
-    </svg>
+    <>
+      <Icon name="chevron-down" size={20} className={cn('lg:hidden', turn)} />
+      <Icon name="chevron-down" size={24} className={cn('max-lg:hidden', turn)} />
+    </>
   );
 }
 

@@ -35,6 +35,20 @@ const WEEKS = [...new Set(PLAN.map((day) => day.week))].map((week) => {
   return { week, title: days[0].title, days: days.map((day) => day.day) };
 });
 
+/**
+ * The title of a week, said about the chosen partner. The plan is written about Mia, and forChild rewrites it:
+ * "her" becomes "his" before a noun from its own list and "him" before anything else, so a title with a noun
+ * it has not met would read "Be him sportscaster". In a week title "her" before a word is the thing that is
+ * hers ("her lead", "her words"), so it is settled here. After "let" she is the one acting; forChild keeps that rule.
+ */
+function weekTitle(title: string, partner: PartnerId): string {
+  if (partner === 'mia') return title;
+  const hers = title.replace(/\b([Hh])er\b(?=\s+\S)/g, (match: string, h: string, offset: number) =>
+    /\blet\s+$/i.test(title.slice(0, offset)) ? match : `${h}is`,
+  );
+  return forChild(hers, partner);
+}
+
 /** A white card with a gray caption from 1024px. On phones the choices sit on the page and the caption is for screen readers. */
 const CARD = 'flex flex-col lg:min-w-0 lg:flex-1 lg:gap-[16px] lg:rounded-[28px] lg:bg-white lg:p-[24px]';
 const CAPTION = 'text-label text-gray max-lg:sr-only';
@@ -185,7 +199,7 @@ export function PlanBuilder() {
             <li key={week} className="flex min-w-0 flex-col gap-[6px] lg:gap-[10px]">
               <p className="flex flex-col">
                 <span className="text-small text-gray max-lg:hidden">Week {week}</span>
-                <span className="text-small-strong text-gray lg:text-body-strong lg:text-ink">{forChild(title, partner)}</span>
+                <span className="text-small-strong text-gray lg:text-body-strong lg:text-ink">{weekTitle(title, partner)}</span>
                 <span className="sr-only">
                   Days {days[0]} to {days[days.length - 1]}
                 </span>

@@ -1,5 +1,5 @@
 import type { PlanId } from '@/client/entitlement';
-import { Button, Pattern, Tag, cn, type ButtonVariant } from '@/components/kit';
+import { Button, Icon, Pattern, Tag, cn, type ButtonVariant } from '@/components/kit';
 import { ROUTES } from '@/lib/routes';
 import { ANSWER_HREF } from './anchors';
 import { Section } from './Section';
@@ -56,21 +56,16 @@ const PLANS: Plan[] = [
   },
 ];
 
-// TODO kit: the check mark of a plan line, until the kit has an icon set. 18px on phones, 20px from 1024px.
+/**
+ * The check mark of a plan line: 18px on phones, 20px from 1024px. The kit's icon keeps its stroke at the size
+ * it is given, so each size is its own icon and the breakpoint shows one of them.
+ */
 function Check({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={cn('size-[18px] shrink-0 lg:size-[20px]', className)}
-    >
-      <path d="M5 12.5l4.2 4.2L19 7" vectorEffect="non-scaling-stroke" />
-    </svg>
+    <>
+      <Icon name="check" size={18} className={cn('lg:hidden', className)} />
+      <Icon name="check" size={20} className={cn('max-lg:hidden', className)} />
+    </>
   );
 }
 
