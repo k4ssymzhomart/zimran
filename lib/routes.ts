@@ -44,6 +44,10 @@ export const ROUTES = {
   dailySession: '/daily',
   /** A free one-minute practice round in the Split design (app/round), for the Practice tab. */
   practiceRound: '/round',
+  /** This month's days of play and the free day (Figma story 9). A pushed screen with its own way back. */
+  streak: '/streak',
+  /** The week in numbers, and the 28 days once they are played (Figma story 13). */
+  week: '/week',
 } as const;
 
 /** The four tab roots, in bar order. `art` names the icon pair in public/art: tab-{art}.png and tab-{art}-off.png. */

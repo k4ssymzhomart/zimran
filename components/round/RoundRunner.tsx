@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { RoundStage } from '@/components/RoundStage';
+import { SplitRoundStage } from '@/components/first/round/SplitRoundStage';
 import { useRound } from '@/hooks/useRound';
 import { noopRecorder } from './noopRecorder';
 import type { RoundStageProps } from './types';
@@ -15,7 +15,7 @@ import { useRoundRecorder } from './useRoundRecorder';
  * Mounting it starts the round, and `onDone` is called once when the round is over. The props describe that
  * one round and are read when it starts: for another round, mount it again (a new `key`).
  */
-export function RoundRunner({ mode, sceneId, durationSec, seed = 1, title = '', recorder = noopRecorder, onDone }: RoundStageProps) {
+export function RoundRunner({ mode, sceneId, partner, durationSec, seed = 1, title = '', guess = null, recorder = noopRecorder, onDone }: RoundStageProps) {
   const round = useRound();
   const { start, done } = round;
   const { begin, finish } = useRoundRecorder(recorder);
@@ -38,9 +38,11 @@ export function RoundRunner({ mode, sceneId, durationSec, seed = 1, title = '', 
     void finish().then((audioId) => onDone(audioId ? { ...done, audioId } : done));
   }, [done, finish, onDone]);
 
-  // Nothing to show for the one frame before the engine has started.
-  if (round.state.phase === 'idle') return null;
-
-  // The visuals. A new stage goes here; it also gets `partner` and `guess` from the props.
-  return <RoundStage round={round} title={title} live={live} />;
+  // The round screen of the Split design, the same one the first visit plays. White from the first frame:
+  // the engine starts one frame after the screen mounts, and the stage comes with it.
+  return (
+    <div className="split-root">
+      {round.state.phase !== 'idle' && <SplitRoundStage round={round} partner={partner} title={title} live={live} guess={guess} />}
+    </div>
+  );
 }
