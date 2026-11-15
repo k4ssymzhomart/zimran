@@ -3,11 +3,12 @@
  * Everything here is pure: no clock, no storage, no network. The route app/api/calendar/route.ts serves the file
  * and the sheet components/first/CalendarSheet.tsx links to it.
  */
+import { ROUTES } from '../routes';
 import { addDays } from './history';
 import { PLAN_DAYS } from './plan';
 
-/** Where the file is served. TODO routes: this belongs in lib/routes.ts as ROUTES.api.calendar. */
-export const CALENDAR_PATH = '/api/calendar';
+/** Where the file is served. */
+export const CALENDAR_PATH = ROUTES.api.calendar;
 
 /** The length of the daily session the reminder is for. */
 export const REMINDER_MINUTES = 5;

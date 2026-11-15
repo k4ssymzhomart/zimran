@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { saveFirstAnswer } from '@/client/firstAnswer';
 import { CHILDREN, forChild } from '@/components/child';
 import { Button, Chip, Composer, Divider, Pattern, Portrait, Tag, type TagTone } from '@/components/kit';
@@ -10,6 +10,7 @@ import { initialJourney, openerInsight } from '@/lib/flow/journey';
 import { countCodes } from '@/lib/progress/targets';
 import { ROUTES } from '@/lib/routes';
 import { BUCKET, LABEL, type Bucket, type CodedSentence, type PartnerId } from '@/lib/types';
+import { ANSWER_ID } from './anchors';
 import { Section } from './Section';
 
 /** The landing answers Mia, as drawn. The first visit asks who to practice with. */
@@ -34,11 +35,13 @@ function describe({ text, coded }: Reading) {
   const insight = openerInsight(coded);
   // The sentence the line is about is the engine's own pick: ask it about each sentence alone.
   const code = coded.find((sentence) => openerInsight([sentence]) === insight)?.code ?? 'unknown';
+  const bucket = BUCKET[code];
   const counts = countCodes(coded);
   return {
     text,
-    label: LABEL[code],
-    tone: TONE[BUCKET[code]],
+    // A sentence to swap says so, as it does on every screen of the product.
+    label: bucket === 'avoid' ? `${LABEL[code]}, to swap` : LABEL[code],
+    tone: TONE[bucket],
     line: forChild(insight.headline, PARTNER),
     tallies: [
       { label: 'Praise', value: counts.specific_praise, skill: true },
@@ -58,29 +61,16 @@ export interface LiveAnswerProps {
  * Section 2 of the landing (Figma 66:1282 on phones, 63:252 from 1024px). Mia says her first line and the
  * visitor answers in their own words. The rules in lib/coding read the sentence on the spot, and the one
  * action carries it into the first visit, so nobody types it twice.
+ * "Try one answer" anywhere on the page leads here; InPageLinks scrolls to it and lands in the field.
  */
-export function LiveAnswer({ id = 'answer' }: LiveAnswerProps) {
+export function LiveAnswer({ id = ANSWER_ID }: LiveAnswerProps) {
   const child = CHILDREN[PARTNER];
   const [value, setValue] = useState('');
   const [reading, setReading] = useState<Reading | null>(null);
-  const card = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
 
   // A reading belongs to the sentence in the field. Once the visitor edits the sentence, it steps aside.
   const shown = reading !== null && reading.text === value.trim() ? describe(reading) : null;
-
-  // "Try one answer" anywhere on the page scrolls here. With a mouse or a keyboard it also lands in the field,
-  // ready to type; on a touch screen the keyboard would cover the section the visitor just arrived at.
-  useEffect(() => {
-    function onClick(event: MouseEvent) {
-      const link = event.target instanceof Element ? event.target.closest('a') : null;
-      if (!link?.getAttribute('href')?.endsWith(`#${id}`)) return;
-      if (!window.matchMedia('(pointer: fine)').matches) return;
-      card.current?.querySelector('input')?.focus({ preventScroll: true });
-    }
-    document.addEventListener('click', onClick);
-    return () => document.removeEventListener('click', onClick);
-  }, [id]);
 
   function read(text: string) {
     setValue(text);
@@ -96,9 +86,9 @@ export function LiveAnswer({ id = 'answer' }: LiveAnswerProps) {
     <Section id={id}>
       <h2 className="text-title lg:text-title-xl">Say one thing to {child.name}.</h2>
 
+      {/* Under 360px the card and the panel keep 8px at the sides, so the field has room for its own words. */}
       <div
-        ref={card}
-        className="relative flex flex-col gap-[12px] overflow-clip rounded-[28px] bg-violet px-[14px] pt-[18px] pb-[14px] text-white lg:min-h-[440px] lg:flex-row lg:items-center lg:gap-[44px] lg:rounded-[32px] lg:py-0 lg:pr-[40px] lg:pl-[48px]"
+        className="relative flex flex-col gap-[12px] overflow-clip rounded-[28px] bg-violet px-[14px] pt-[18px] pb-[14px] text-white max-[360px]:px-[8px] lg:min-h-[440px] lg:flex-row lg:items-center lg:gap-[44px] lg:rounded-[32px] lg:py-0 lg:pr-[40px] lg:pl-[48px]"
       >
         <Pattern kind="sentences" className="[--pattern-size:864px] lg:[--pattern-size:1440px]" />
 
@@ -113,9 +103,15 @@ export function LiveAnswer({ id = 'answer' }: LiveAnswerProps) {
 
         <div
           ref={panel}
-          className="relative flex flex-col gap-[12px] rounded-[22px] bg-white p-[14px] text-ink lg:my-[20px] lg:min-w-0 lg:flex-1 lg:gap-[18px] lg:rounded-[28px] lg:p-[28px]"
+          className="relative flex flex-col gap-[12px] rounded-[22px] bg-white p-[14px] text-ink max-[360px]:px-[8px] lg:my-[20px] lg:min-w-0 lg:flex-1 lg:gap-[18px] lg:rounded-[28px] lg:p-[28px]"
         >
-          <Composer value={value} onChange={setValue} onSubmit={read} placeholder={`Say something to ${child.name}`} />
+          <Composer
+            value={value}
+            onChange={setValue}
+            onSubmit={read}
+            placeholder={`Say something to ${child.name}`}
+            className="max-[360px]:[&_input]:placeholder:text-label"
+          />
 
           {/* TODO kit: a chip that is 38px tall and lilac while its sentence is the one that was read. */}
           <ul aria-label="Sentences to try" className="hidden flex-wrap gap-[8px] lg:flex">

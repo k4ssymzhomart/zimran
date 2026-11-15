@@ -35,10 +35,11 @@ function takeFocus(heading: HTMLElement | null) {
  * which week is now, and the plan's own line about tomorrow, which is the teaser of the day that is done.
  * This screen is given no results, so the share of the clinic pace and the pace cards of 49:1651 are not here.
  *
- * The frame also draws a quiet "Unlock daily sessions" under the pill. The flow gives this screen one way on, so
- * there is one control.
+ * The two actions are the two of the frame, and each leads where it says: "Open my plan" to the plan itself
+ * (`onOpenPlan`), the quiet "Unlock daily sessions" to the plans and their price (`onNext`). A flow that has only
+ * the way to the plans passes no `onOpenPlan`, and the screen then has that one control.
  */
-export function PlanResult({ partner, anchor, day, onNext }: PlanResultProps) {
+export function PlanResult({ partner, anchor, day, onNext, onOpenPlan }: PlanResultProps) {
   const done = Number.isFinite(day) ? Math.min(PLAN_DAYS, Math.max(1, Math.floor(day))) : 1;
   const today = planDay(done);
   const next = comingUp(forChild(today.teaser, partner));
@@ -50,9 +51,21 @@ export function PlanResult({ partner, anchor, day, onNext }: PlanResultProps) {
       pattern={<Pattern kind="bars" size={1440} className="hidden lg:block" />}
       picture={<Art name="plan" size={320} priority className="size-[170px] lg:size-[min(320px,43dvh)]" />}
       action={
-        <Button fullWidth onClick={onNext}>
-          Open my plan
-        </Button>
+        onOpenPlan ? (
+          // 4px between the pill and the quiet action, as drawn (24:568, 32:272).
+          <div className="flex flex-col gap-[4px]">
+            <Button fullWidth onClick={onOpenPlan}>
+              Open my plan
+            </Button>
+            <Button variant="ghost" fullWidth onClick={onNext}>
+              Unlock daily sessions
+            </Button>
+          </div>
+        ) : (
+          <Button fullWidth onClick={onNext}>
+            Open my plan
+          </Button>
+        )
       }
     >
       <div className="flex flex-col gap-[12px] pt-[4px] lg:pt-0">

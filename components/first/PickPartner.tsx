@@ -2,10 +2,9 @@
 
 import type { KeyboardEvent } from 'react';
 import { CHILDREN } from '@/components/child';
-import { Chip, Icon, IconButton, Pattern, Portrait, cn, focusRing } from '@/components/kit';
+import { Chip, Icon, IconButton, Pattern, Portrait, QuizProgress, cn, focusRing } from '@/components/kit';
 import type { PartnerId } from '@/lib/types';
 import type { PickPartnerProps } from './types';
-import { useWayBack } from './useWayBack';
 
 const PARTNERS: readonly PartnerId[] = ['mia', 'leo'];
 
@@ -25,24 +24,25 @@ function moveFocus(event: KeyboardEvent<HTMLButtonElement>) {
  * Who to practice with: Mia or Leo, one tap picks and moves on.
  * Phones are Figma 49:1316 (a violet top row, the cards stacked, the tag on each card); from 1024px it is 32:74
  * (a white top row, the cards side by side). The words are the words of each frame.
- * The props carry no step of the quiz, so the progress segments of 49:1336 are not drawn.
+ * The progress segments are on the violet row of the phone frame (49:1336); the desktop frame draws the arrow alone.
  */
-export function PickPartner({ value, onPick }: PickPartnerProps) {
-  const back = useWayBack();
-
+export function PickPartner({ value, onPick, step, steps, onBack }: PickPartnerProps) {
   return (
     <div className="split-root flex flex-col">
       <div className="relative shrink-0 overflow-clip bg-violet pt-[env(safe-area-inset-top)] lg:bg-white">
         <Pattern kind="reps" className="lg:hidden" />
-        <div className="relative flex h-[44px] items-center pl-[12px] pr-[24px] lg:h-[80px] lg:px-[28px]">
-          <IconButton
-            label="Back"
-            variant="on-violet"
-            onClick={back}
-            className="lg:text-ink lg:focus-visible:outline-violet lg:active:bg-line"
-          >
-            <Icon name="back" />
-          </IconButton>
+        <div className="relative flex h-[44px] items-center gap-[6px] pl-[12px] pr-[24px] lg:h-[80px] lg:px-[28px]">
+          {onBack && (
+            <IconButton
+              label="Back"
+              variant="on-violet"
+              onClick={onBack}
+              className="lg:text-ink lg:focus-visible:outline-violet lg:active:bg-line"
+            >
+              <Icon name="back" />
+            </IconButton>
+          )}
+          {step !== undefined && steps !== undefined && <QuizProgress steps={steps} current={step} className="min-w-0 flex-1 lg:hidden" />}
         </div>
         <div className="h-[10px] lg:hidden" />
       </div>

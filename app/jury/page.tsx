@@ -1,244 +1,162 @@
-'use client';
-
+import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Shell } from '@/components/Bits';
-import { ArrowRight, ChevronRight } from '@/components/Icons';
-import { Rings } from '@/components/Rings';
-import { Pill } from '@/components/ui';
+import type { ReactNode } from 'react';
+import {
+  NOT_AFFILIATED,
+  NOT_THERAPY,
+  NUMBERS,
+  REAL,
+  REAL_LINE,
+  SIMULATED,
+  THERAPIST_LINK,
+  TRIALS,
+  notBuilt,
+  steps,
+  type Checkout,
+  type Fact,
+} from '@/components/jury/guide';
+import { WayBack } from '@/components/jury/WayBack';
+import { Button, cn, focusRing } from '@/components/kit';
+import { ROUTES } from '@/lib/routes';
 
-/**
- * The jury guide: what to click in three minutes, what to type to test the rules,
- * and which parts are real. Static text only; every number here is also in the README.
- */
-
-const PATH: { href: string; label: string; beta?: boolean; text: React.ReactNode }[] = [
-  { href: '/', label: 'Landing page', text: 'One button, “Start practising”.' },
-  { href: '/start', label: 'Pick Mia or Leo', text: 'Choose a simulated girl or boy, then answer in your own words.' },
-  {
-    href: '/play',
-    label: 'Play',
-    text: 'A 60-second round, a 30-second lesson, a second round, and the before and after. Type, or tap the microphone in Chrome or Edge.',
-  },
-  { href: '/dashboard', label: 'Dashboard', text: 'The plan, the streak, the calm check-in and the 28-day demo.' },
-  {
-    href: '/pricing',
-    label: 'Pricing',
-    text: (
-      <>
-        The paywall and the Stripe test checkout.
-        <span className="mt-1 block">
-          Test card <Code>4242 4242 4242 4242</Code>, any future date, any CVC.
-        </span>
-      </>
-    ),
-  },
-  {
-    href: '/live',
-    label: 'Live',
-    beta: true,
-    text: 'Optional. Five minutes with your own child, spoken aloud. Needs Chrome or Edge and a microphone.',
-  },
-];
-
-const TRY: { say: React.ReactNode; expect: string }[] = [
-  { say: '“What are you building?”', expect: 'A question. It goes to the “to swap” tray.' },
-  { say: '“Put it here.”', expect: 'A command. Also in the “to swap” tray.' },
-  {
-    say: 'Her words back, like “You made a tower!”',
-    expect: 'A reflection only right after she speaks. At any other moment the same words are a description.',
-  },
-  {
-    say: '“Good job!”, then “Good job stacking so gently”',
-    expect: 'The first is general praise. The second is specific praise, and in the simulation it makes gentle play more likely.',
-  },
-  {
-    say: '“Какая красивая башня”',
-    expect:
-      'A sentence in another script is not counted: it shows as “Not coded”. Another language typed in Latin letters is read by the English rules, usually as neutral talk; a question mark still makes it a question.',
-  },
-  {
-    say: 'The “Disagree?” link',
-    expect:
-      'It sits next to your last three sentences during a round and next to every sentence in the round 1 result, and takes that sentence out of the count.',
-  },
-];
-
-const REAL: { what: string; where: string }[] = [
-  { what: 'The coding of every sentence. Rules, no LLM.', where: 'lib/coding/classify.ts' },
-  { what: 'The child’s reactions, computed from your moves.', where: 'lib/child/model.ts' },
-  { what: 'The clinic pace and the results.', where: 'lib/progress/targets.ts' },
-  { what: 'The round, as a pure reducer.', where: 'lib/round/session.ts' },
-  { what: 'The first visit, as a pure state machine.', where: 'lib/flow/journey.ts' },
-  { what: 'Which spoken transcripts are passed on to the round.', where: 'lib/speech/speech.ts' },
-  { what: 'The Stripe test checkout, confirmed on the server.', where: 'app/api/entitlement/route.ts' },
-];
-
-/** The clinic norm for five minutes, drawn with the same rings a round uses. */
-const NORM = {
-  specific_praise: { count: 10, target: 10 },
-  reflection: { count: 10, target: 10 },
-  description: { count: 10, target: 10 },
-  avoid: { count: 3, max: 3 },
+export const metadata: Metadata = {
+  title: 'Jury guide: PlayReps in three minutes',
+  description: 'The three-minute path through PlayReps, what is real, what is simulated, what is not built, and how to try to break it.',
 };
 
-function Code({ children }: { children: React.ReactNode }) {
-  return (
-    <code className="inline-block whitespace-nowrap rounded-md bg-surface-2 px-1.5 py-0.5 font-mono text-[12.5px] leading-tight text-fg-2">
-      {children}
-    </code>
-  );
-}
+/** The guide is white from the top edge; the root layout sets the violet of the Split screens. */
+export const viewport: Viewport = { themeColor: 'white' };
 
-function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+/** One part of the guide under its heading. */
+function Part({ id, title, className, children }: { id: string; title: string; className?: string; children: ReactNode }) {
   return (
-    <section aria-labelledby={id} className="card enter p-5 sm:p-7">
-      <h2 id={id} className="text-[20px] font-bold leading-tight tracking-[-0.025em] text-fg text-balance sm:text-[22px]">
+    <section aria-labelledby={id} className={cn('flex flex-col', className)}>
+      <h2 id={id} className="text-heading">
         {title}
       </h2>
-      <div className="mt-4 text-[15px] leading-[1.55] text-fg-2">{children}</div>
+      {children}
     </section>
   );
 }
 
-export default function JuryPage() {
-  // Same wrapper as every page: a link back here starts the page fresh.
-  const { bfcacheId } = useRouter();
-  return <Guide key={bfcacheId} />;
+/** A list of statements: the thing in ink, what is true of it in gray under it (Figma 27:1032). */
+function Facts({ items }: { items: readonly Fact[] }) {
+  return (
+    <ul role="list" className="flex flex-col gap-[4px]">
+      {items.map((item) => (
+        <li key={item.title} className="flex flex-col gap-[2px] py-[10px]">
+          <p className="text-body-strong">{item.title}</p>
+          <p className="text-label text-pretty text-gray">{item.detail}</p>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
-function Guide() {
-  return (
-    <Shell wide>
-      <h1 className="title enter text-[32px] text-fg sm:text-[40px]">Jury guide</h1>
-      <p className="lede enter d1 mt-2">No login. Everything below is one tap away.</p>
+/**
+ * The jury guide (Figma 27:973 on phones, 33:315 from 1024px): the path to walk in three minutes, what to type to
+ * test the rules, and which parts are real. It is a page of statements, with no data of anyone on it; every word is
+ * in components/jury/guide.ts, and the statements about the rules are run against the engine in its test.
+ *
+ * Phones read one column in the order of the frame. From 1024px the page is three columns: the path with what is
+ * not built under it, the ways to break it, the numbers with what is real and what is simulated.
+ */
+export default function JuryPage() {
+  // The same rule as app/pricing/page.tsx, so the guide describes the paywall this deployment really has.
+  const checkout: Checkout = process.env.STRIPE_SECRET_KEY ? 'stripe' : 'demo';
 
-      <div className="mt-7 space-y-4 sm:space-y-5">
-        <Section id="path" title="Three minutes">
-          <ol className="-mx-2">
-            {PATH.map((step, i) => (
-              <li key={step.href} className="group relative flex gap-3.5 rounded-2xl px-2 py-3 transition-colors hover:bg-surface-2">
-                <span
-                  aria-hidden="true"
-                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-violet/16 text-[14px] font-bold tabular-nums text-lilac"
-                >
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="flex min-h-7 flex-wrap items-center gap-x-2 gap-y-1">
+  return (
+    <div className="split-root flex flex-col pt-[env(safe-area-inset-top)]">
+      <div className="mx-auto flex w-full max-w-[640px] flex-1 flex-col lg:max-w-[1440px]">
+        <div className="flex h-[44px] shrink-0 items-center justify-between px-[12px] lg:h-[88px] lg:pl-[4px] lg:pr-[40px] xl:pl-[28px] xl:pr-[56px]">
+          <WayBack />
+          <div className="hidden lg:block">
+            <Button href={ROUTES.start} className="w-[160px]">
+              Start
+            </Button>
+          </div>
+        </div>
+
+        <main className="flex flex-1 flex-col px-[24px] pt-[12px] lg:px-[40px] lg:pt-0 xl:px-[64px]">
+          <h1 className="text-display lg:text-display-xl">Jury guide</h1>
+
+          <div className="flex flex-1 flex-col gap-[36px] pt-[36px] lg:grid lg:grid-cols-3 lg:grid-rows-[auto_1fr] lg:gap-x-[40px] lg:pt-[44px] xl:gap-x-[72px]">
+            <Part id="path" title="Three minutes" className="gap-[4px] lg:col-start-1 lg:row-start-1">
+              <ol role="list" className="flex flex-col gap-[4px]">
+                {steps(checkout).map((step, i) => (
+                  <li key={step.href} className={cn(i > 0 && 'border-t border-line pt-[4px]')}>
                     <Link
                       href={step.href}
-                      className="font-semibold text-fg after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none focus-visible:after:outline-3 focus-visible:after:outline-violet/50"
+                      className={cn(
+                        'grid min-h-[48px] grid-cols-[16px_minmax(0,1fr)_auto] items-baseline gap-x-[12px] gap-y-[2px] rounded-[8px] py-[12px]',
+                        focusRing,
+                      )}
                     >
-                      {step.label}
+                      <span aria-hidden="true" className="text-body-strong text-violet">
+                        {i + 1}
+                      </span>
+                      <span className="text-body">{step.label}</span>
+                      <span className="text-label text-faint">{step.href}</span>
+                      <span className="col-span-2 col-start-2 text-label text-pretty text-gray">{step.detail}</span>
                     </Link>
-                    <Code>{step.href}</Code>
-                    {step.beta && <Pill>Beta</Pill>}
-                    <ChevronRight size={18} className="ml-auto shrink-0 text-fg-faint transition-colors group-hover:text-lilac" />
-                  </p>
-                  <p className="mt-0.5 text-fg-soft">{step.text}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </Section>
+                  </li>
+                ))}
+              </ol>
+            </Part>
 
-        <Section id="try" title="Try to break it">
-          <ul className="divide-y divide-stroke">
-            {TRY.map((t, i) => (
-              <li key={i} className="py-3.5 first:pt-0 last:pb-0">
-                <p className="font-semibold text-fg">{t.say}</p>
-                <p className="mt-1 text-fg-soft">{t.expect}</p>
-              </li>
-            ))}
-          </ul>
-        </Section>
+            <Part id="break" title="Try to break it" className="gap-[4px] lg:col-start-2 lg:row-span-2 lg:row-start-1">
+              <Facts items={TRIALS} />
+            </Part>
 
-        <Section id="real" title="What is real and what is simulated">
-          <h3>
-            <Pill tone="mint">Real</Pill>
-          </h3>
-          <ul className="mt-2 divide-y divide-stroke">
-            {REAL.map((r) => (
-              <li key={r.where} className="py-2.5 sm:flex sm:items-baseline sm:justify-between sm:gap-4">
-                <p>{r.what}</p>
-                <p className="mt-1 shrink-0 sm:mt-0">
-                  <Code>{r.where}</Code>
-                </p>
-              </li>
-            ))}
-          </ul>
+            <div className="flex flex-col gap-[36px] lg:col-start-3 lg:row-span-2 lg:row-start-1">
+              <Part id="numbers" title="Numbers" className="gap-[14px]">
+                <ul role="list" className="flex flex-col gap-[14px]">
+                  {NUMBERS.map((figure) => (
+                    <li key={figure.value}>
+                      <p className="text-title">{figure.value}</p>
+                      <p className="text-body text-pretty text-gray">{figure.caption}</p>
+                    </li>
+                  ))}
+                </ul>
+              </Part>
 
-          <h3 className="mt-6">
-            <Pill tone="dark">Simulated, and labelled</Pill>
-          </h3>
-          <ul className="mt-2 divide-y divide-stroke">
-            <li className="py-2.5">Mia and Leo themselves. They are practice partners, not real children.</li>
-            <li className="py-2.5">The 28-day demo family on the dashboard.</li>
-          </ul>
+              <Part id="real" title="What is real" className="gap-[8px]">
+                <p className="text-body text-pretty">{REAL_LINE}</p>
+                <Facts items={REAL} />
+              </Part>
 
-          <h3 className="mt-6">
-            <Pill tone="mist">Done by your browser</Pill>
-          </h3>
-          <p className="mt-2 py-2.5">
-            Speech to text, when you choose to speak. In Chrome the audio goes to Google’s speech service. PlayReps
-            receives the text only and does not record or store audio.
-          </p>
-        </Section>
+              <Part id="simulated" title="What is simulated" className="gap-[4px]">
+                <Facts items={SIMULATED} />
+              </Part>
+            </div>
 
-        <Section id="numbers" title="Numbers we stand behind">
-          <ul className="divide-y divide-stroke">
-            <li className="pb-4">
-              <p className="text-[34px] font-extrabold leading-none tabular-nums tracking-[-0.04em] text-lilac">321</p>
-              <p className="mt-2">
-                Unit tests. Run <Code>npm test</Code>.
-              </p>
-            </li>
-            <li className="py-4">
-              <p className="text-[34px] font-extrabold leading-none tabular-nums tracking-[-0.04em] text-lilac">72 of 80</p>
-              <p className="mt-2">
-                Casual turns (90%) were coded as expected on the first run of a blind set, before any rule was changed. A
-                separate reviewer wrote that set without seeing the rules.
-              </p>
-              <p className="mt-2 text-fg-soft">
-                After generic fixes it is 80 of 80, so the set is no longer blind. An earlier check set of 48 was 40 of 48
-                on its first run and is 47 of 48 now. <Code>npm test</Code> prints both current numbers.
-              </p>
-            </li>
-            <li className="pt-5">
-              <Rings rings={NORM} />
-              <p className="mt-4">
-                The clinic norm used, in five minutes: <b className="font-semibold text-fg">10</b> specific praises,{' '}
-                <b className="font-semibold text-fg">10</b> reflections, <b className="font-semibold text-fg">10</b>{' '}
-                descriptions, and at most <b className="font-semibold text-fg">3</b> questions, commands and corrections.
-              </p>
-            </li>
-          </ul>
-        </Section>
+            <Part id="not-built" title="What is not built" className="gap-[4px] lg:col-start-1 lg:row-start-2">
+              <Facts items={notBuilt(checkout)} />
+            </Part>
+          </div>
+        </main>
 
-        <Section id="not-therapy" title="Not therapy">
-          <p>
-            PlayReps is skill practice for parents. It gives no diagnosis and makes no promise about any child’s
-            behaviour. Families who want a certified therapist can find one at{' '}
+        {/* The lines every screen of this kind carries and, on phones, the one action under them (27:1064, 27:1066). */}
+        <footer className="px-[24px] pt-[28px] pb-[max(24px,env(safe-area-inset-bottom))] lg:px-[40px] lg:pb-[36px] xl:px-[64px]">
+          <p className="text-small text-gray">
+            {NOT_THERAPY}{' '}
             <a
-              href="https://www.pcit.org"
+              href={THERAPIST_LINK.href}
               target="_blank"
               rel="noreferrer"
-              className="font-semibold text-lilac underline decoration-violet/50 decoration-2 underline-offset-2 hover:decoration-lilac"
+              className={cn('rounded-[4px] underline decoration-faint underline-offset-2', focusRing)}
             >
-              pcit.org
+              {THERAPIST_LINK.label}
             </a>
-            .
+            . {NOT_AFFILIATED}
           </p>
-        </Section>
+          <div className="pt-[24px] lg:hidden">
+            <Button href={ROUTES.start} fullWidth>
+              Start
+            </Button>
+          </div>
+        </footer>
       </div>
-
-      <div className="enter mt-8 sm:max-w-[320px]">
-        <Link href="/start" className="btn btn-primary btn-block">
-          Start practising
-          <ArrowRight size={20} />
-        </Link>
-      </div>
-    </Shell>
+    </div>
   );
 }

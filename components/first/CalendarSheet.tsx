@@ -41,7 +41,7 @@ export function CalendarSheet({ open, anchor, daysLeft, onClose, onEditMoment }:
 
   return (
     // The frame spaces the picture, the title and the rows 16px apart.
-    <Sheet open={open} onClose={onClose} title="Put five minutes in your calendar." art={BELL} className="gap-[16px]!">
+    <Sheet open={open} onClose={onClose} title={TITLE} art={BELL} className="gap-[16px]!">
       <div className="flex flex-col gap-[16px]">
         <div className="flex flex-col">
           <Divider />
@@ -51,6 +51,7 @@ export function CalendarSheet({ open, anchor, daysLeft, onClose, onEditMoment }:
           <Divider />
           <PlanRow compact label="Repeats" value={repeatsLabel(today, days)} />
         </div>
+        {/* TODO kit: a Sheet action that is a link. The kit's own actions are buttons, and this one has to be a link. */}
         <div className="flex flex-col gap-[2px]">
           {href === null ? (
             // Only until the date is read, one tick after mount: the same pill, not yet a link.
@@ -73,6 +74,12 @@ export function CalendarSheet({ open, anchor, daysLeft, onClose, onEditMoment }:
   );
 }
 
+/**
+ * "Put five minutes in your calendar." The last two words are held together, so the title breaks after "in", as the
+ * frame draws it, on a phone of any width.
+ */
+const TITLE = 'Put five minutes in your calendar.';
+
 /** The picture of the sheet: the bell on a 76px violet tile with the everyday pattern. */
 const BELL = (
   <div className="relative flex size-[76px] shrink-0 items-center justify-center overflow-clip rounded-[22px] bg-violet">
@@ -87,8 +94,22 @@ const BELL = (
  * TODO kit: a PlanRow that can hold a native control.
  */
 function TimeRow({ value, onChange }: { value: string; onChange(time: string): void }) {
-  /** The time the field held when it took focus: where the picker of an iPhone goes back to on its "Reset". */
-  const atFocus = useRef(value);
+  const field = useRef<HTMLInputElement>(null);
+  /**
+   * The time the field held when it last took focus. It is the field's `value` attribute, and that is what
+   * "Reset" in the iPhone picker puts the field back to, while it turns its wheels back to the time they opened
+   * with. Kept the same, the two never disagree. (Measured on iOS 26: a field whose attribute follows every
+   * change, as a controlled React field does, makes "Reset" move the wheels and leave the time as it was.)
+   */
+  const [atFocus, setAtFocus] = useState(value);
+
+  // That is why React does not control this field: it keeps its own value while it is being used. A time that
+  // changes from outside, with a new moment, is written into it here.
+  useEffect(() => {
+    const node = field.current;
+    if (node && node.value !== value) node.value = value;
+  }, [value]);
+
   return (
     <label className={cn('relative flex min-h-[52px] w-full cursor-pointer items-center gap-[8px]', focusRingWithin)}>
       <span className="min-w-0 flex-1 text-body text-gray">Time</span>
@@ -98,14 +119,18 @@ function TimeRow({ value, onChange }: { value: string; onChange(time: string): v
       </span>
       <RowChevron />
       <input
+        ref={field}
         type="time"
-        value={value}
-        onFocus={() => {
-          atFocus.current = value;
+        defaultValue={atFocus}
+        onFocus={() => setAtFocus(value)}
+        // A field cleared halfway while typing has no time yet: the row keeps the last whole one.
+        onChange={(event) => {
+          if (isTime(event.target.value)) onChange(event.target.value);
         }}
-        // A cleared field has no time. "Reset" in the iPhone picker clears it and turns its wheels back to the
-        // time it opened with, so the row goes back to that time too and the two never disagree.
-        onChange={(event) => onChange(isTime(event.target.value) ? event.target.value : atFocus.current)}
+        // And a field left that way goes back to the time the row shows.
+        onBlur={(event) => {
+          if (event.currentTarget.value !== value) event.currentTarget.value = value;
+        }}
         onClick={openPicker}
         className="absolute inset-0 size-full cursor-pointer text-body opacity-0"
       />

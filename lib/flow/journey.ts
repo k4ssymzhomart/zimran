@@ -81,6 +81,8 @@ export type JourneyEvent =
   | { type: 'continue' }
   | { type: 'set_setup'; patch: Partial<SetupAnswers> }
   | { type: 'finish_setup' }
+  /** The back arrow of a screen: one screen back, where there is one to go back to. */
+  | { type: 'back' }
   | { type: 'restart' };
 
 export function initialJourney(seed = 1, startAt: JourneyPhase = 'opener'): JourneyState {
@@ -252,6 +254,31 @@ function answerTask(state: JourneyState, text: string): JourneyState {
   return { ...state, tries, taskIndex: checked.ok || outOfTries ? state.taskIndex + 1 : state.taskIndex };
 }
 
+/**
+ * One screen back, for the screens that draw a back arrow. A round, its result and the plan have none.
+ * Nothing the parent did is lost on the way, except the first answer: going back to it is how it is given again.
+ */
+function stepBack(state: JourneyState): JourneyState {
+  switch (state.phase) {
+    case 'opener_reveal':
+      return { ...state, phase: 'opener', opener: initialJourney(state.seed).opener };
+    case 'ready1':
+      // After "Play again" there is no first answer to go back to.
+      return state.opener.first.length > 0 ? { ...state, phase: 'opener_reveal' } : state;
+    case 'lesson':
+      return { ...state, phase: 'result1' };
+    case 'setup':
+      return state.round1 && state.round2 ? { ...state, phase: 'change' } : state;
+    default:
+      return state;
+  }
+}
+
+/** True when the back arrow of the screen that is up leads somewhere. */
+export function canStepBack(state: JourneyState): boolean {
+  return stepBack(state) !== state;
+}
+
 export function journeyReducer(state: JourneyState, event: JourneyEvent): JourneyState {
   switch (event.type) {
     case 'answer_opener':
@@ -283,6 +310,8 @@ export function journeyReducer(state: JourneyState, event: JourneyEvent): Journe
       return state.phase === 'setup' ? { ...state, setup: { ...state.setup, ...event.patch } } : state;
     case 'finish_setup':
       return state.phase === 'setup' ? { ...state, phase: 'plan' } : state;
+    case 'back':
+      return stepBack(state);
     case 'restart':
       // Round 2 of the visit just played used seed + 1. Skipping past it keeps its finished result
       // from being taken for the new round 1.

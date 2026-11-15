@@ -74,8 +74,11 @@ export interface PlanFromAnswersProps extends QuizStepProps {
   anchor: string | null;
   /** The one thing to work on first: the lever of round one. Null when round one met the pace. */
   focus: Lever | null;
-  /** A row was tapped: the flow goes back to that question. Rows the flow cannot change pass no handler. */
-  onEdit?(row: PlanRowKey): void;
+  /**
+   * A row was tapped: the flow goes back to that question. Without it no row leads anywhere.
+   * It is never called with 'focus': the first focus is counted from round one, so no question sets it.
+   */
+  onEdit?(row: Exclude<PlanRowKey, 'focus'>): void;
   onNext(): void;
 }
 

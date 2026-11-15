@@ -153,6 +153,11 @@ export function BeforeAfterToggle() {
               );
             })}
           </ul>
+
+          {/* The line the product's own before-and-after screen ends on (Figma 24:477), under the changes. */}
+          <p className="text-small text-gray max-lg:mt-[12px]">
+            Clinics don’t start with discipline. They start with five calm minutes of play a day.
+          </p>
         </div>
       </div>
     </Section>

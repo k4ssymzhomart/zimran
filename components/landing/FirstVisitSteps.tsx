@@ -134,20 +134,24 @@ function Phone({ className }: { className?: string }) {
       <Pattern kind="reps" className="[--pattern-size:864px] lg:[--pattern-size:1440px]" />
 
       <div role="img" aria-label={`${does} ${says}`} className="relative h-[464.2px] w-[214.5px] lg:h-[624.56px] lg:w-[288.6px]">
+        {/*
+          The screen is violet with one white block at its foot. A white screen under a violet block would show
+          as a hairline around the block once the picture is scaled to a fraction of a pixel.
+        */}
         <div
           inert
-          className="absolute top-0 left-0 flex h-[844px] w-[390px] origin-top-left scale-[0.55] flex-col overflow-clip rounded-[40px] bg-white lg:scale-[0.74]"
+          className="absolute top-0 left-0 flex h-[844px] w-[390px] origin-top-left scale-[0.55] flex-col overflow-clip rounded-[40px] bg-violet lg:scale-[0.74]"
         >
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-[4px] bg-violet px-[24px] pb-[28px] text-center text-white">
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-[4px] px-[24px] pb-[28px] text-center text-white">
             <Portrait partner={PARTNER} pose="smiling" size={240} />
             <p className="text-label">{does}</p>
             <p className="text-title">{says}</p>
           </div>
-          <div className="px-[16px] pt-[16px]">
+          <div className="shrink-0 bg-white px-[16px] pt-[16px]">
             <Composer value="" onChange={still} onSubmit={still} onMic={still} placeholder={`Say something to ${child.name}`} />
-          </div>
-          <div className="flex h-[34px] shrink-0 items-end justify-center pb-[8px]">
-            <span className="h-[5px] w-[134px] rounded-[3px] bg-ink" />
+            <div className="flex h-[34px] items-end justify-center pb-[8px]">
+              <span className="h-[5px] w-[134px] rounded-[3px] bg-ink" />
+            </div>
           </div>
         </div>
       </div>

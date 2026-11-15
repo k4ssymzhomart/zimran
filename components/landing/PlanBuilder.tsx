@@ -54,7 +54,12 @@ export function PlanBuilder() {
   const sentence = `Five minutes ${moment.toLowerCase()}, with ${CHILDREN[partner].name} and ${toy.named}.`;
 
   return (
-    <Section tone="mist">
+    /*
+     * On the page this section follows another one on mist: the frames draw two white sections between them
+     * that the landing leaves out. So it starts closer, at the distance the frames keep between two sections
+     * of one color (pricing and the answers): 56px on phones, 144px from 1024px.
+     */
+    <Section tone="mist" className="pt-[12px] lg:pt-[40px]">
       <h2 className="text-title lg:text-title-xl">Pick the partner, the toy, the moment.</h2>
 
       <div className="flex flex-col gap-[20px] lg:flex-row lg:gap-[24px]">
@@ -103,13 +108,14 @@ export function PlanBuilder() {
           <h3 id={`${id}-toy`} className={CAPTION}>
             Toy
           </h3>
-          <div role="radiogroup" aria-labelledby={`${id}-toy`} className="flex gap-[12px] lg:flex-col lg:gap-[16px]">
+          {/* Side by side on phones, as drawn. Under 360px a tile is too narrow for its label, so they stack. */}
+          <div role="radiogroup" aria-labelledby={`${id}-toy`} className="flex gap-[12px] max-[360px]:flex-col lg:flex-col lg:gap-[16px]">
             {TOYS.map((t) => (
               // TODO kit: a choice tile at this size (64px on phones, 87px from 1024px) with a strong label.
               <label
                 key={t.id}
                 className={cn(
-                  'relative flex h-[64px] min-w-0 flex-1 cursor-pointer items-center gap-[8px] rounded-[20px] text-ink lg:h-[87px] lg:flex-none lg:gap-[12px]',
+                  'relative flex h-[64px] min-w-0 flex-1 cursor-pointer items-center gap-[8px] rounded-[20px] text-ink max-[360px]:flex-none lg:h-[87px] lg:flex-none lg:gap-[12px]',
                   /* The chosen border is 1px thicker; the padding gives that pixel back. */
                   t.id === toyId ? 'border-2 border-violet bg-lilac px-[11px] lg:px-[15px]' : 'border border-line bg-white px-[12px] lg:px-[16px]',
                   colorMotion,
@@ -174,7 +180,7 @@ export function PlanBuilder() {
         <h3 id={`${id}-days`} className={CAPTION}>
           {PLAN_DAYS} days
         </h3>
-        <ol aria-labelledby={`${id}-days`} className="grid gap-[12px] lg:grid-cols-2 lg:gap-x-[24px] lg:gap-y-[20px] xl:grid-cols-4">
+        <ol aria-labelledby={`${id}-days`} className="grid gap-[12px] md:grid-cols-2 md:gap-x-[24px] lg:gap-y-[20px] xl:grid-cols-4">
           {WEEKS.map(({ week, title, days }) => (
             <li key={week} className="flex min-w-0 flex-col gap-[6px] lg:gap-[10px]">
               <p className="flex flex-col">

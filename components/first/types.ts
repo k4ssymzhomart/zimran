@@ -11,6 +11,11 @@ import type { CodedSentence, PartnerId, PlayGuess, RoundChange, RoundResult, Sav
 export interface PickPartnerProps {
   value: PartnerId;
   onPick(partner: PartnerId): void;
+  /** 1-based place of this screen among the personalization screens, for the progress segments the phone frame draws. */
+  step?: number;
+  steps?: number;
+  /** The back arrow. Without it there is none. */
+  onBack?(): void;
 }
 
 /** The child speaks first and the parent answers in their own words. Mobile 20:74, desktop 32:91. */
@@ -23,6 +28,8 @@ export interface FirstAnswerProps {
   /** A sentence the visitor already typed on the landing; it is sent as the answer without typing it again. */
   carried?: string | null;
   onAnswer(text: string): void;
+  /** The back arrow. Without it there is none. */
+  onBack?(): void;
 }
 
 /**
@@ -43,6 +50,8 @@ export interface AnswerReadProps {
   canMoveOn: boolean;
   onTry(text: string): void;
   onNext(): void;
+  /** The back arrow of 20:109: back to the first answer, to give it again. Without it there is none. */
+  onBack?(): void;
 }
 
 /** One screen before the clock starts. Mobile 21:95 (round one) and 24:375 (ready for round two). */
@@ -51,6 +60,8 @@ export interface ReadyProps {
   round: 1 | 2;
   seconds: number;
   onStart(): void;
+  /** The back arrow of round one (21:95). Without it there is none: after "Play again" nothing is behind this screen. */
+  onBack?(): void;
 }
 
 /**
@@ -86,6 +97,8 @@ export interface LessonProps {
   onAnswer(text: string): void;
   /** Starts round two. Offered as the main action when done, and as "Skip" before that. */
   onNext(): void;
+  /** The back arrow of the idea (24:216): back to the result of round one. Without it there is none. */
+  onBack?(): void;
 }
 
 /** Round one against round two. Mobile 24:477. Developer B builds the final version with these same props. */
@@ -106,6 +119,8 @@ export interface WhenYouPlayProps {
   value: string | null;
   onChange(anchor: string): void;
   onNext(): void;
+  /** The back arrow. Without it there is none. */
+  onBack?(): void;
 }
 
 /** Day 1 is done and the 28 days are laid out. Mobile 24:568, desktop 32:272. */
@@ -114,6 +129,8 @@ export interface PlanResultProps {
   anchor: string | null;
   /** Day of the plan, 1 to 28, from the saved sessions. */
   day: number;
-  /** The one action: on to the plans (the paywall). */
+  /** On to the plans and their price (the paywall): "Unlock daily sessions". */
   onNext(): void;
+  /** "Open my plan": on to the plan itself, the Today tab. Without it the screen has the one way on, to the plans. */
+  onOpenPlan?(): void;
 }

@@ -16,6 +16,9 @@ const NOT_SET = 'Not set';
  * with, the scene, the behavior to praise first, the daily moment and the first thing to work on.
  * A row leads back to its question only when the flow passes `onEdit`.
  *
+ * The frame draws an arrow on every row. "First focus" has none here: it is counted from round one, no question
+ * sets it, and an arrow would lead nowhere.
+ *
  * The labels and `habitFor`, the rule that turns the hardest moments into `praise`, are in ./planFromAnswersRules.
  */
 export function PlanFromAnswers({ step, steps, onBack, partner, sceneId, praise, anchor, focus, onEdit, onNext }: PlanFromAnswersProps) {
@@ -46,11 +49,14 @@ export function PlanFromAnswers({ step, steps, onBack, partner, sceneId, praise,
         Your plan, from your answers.
       </h1>
       <ul aria-labelledby={titleId} className="mt-[8px] divide-y divide-line border-b border-line lg:mt-[24px]">
-        {rows.map((row) => (
-          <li key={row.key}>
-            <PlanRow label={row.label} value={row.value ?? NOT_SET} onClick={onEdit ? () => onEdit(row.key) : undefined} />
-          </li>
-        ))}
+        {rows.map((row) => {
+          const { key } = row;
+          return (
+            <li key={key}>
+              <PlanRow label={row.label} value={row.value ?? NOT_SET} onClick={onEdit && key !== 'focus' ? () => onEdit(key) : undefined} />
+            </li>
+          );
+        })}
       </ul>
     </QuizScreen>
   );

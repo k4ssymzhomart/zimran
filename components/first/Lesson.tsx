@@ -2,22 +2,31 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CHILDREN, forChild } from '@/components/child';
-import { Art, Button, Composer, IconButton, Portrait, SplitScreen, cn, colorMotion, type MicState } from '@/components/kit';
+import { Art, Button, Composer, Icon, IconButton, Portrait, SplitScreen, cn, colorMotion, type FacePose, type MicState } from '@/components/kit';
 import { useSpeech } from '@/hooks/useSpeech';
 import type { TaskTry } from '@/lib/flow/journey';
-import { checkAnswer } from '@/lib/lesson/lesson';
+import { checkAnswer, type LessonTask } from '@/lib/lesson/lesson';
 import type { PartnerId } from '@/lib/types';
-import { RoundTwoReady, TALKING_PATTERN } from './Ready';
+import { ROUND_TWO_PORTRAIT, RoundTwoReady, TALKING_PATTERN } from './Ready';
 import type { LessonProps } from './types';
 
 /** The frames draw two examples (24:216, 32:212). A third pushes the action under the fold on a small phone. */
 const PAIRS_SHOWN = 2;
 
-/** The portrait of a task: 200px when it stands alone (24:255), 180px beside a spoken line or feedback (24:292, 24:331). */
+/**
+ * The portrait of a task: 200px when it stands alone (24:255), 180px beside a spoken line or feedback
+ * (24:292, 24:331), 380px from 1024px (as 32:91). On a short screen it gives way to the words.
+ */
 const PORTRAIT = {
+  size: 380,
   roomy: 'size-[min(200px,24dvh)] lg:size-[min(380px,43dvh)]',
   compact: 'size-[min(180px,22dvh)] lg:size-[min(380px,43dvh)]',
 };
+
+/** The child beams while saying something, and after an answer that was there (24:331); otherwise smiles (24:255). */
+function poseFor(task: LessonTask, lastTry: TaskTry | null): FacePose {
+  return task.childSaid !== null || lastTry?.ok ? 'beaming' : 'smiling';
+}
 
 /**
  * Engine text on its way to the screen: about the chosen child, with the typographic apostrophe the frames use.
@@ -35,7 +44,7 @@ function shown(text: string, partner: PartnerId): string {
  * at a time (24:255, 24:292, 24:331), and "Ready for round two" when both tasks are behind (24:375).
  * The props say which task is open; the idea in front of the first task is a step held here.
  */
-export function Lesson({ partner, lesson, taskIndex, lastTry, done, onAnswer, onNext }: LessonProps) {
+export function Lesson({ partner, lesson, taskIndex, lastTry, done, onAnswer, onNext, onBack }: LessonProps) {
   const child = CHILDREN[partner];
   const say = (text: string) => shown(text, partner);
   // A lesson that already has an answer opens on its task, not on the idea again.
@@ -71,14 +80,29 @@ export function Lesson({ partner, lesson, taskIndex, lastTry, done, onAnswer, on
         pattern={TALKING_PATTERN}
         bar={
           <>
-            <span aria-hidden="true" className="size-[44px]" />
+            {onBack ? (
+              <IconButton
+                label="Back"
+                variant="on-violet"
+                onClick={() => {
+                  answer.rest();
+                  onBack();
+                }}
+              >
+                <Icon name="back" />
+              </IconButton>
+            ) : (
+              // Without a way back the arrow of the frame is not drawn; "Skip" keeps its place at the right.
+              <span aria-hidden="true" className="size-[44px]" />
+            )}
             <SkipButton onClick={skip} />
           </>
         }
         picture={
           // The shell keeps 28px under a centered picture on phones; this frame keeps 20px (24:236).
           <div className="-mb-[8px] lg:mb-0">
-            <Art name="lightbulb" size={260} className="size-[150px] lg:size-[260px]" />
+            <Art name="lightbulb" size={260} priority className="size-[150px] lg:size-[260px]" />
+            <Ahead partner={partner} poses={['smiling', 'beaming']} />
           </div>
         }
         action={
@@ -137,7 +161,7 @@ export function Lesson({ partner, lesson, taskIndex, lastTry, done, onAnswer, on
               setStep('idea');
             }}
           >
-            <BackIcon />
+            <Icon name="back" />
           </IconButton>
           <p className="text-body-strong">
             <span className="sr-only">Your turn, </span>
@@ -150,12 +174,14 @@ export function Lesson({ partner, lesson, taskIndex, lastTry, done, onAnswer, on
         <div className="flex flex-col items-center gap-[4px] text-center lg:gap-[10px] lg:px-[32px]">
           <Portrait
             partner={partner}
-            pose={task.childSaid !== null || lastTry?.ok ? 'beaming' : 'smiling'}
-            size={380}
+            pose={poseFor(task, lastTry)}
+            size={PORTRAIT.size}
+            priority
             className={compact ? PORTRAIT.compact : PORTRAIT.roomy}
           />
           <p className="text-label lg:text-lead">{say(task.situation)}</p>
           {task.childSaid !== null && <p className="text-title lg:text-title-xl">“{say(task.childSaid)}”</p>}
+          <Ahead partner={partner} poses={['beaming']} roundTwo />
         </div>
       }
       dock={
@@ -250,10 +276,26 @@ function LastNote({ last, partner }: { last: TaskTry; partner: PartnerId }) {
   return (
     <div role="status" className="flex items-start gap-[10px] pb-[14px]">
       <span aria-hidden="true" className="flex size-[24px] shrink-0 items-center justify-center rounded-[12px] bg-violet text-white">
-        <CheckIcon />
+        {/* 14px with a 3px line, as the frame draws it (24:359). */}
+        <Icon name="check" size={14} strokeWidth={3} />
       </span>
       <p className="min-w-0 flex-1 text-label">{line}</p>
     </div>
+  );
+}
+
+/**
+ * Fetched ahead and not shown: the pictures of the steps that follow, so a step never opens on an empty block.
+ * They are asked for at the size the step itself uses, which makes them the same files.
+ */
+function Ahead({ partner, poses, roundTwo = false }: { partner: PartnerId; poses: FacePose[]; roundTwo?: boolean }) {
+  return (
+    <>
+      {poses.map((pose) => (
+        <Portrait key={pose} partner={partner} pose={pose} size={PORTRAIT.size} priority className="hidden" />
+      ))}
+      {roundTwo && <Portrait partner={partner} pose={ROUND_TWO_PORTRAIT.pose} size={ROUND_TWO_PORTRAIT.size} priority className="hidden" />}
+    </>
   );
 }
 
@@ -272,22 +314,5 @@ function SkipButton({ onClick }: { onClick(): void }) {
     >
       Skip
     </button>
-  );
-}
-
-/** TODO kit: the icon set. */
-function BackIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M15 6l-6 6 6 6" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M2.9 7.2l2.6 2.5 5.6-5.6" />
-    </svg>
   );
 }

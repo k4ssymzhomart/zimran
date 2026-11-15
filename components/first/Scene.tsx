@@ -73,12 +73,12 @@ interface ScenePicture {
  * (components/kit/art-manifest.ts), and the kit's fallback would put one picture on both cards. Until the two are
  * drawn he plays on the floor on one card and holds up his drawing on the other.
  */
-const PICTURES: Partial<Record<string, ScenePicture>> = {
-  blocks: { art: 'blocks', pose: { mia: 'body-blocks', leo: 'body-car' } },
-  drawing: { art: 'drawing', pose: { mia: 'body-drawing', leo: 'body-showing' } },
-};
+const PICTURES = new Map<string, ScenePicture>([
+  ['blocks', { art: 'blocks', pose: { mia: 'body-blocks', leo: 'body-car' } }],
+  ['drawing', { art: 'drawing', pose: { mia: 'body-drawing', leo: 'body-showing' } }],
+]);
 
-/** For a scene that is in the data before its pictures are. */
+/** For a scene that is in the data before its pictures are, and for a saved scene id that is no scene. */
 const NO_PICTURE: ScenePicture = { art: 'blocks', pose: { mia: 'body-showing', leo: 'body-showing' } };
 
 /**
@@ -98,6 +98,7 @@ export function Scene({ step, steps, onBack, childName, partner, value, onPick }
    * A pick leaves the screen, so the arrow keys must not pick: they move the focus from card to card, and Space or
    * Enter picks the card in focus, as on the other one-tap questions of the quiz. Left to the browser an arrow
    * would choose the next radio, Space would do nothing on the radio already chosen, and Enter nothing at all.
+   * So all three are taken here: Enter picks on the way down, Space on the way up, as a button does.
    */
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const radio = event.target;
@@ -107,14 +108,23 @@ export function Scene({ step, steps, onBack, childName, partner, value, onPick }
       const radios = Array.from(event.currentTarget.querySelectorAll<HTMLInputElement>('input[type="radio"]'));
       event.preventDefault();
       radios[(radios.indexOf(radio) + move + radios.length) % radios.length].focus();
-    } else if (event.key === ' ' || event.key === 'Enter') {
+    } else if (event.key === 'Enter') {
       event.preventDefault();
       if (!event.repeat) onPick(radio.value);
+    } else if (event.key === ' ') {
+      event.preventDefault();
     }
   }
 
+  function onKeyUp(event: KeyboardEvent<HTMLDivElement>) {
+    const radio = event.target;
+    if (event.key !== ' ' || !(radio instanceof HTMLInputElement)) return;
+    event.preventDefault();
+    onPick(radio.value);
+  }
+
   return (
-    <QuizScreen step={step} steps={steps} onBack={onBack} art={(PICTURES[value] ?? NO_PICTURE).art}>
+    <QuizScreen step={step} steps={steps} onBack={onBack} art={(PICTURES.get(value) ?? NO_PICTURE).art}>
       <h1 id={titleId} className="text-title wrap-break-word lg:text-title-xl">
         What does {who} play with most?
       </h1>
@@ -123,14 +133,11 @@ export function Scene({ step, steps, onBack, childName, partner, value, onPick }
         aria-labelledby={titleId}
         className="mt-[18px] flex gap-[12px] lg:mt-[24px]"
         onKeyDown={onKeyDown}
-        onKeyUp={(event) => {
-          // Where Space clicks a radio on the way up, the pick was already made on the way down.
-          if (event.key === ' ') event.preventDefault();
-        }}
+        onKeyUp={onKeyUp}
       >
         {SCENES.map((scene) => {
           const selected = scene.id === value;
-          const picture = PICTURES[scene.id] ?? NO_PICTURE;
+          const picture = PICTURES.get(scene.id) ?? NO_PICTURE;
           return (
             <label
               key={scene.id}
@@ -158,7 +165,7 @@ export function Scene({ step, steps, onBack, childName, partner, value, onPick }
               />
               <span className="relative shrink-0 text-heading">{scene.title}</span>
               <span className="relative flex min-h-0 w-full flex-1 items-end justify-center overflow-clip">
-                {/* 150px as drawn, a little wider than the room beside the label's inset: the card clips it. Under 360px the picture gives way instead. */}
+                {/* 150px as drawn, a little wider than the room beside the label's inset: the card clips it. Under 360px it gives way instead. */}
                 <Portrait partner={partner} pose={picture.pose[partner]} size={150} className="max-w-none max-[359px]:max-w-full" />
               </span>
             </label>

@@ -6,6 +6,7 @@ import { initialRound, roundReducer, type RoundEvent, type RoundState } from '..
 import {
   activeTask,
   afterDispute,
+  canStepBack,
   initialJourney,
   journeyReducer,
   lastTry,
@@ -245,5 +246,64 @@ describe('guards', () => {
     const frozen = JSON.stringify(start);
     expect(run(events, start)).toEqual(run(events, initialJourney()));
     expect(JSON.stringify(start)).toBe(frozen);
+  });
+});
+
+describe('the back arrow', () => {
+  const back: JourneyEvent = { type: 'back' };
+  const read = run([{ type: 'answer_opener', text: 'What is it?' }, { type: 'try_reflection', text: 'Nice.' }]);
+  const atChange = run(
+    [{ type: 'begin_round1' }, { type: 'round_ended', result: weakRound }, { type: 'begin_round2' }, { type: 'round_ended', result: betterRound }],
+    initialJourney(1, 'ready1'),
+  );
+
+  it('from the read answer: the first answer is given again, with nothing left of the old one', () => {
+    const s = run([back], read);
+    expect(s.phase).toBe('opener');
+    expect(s.opener).toEqual(initialJourney().opener);
+    // The same child says the same line: the seed stays.
+    expect(s.seed).toBe(read.seed);
+    expect(run([{ type: 'answer_opener', text: 'You made a tower!' }], s).opener.reflected).toBe(true);
+  });
+  it('from the screen before round one: the reading is still there, tries and all', () => {
+    const ready = run([{ type: 'try_reflection', text: 'You made a tower.' }, { type: 'ready' }], read);
+    const s = run([back], ready);
+    expect(s.phase).toBe('opener_reveal');
+    expect(s.opener).toBe(ready.opener);
+    expect(run([{ type: 'ready' }], s).phase).toBe('ready1');
+  });
+  it('after "Play again" the screen before round one has nothing to go back to', () => {
+    const again = run([{ type: 'restart' }], atChange);
+    expect(again.phase).toBe('ready1');
+    expect(canStepBack(again)).toBe(false);
+    expect(run([back], again)).toBe(again);
+  });
+  it('from the lesson: the result of round one, and the lesson keeps its answers', () => {
+    const lesson = run(
+      [{ type: 'begin_round1' }, { type: 'round_ended', result: weakRound }, { type: 'begin_lesson' }, { type: 'answer_task', text: 'What?' }],
+      initialJourney(1, 'ready1'),
+    );
+    const s = run([back], lesson);
+    expect(s.phase).toBe('result1');
+    expect(s.tries).toBe(lesson.tries);
+    expect(run([{ type: 'begin_lesson' }], s)).toEqual(lesson);
+  });
+  it('from "when you play": the before and after, with both rounds and the chosen moment kept', () => {
+    const setup = run([{ type: 'continue' }, { type: 'set_setup', patch: { anchor: 'After dinner' } }], atChange);
+    const s = run([back], setup);
+    expect(s.phase).toBe('change');
+    expect(s.round1).toBe(atChange.round1);
+    expect(s.round2).toBe(atChange.round2);
+    expect(s.change).toBe(atChange.change);
+    expect(run([{ type: 'continue' }], s).setup).toEqual({ anchor: 'After dinner' });
+  });
+  it('leads nowhere from a round, a result or the plan', () => {
+    const round1 = initialJourney(1, 'round1');
+    const result1 = run([{ type: 'round_ended', result: weakRound }], round1);
+    const plan = run([{ type: 'continue' }, { type: 'finish_setup' }], atChange);
+    for (const s of [initialJourney(), round1, result1, atChange, plan]) {
+      expect(canStepBack(s)).toBe(false);
+      expect(run([back], s)).toBe(s);
+    }
   });
 });

@@ -1,25 +1,23 @@
 import type { ComponentType } from 'react';
+import { ANSWER_HREF, ANSWER_ID } from '@/components/landing/anchors';
+import { Answers } from '@/components/landing/Answers';
+import { BeforeAfterToggle } from '@/components/landing/BeforeAfterToggle';
+import { Closing } from '@/components/landing/Closing';
+import { FirstVisitSteps } from '@/components/landing/FirstVisitSteps';
 import { Footer } from '@/components/landing/Footer';
+import { FourCounts } from '@/components/landing/FourCounts';
 import { Hero } from '@/components/landing/Hero';
+import { InPageLinks } from '@/components/landing/InPageLinks';
 import { LandingBar } from '@/components/landing/LandingBar';
 import { LiveAnswer } from '@/components/landing/LiveAnswer';
-// The other sections: uncomment an import here and its line in SECTIONS below.
-// import { Answers } from '@/components/landing/Answers';
-// import { BeforeAfterToggle } from '@/components/landing/BeforeAfterToggle';
-// import { Closing } from '@/components/landing/Closing';
-// import { FirstVisitSteps } from '@/components/landing/FirstVisitSteps';
-// import { FourCounts } from '@/components/landing/FourCounts';
-// import { PaceBand } from '@/components/landing/PaceBand';
-// import { PlanBuilder } from '@/components/landing/PlanBuilder';
-// import { Pricing } from '@/components/landing/Pricing';
+import { PaceBand } from '@/components/landing/PaceBand';
+import { PlanBuilder } from '@/components/landing/PlanBuilder';
+import { Pricing } from '@/components/landing/Pricing';
 
-/** The anchor of the answer field. Every "Try one answer" on this page leads there. */
-const ANSWER = 'answer';
-
-export interface LandingSection {
+interface LandingSection {
   /**
    * The anchor of the section, unique on the page. The page puts it on a wrapper around the section,
-   * so pick a name the section does not already use for an id of its own.
+   * so a section does not use this name for an id of its own.
    */
   id: string;
   Component: ComponentType;
@@ -28,19 +26,20 @@ export interface LandingSection {
 }
 
 /**
- * ---------- THE OTHER SECTIONS GO HERE ----------
  * Everything between the live answer and the footer, in page order (Figma 66:1267 and 63:224).
- * To add a section, add its line: the page renders it in place, and a line with `nav` gets its link in the top bar.
+ * The frames also draw "The app", the session review and the month. They need pictures of app screens with
+ * history, and the landing shows no numbers it did not compute, so those three are not on the page.
+ * A line with `nav` gets its link in the top bar.
  */
-export const SECTIONS: LandingSection[] = [
-  // { id: 'counts', Component: FourCounts },
-  // { id: 'how-it-works', Component: FirstVisitSteps, nav: 'How it works' },
-  // { id: 'before-after', Component: BeforeAfterToggle },
-  // { id: 'builder', Component: PlanBuilder },
-  // { id: 'pace', Component: PaceBand, nav: 'Method' },
-  // { id: 'pricing', Component: Pricing, nav: 'Pricing' },
-  // { id: 'answers', Component: Answers },
-  // { id: 'closing', Component: Closing },
+const SECTIONS: LandingSection[] = [
+  { id: 'counts', Component: FourCounts },
+  { id: 'how-it-works', Component: FirstVisitSteps, nav: 'How it works' },
+  { id: 'before-after', Component: BeforeAfterToggle },
+  { id: 'builder', Component: PlanBuilder },
+  { id: 'pace', Component: PaceBand, nav: 'Method' },
+  { id: 'pricing', Component: Pricing, nav: 'Pricing' },
+  { id: 'answers', Component: Answers },
+  { id: 'closing', Component: Closing },
 ];
 
 /**
@@ -52,10 +51,11 @@ export default function Landing() {
 
   return (
     <div className="split-root">
-      <LandingBar sections={sectionLinks} actionHref={`#${ANSWER}`} />
+      <InPageLinks />
+      <LandingBar sections={sectionLinks} actionHref={ANSWER_HREF} />
       <main>
-        <Hero actionHref={`#${ANSWER}`} />
-        <LiveAnswer id={ANSWER} />
+        <Hero actionHref={ANSWER_HREF} />
+        <LiveAnswer id={ANSWER_ID} />
         {SECTIONS.map(({ id, Component }) => (
           <div key={id} id={id}>
             <Component />

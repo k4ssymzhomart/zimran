@@ -1,12 +1,14 @@
 import type { PlanId } from '@/client/entitlement';
 import { Button, Pattern, Tag, cn, type ButtonVariant } from '@/components/kit';
 import { ROUTES } from '@/lib/routes';
+import { ANSWER_HREF } from './anchors';
 import { Section } from './Section';
 
 /**
  * Landing section 11, "One plan, two lengths." (Figma 66:1735 on phones, 64:469 from 1024px).
  * Three cards: what stays free, then the two lengths of the paid plan. A card lists only what is built.
  * The prices are the ones the checkout route charges (PLANS in app/api/checkout/route.ts).
+ * Rendered on the server only: the tag beside the title reads the same setting as the paywall.
  */
 
 interface Plan {
@@ -74,8 +76,9 @@ function Check({ className }: { className?: string }) {
 
 function PlanCard({ plan }: { plan: Plan }) {
   const violet = plan.id === 'four_weeks';
-  // The free card starts the first visit; a paid card opens the paywall with its length chosen.
-  const href = plan.id === 'free' ? ROUTES.start : { pathname: ROUTES.pricing, query: { plan: plan.id } };
+  // The free card leads to the answer field, as every "Try one answer" does; a paid card opens the paywall
+  // with its length chosen.
+  const href = plan.id === 'free' ? ANSWER_HREF : { pathname: ROUTES.pricing, query: { plan: plan.id } };
 
   return (
     <li
@@ -121,12 +124,16 @@ function PlanCard({ plan }: { plan: Plan }) {
 
 /** The page sets the anchor ("pricing") on its own wrapper, so the section carries no id. */
 export function Pricing() {
+  // The same switch as the paywall (app/pricing/page.tsx): with a Stripe key its action opens Stripe's test
+  // checkout, as drawn; without one no payment is taken on this site, and the tag says so.
+  const mode = process.env.STRIPE_SECRET_KEY ? 'Test mode' : 'Demo';
+
   return (
     <Section>
-      {/* "Demo": no payment is taken on this site. On phones the tag sits over the title. */}
+      {/* On phones the tag sits over the title. */}
       <div className="flex flex-col-reverse items-start gap-[10px] lg:flex-row lg:items-center lg:gap-[16px]">
         <h2 className="text-title lg:text-title-xl">One plan, two lengths.</h2>
-        <Tag tone="quiet">Demo</Tag>
+        <Tag tone="quiet">{mode}</Tag>
       </div>
 
       <ul className="flex flex-col gap-[20px] lg:flex-row lg:items-stretch lg:gap-[16px] xl:gap-[24px]">

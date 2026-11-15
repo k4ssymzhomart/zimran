@@ -35,7 +35,8 @@ export function Hero({ actionHref }: HeroProps) {
       </div>
 
       <div className="relative mx-auto w-full max-w-[1440px] px-[24px] pt-[28px] pb-[max(34px,env(safe-area-inset-bottom))] lg:px-[48px] lg:pt-[56px] lg:pb-0 xl:px-[120px]">
-        <h1 className="text-display lg:text-title-xl xl:text-display-xl">
+        {/* Under 360px a sentence at the drawn size takes two lines; one size down keeps the headline at two. */}
+        <h1 className="text-display max-[360px]:text-title lg:text-title-xl xl:text-display-xl">
           <span className="block">Practice tonight.</span> <span className="block">Use it tomorrow.</span>
         </h1>
         <p className="mt-[12px] text-body text-gray lg:hidden">Five minutes a day with a simulated four-year-old.</p>

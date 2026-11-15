@@ -42,7 +42,7 @@ const SKILLS: { key: Skill; name: string; art: ArtName }[] = [
 
 const TONE: Record<Bucket, TagTone> = { target: 'skill', avoid: 'swap', neutral: 'quiet', none: 'quiet' };
 
-/** Every sentence of the strip as the rules in lib/coding read it. Nothing about a sentence is labelled by hand. */
+/** Every sentence of the strip as the rules in lib/coding read it. Nothing about a sentence is labeled by hand. */
 function readStrip() {
   return SENTENCES.flatMap((text) =>
     codeTurn(text, { childLastSaid: OPENER.childSaid })

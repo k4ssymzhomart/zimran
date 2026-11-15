@@ -36,6 +36,8 @@ export const ROUTES = {
   api: {
     checkout: '/api/checkout',
     entitlement: '/api/entitlement',
+    /** The daily reminder as a calendar file (app/api/calendar/route.ts). */
+    calendar: '/api/calendar',
   },
 } as const;
 

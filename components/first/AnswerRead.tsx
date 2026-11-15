@@ -5,7 +5,6 @@ import { CHILDREN, forChild } from '@/components/child';
 import { Button, Composer, Icon, IconButton, Pattern, Portrait, SplitScreen, Tag, cn, type TagTone } from '@/components/kit';
 import { LABEL, type Bucket, type CodedSentence } from '@/lib/types';
 import type { AnswerReadProps } from './types';
-import { useWayBack } from './useWayBack';
 
 const TONE: Record<Bucket, TagTone> = { target: 'skill', avoid: 'swap', neutral: 'quiet', none: 'quiet' };
 
@@ -47,8 +46,7 @@ function takeFocus(words: HTMLElement | null) {
  * tries are used up. There is no desktop frame: from 1024px violet is the left half, as in 32:91 and 33:204.
  * The field is for typing only: speech is not wired here, so it shows no microphone.
  */
-export function AnswerRead({ partner, childSaid, first, insight, reflected, tries, feedback, canMoveOn, onTry, onNext }: AnswerReadProps) {
-  const back = useWayBack();
+export function AnswerRead({ partner, childSaid, first, insight, reflected, tries, feedback, canMoveOn, onTry, onNext, onBack }: AnswerReadProps) {
   const [text, setText] = useState('');
   const child = CHILDREN[partner];
   const line = forChild(feedback, partner) ?? null;
@@ -99,9 +97,11 @@ export function AnswerRead({ partner, childSaid, first, insight, reflected, trie
       <div className="relative flex shrink-0 flex-col overflow-hidden bg-violet pt-[env(safe-area-inset-top)] text-white lg:sticky lg:top-0 lg:h-dvh lg:w-1/2">
         {pattern}
         <div className="relative z-[1] flex h-[44px] shrink-0 items-center px-[12px] lg:h-[80px] lg:px-[28px]">
-          <IconButton label="Back" variant="on-violet" onClick={back}>
-            <Icon name="back" />
-          </IconButton>
+          {onBack && (
+            <IconButton label="Back" variant="on-violet" onClick={onBack}>
+              <Icon name="back" />
+            </IconButton>
+          )}
         </div>
         <div className="relative flex flex-col items-center px-[24px] pb-[24px] lg:min-h-0 lg:flex-1 lg:justify-center lg:pb-[80px] lg:[&>img]:min-h-0 lg:[&>img]:shrink lg:[&>img]:object-contain">
           <Portrait partner={partner} pose="smiling" size={480} priority className="size-[132px] lg:size-[380px]" />

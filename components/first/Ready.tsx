@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { CHILDREN } from '@/components/child';
-import { Art, Button, Pattern, Portrait, SplitScreen, type ArtName } from '@/components/kit';
+import { Art, Button, Icon, IconButton, Pattern, Portrait, SplitScreen, type ArtName } from '@/components/kit';
 import type { PartnerId } from '@/lib/types';
 import type { ReadyProps } from './types';
 
@@ -22,9 +22,12 @@ function lengthInWords(seconds: number): string {
  * One screen before the clock starts. Round one (21:95): how long, and the three things that fill a ring.
  * Round two (24:375): the child leans in and there is one thing left to do.
  */
-export function Ready({ partner, round, seconds, onStart }: ReadyProps) {
+export function Ready({ partner, round, seconds, onStart, onBack }: ReadyProps) {
   if (round === 2) return <RoundTwoReady partner={partner} onStart={onStart} />;
+  return <RoundOneReady partner={partner} seconds={seconds} onStart={onStart} onBack={onBack} />;
+}
 
+function RoundOneReady({ partner, seconds, onStart, onBack }: Omit<ReadyProps, 'round'>) {
   const child = CHILDREN[partner];
   const skills: { art: ArtName; name: string; how: string }[] = [
     { art: 'praise', name: 'Praise', how: `Name what ${child.they} did well.` },
@@ -36,8 +39,16 @@ export function Ready({ partner, round, seconds, onStart }: ReadyProps) {
     <SplitScreen
       rest="bottom"
       pattern={TALKING_PATTERN}
+      bar={
+        onBack && (
+          <IconButton label="Back" variant="on-violet" onClick={onBack}>
+            <Icon name="back" />
+          </IconButton>
+        )
+      }
       picture={
-        <Portrait partner={partner} pose="smiling" size={380} className="size-[min(230px,30dvh)] lg:size-[min(380px,43dvh)]" />
+        // 480 is the size the screens before this one ask for, so the same file is already on the device.
+        <Portrait partner={partner} pose="smiling" size={480} priority className="size-[min(230px,30dvh)] lg:size-[min(380px,43dvh)]" />
       }
       action={
         <Button fullWidth onClick={onStart}>
@@ -65,6 +76,9 @@ export function Ready({ partner, round, seconds, onStart }: ReadyProps) {
   );
 }
 
+/** The picture of "Ready for round two.", for a screen before it to fetch ahead. */
+export const ROUND_TWO_PORTRAIT = { pose: 'leaning', size: 480 } as const;
+
 export interface RoundTwoReadyProps {
   partner: PartnerId;
   /** What the last answer of the lesson did, above the headline. The lesson passes it; the plain screen has none. */
@@ -79,7 +93,13 @@ export function RoundTwoReady({ partner, note, onStart }: RoundTwoReadyProps) {
       rest="bottom"
       pattern={TALKING_PATTERN}
       picture={
-        <Portrait partner={partner} pose="leaning" size={460} className="size-[min(280px,36dvh)] lg:size-[min(460px,52dvh)]" />
+        <Portrait
+          partner={partner}
+          pose={ROUND_TWO_PORTRAIT.pose}
+          size={ROUND_TWO_PORTRAIT.size}
+          priority
+          className="size-[min(280px,36dvh)] lg:size-[min(460px,52dvh)]"
+        />
       }
       action={
         <Button fullWidth onClick={onStart}>

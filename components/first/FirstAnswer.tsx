@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { CHILDREN, forChild } from '@/components/child';
 import { Chip, Composer, Icon, IconButton, Pattern, Portrait, SplitScreen } from '@/components/kit';
 import type { FirstAnswerProps } from './types';
-import { useWayBack } from './useWayBack';
 
 /** What most parents say first: warm praise, then a question. A tap puts it in the field; it is not sent. */
 const SUGGESTION = 'Wow, good job! What is it?';
@@ -22,8 +21,7 @@ function takeFocus(words: HTMLElement | null) {
  * A sentence carried over from the landing is shown as said, with no field: the flow sends it on.
  * The field is for typing only: speech is not wired here, so it shows no microphone.
  */
-export function FirstAnswer({ partner, does, childSaid, carried, onAnswer }: FirstAnswerProps) {
-  const back = useWayBack();
+export function FirstAnswer({ partner, does, childSaid, carried, onAnswer, onBack }: FirstAnswerProps) {
   const [text, setText] = useState('');
   const said = carried?.trim() || null;
 
@@ -36,9 +34,11 @@ export function FirstAnswer({ partner, does, childSaid, carried, onAnswer }: Fir
     <SplitScreen
       pattern={<Pattern kind="sentences" size={1440} className="max-lg:hidden" />}
       bar={
-        <IconButton label="Back" variant="on-violet" onClick={back}>
-          <Icon name="back" />
-        </IconButton>
+        onBack && (
+          <IconButton label="Back" variant="on-violet" onClick={onBack}>
+            <Icon name="back" />
+          </IconButton>
+        )
       }
       picture={
         <>
