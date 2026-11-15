@@ -24,7 +24,7 @@ sentence is coded against the numbers a clinic uses; they are on the slide. Thir
 on a new scene, and this is my own before and after.
 
 **5. No language model. Rules you can argue with.**
-Under the hood there is no language model. Rules code every sentence, four hundred twenty-three tests hold them
+Under the hood there is no language model. Rules code every sentence, nearly two thousand tests hold them
 together, and on eighty typed sentences it had never seen, it got ninety percent right. If you disagree with a code,
 you tap Disagree. And a session costs us zero.
 
