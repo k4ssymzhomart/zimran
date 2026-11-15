@@ -12,7 +12,7 @@ import { useEntitlement } from '@/hooks/useEntitlement';
 import { useProfile } from '@/hooks/useProfile';
 import { sessionDraft } from '@/hooks/useRound';
 import { sceneById } from '@/lib/child/scenes';
-import { addSession } from '@/lib/progress/history';
+import { addSession, isEmptyResult } from '@/lib/progress/history';
 import { NORM_SECONDS } from '@/lib/progress/targets';
 import { ROUTES } from '@/lib/routes';
 import { LiveIntro } from './LiveIntro';
@@ -45,7 +45,8 @@ export function LiveSession() {
 
 interface Saved {
   done: RoundDone;
-  id: string;
+  /** null when nothing was said and nothing was saved. */
+  id: string | null;
 }
 
 function Live() {
@@ -92,6 +93,11 @@ function Live() {
       if (once.current || sceneId === null) return;
       once.current = true;
       const date = todayISO();
+      // A session with nothing said is not saved: it would count as a day played and show as an empty session.
+      if (isEmptyResult(done.result)) {
+        setSaved({ done, id: null });
+        return;
+      }
       // The session store goes first: on its first run it brings the old sessions over, and this one must not be among them.
       const id = sessionStore.add(sessionDraft(done, { kind: 'live', date, sceneId, partner: null }));
       // The old v1 progress too, as the old live page did, so the old screens agree.
@@ -103,7 +109,7 @@ function Live() {
 
   if (!accessReady || !profileReady || toPaywall) return BLANK;
 
-  if (saved) return <LiveResult done={saved.done} review={ROUTES.session(saved.id)} />;
+  if (saved) return <LiveResult done={saved.done} review={saved.id ? ROUTES.session(saved.id) : null} />;
 
   if (step === 'round' && sceneId !== null) {
     // The second tap of a double tap on "Start five minutes" lands on the session: it neither opens the keyboard

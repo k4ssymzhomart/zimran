@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useId, useState } from 'react';
+import { clearSummaries } from '@/client/aiSummary';
 import { clearEntitlement, renewsOn, type Entitlement } from '@/client/entitlement';
 import { profileStore } from '@/client/profileStore';
 import { sessionStore } from '@/client/sessionStore';
@@ -110,6 +111,7 @@ export function ProfileScreen({ profile, update, sessions, entitlement, today }:
     sessionStore.clear();
     profileStore.reset();
     clearEntitlement();
+    clearSummaries();
     setErasing(false);
     router.push(ROUTES.home);
   };

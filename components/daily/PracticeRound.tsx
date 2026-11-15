@@ -48,7 +48,7 @@ function Practice() {
         partner={play.partner}
         heading="One minute done."
         back={{ href: ROUTES.practice, label: 'Back to Practice' }}
-        review={ROUTES.session(saved.id)}
+        review={saved.id ? ROUTES.session(saved.id) : null}
       />
     );
   }

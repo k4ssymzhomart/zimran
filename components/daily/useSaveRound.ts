@@ -5,7 +5,7 @@ import { loadProgress, saveProgress, todayISO } from '@/client/progressStore';
 import { sessionStore } from '@/client/sessionStore';
 import type { RoundDone } from '@/components/round/types';
 import { sessionDraft } from '@/hooks/useRound';
-import { addSession } from '@/lib/progress/history';
+import { addSession, isEmptyResult } from '@/lib/progress/history';
 import type { PartnerId } from '@/lib/types';
 
 /** What a round is played with, fixed as it starts: a profile changed in another tab does not change a round under way. */
@@ -15,10 +15,10 @@ export interface Play {
   seed: number;
 }
 
-/** A finished round and the id it was saved under. */
+/** A finished round and the id it was saved under; null when nothing was said and nothing was saved. */
 export interface Saved {
   done: RoundDone;
-  id: string;
+  id: string | null;
 }
 
 /**
@@ -34,6 +34,11 @@ export function useSaveRound(kind: 'daily' | 'practice', play: Play | null) {
       if (once.current || !play) return;
       once.current = true;
       const date = todayISO();
+      // A round with nothing said is not saved: it would count as a day played and show as an empty session.
+      if (isEmptyResult(done.result)) {
+        setSaved({ done, id: null });
+        return;
+      }
       // The session store goes first: on its first run it brings the old sessions over, and this one must not be among them.
       const id = sessionStore.add(sessionDraft(done, { kind, date, sceneId: play.sceneId, partner: play.partner }));
       if (kind === 'daily') saveProgress(addSession(loadProgress(), done.result, date, 'practice'));

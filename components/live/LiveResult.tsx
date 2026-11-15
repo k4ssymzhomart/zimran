@@ -38,8 +38,8 @@ function Stat({ label, value, of }: { label: string; value: number; of?: number 
 
 export interface LiveResultProps {
   done: RoundDone;
-  /** The review of the session that was just saved. */
-  review: string;
+  /** The review of the session that was just saved; null when nothing was said and nothing was saved. */
+  review: string | null;
 }
 
 /**
@@ -81,9 +81,13 @@ export function LiveResult({ done, review }: LiveResultProps) {
             <Button href={ROUTES.today} fullWidth>
               Back to my plan
             </Button>
-            <Button href={review} variant="ghost">
-              Review
-            </Button>
+            {review ? (
+              <Button href={review} variant="ghost">
+                Review
+              </Button>
+            ) : (
+              <p className="py-[10px] text-small text-gray">Nothing was said, so this round was not saved.</p>
+            )}
           </div>
         }
       >

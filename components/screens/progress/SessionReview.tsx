@@ -4,7 +4,10 @@ import { Fragment, useState } from 'react';
 import { dayLabel } from '@/app/(app)/labels';
 import { isLocked } from '@/client/entitlement';
 import { CHILDREN } from '@/components/child';
-import { Button, Divider, Icon, IconButton, Pattern, PatternRow, Rings, Tag, TranscriptRow, cn, focusRing, type RingStat } from '@/components/kit';
+import {
+  AiSummaryCard, Art, Button, Divider, Icon, IconButton, Pattern, PatternRow, RewriteCard, Rings, Sheet, Tag, TranscriptRow, cn, focusRing, type RingStat,
+} from '@/components/kit';
+import { useAiSummary } from '@/hooks/useAiSummary';
 import { useEntitlement } from '@/hooks/useEntitlement';
 import { ROUTES } from '@/lib/routes';
 import type { SavedSession } from '@/lib/types';
@@ -56,6 +59,7 @@ export interface SessionReviewProps {
 export function SessionReview({ session, previous }: SessionReviewProps) {
   const { entitlement, ready } = useEntitlement();
   const [all, setAll] = useState(false);
+  const ai = useAiSummary(session);
 
   const { counts, targets } = session;
   const same = previous && previous.durationSec === session.durationSec ? previous : undefined;
@@ -126,11 +130,16 @@ export function SessionReview({ session, previous }: SessionReviewProps) {
               <p className="pt-[8px] text-body text-gray">The sentences of this session were not kept. Its counts are above.</p>
             ) : (
               <ol>
-                {shown.map((sentence, i) => (
-                  <li key={`${sentence.startSec}-${i}`}>
-                    <TranscriptRow sentence={sentence} />
-                  </li>
-                ))}
+                {shown.map((sentence, i) => {
+                  // A rewrite the model suggested and the rules coded as a skill (lib/ai/summary.ts).
+                  const rewrite = ai.rewriteFor(sentence.text);
+                  return (
+                    <li key={`${sentence.startSec}-${i}`}>
+                      <TranscriptRow sentence={sentence} />
+                      {rewrite && <RewriteCard text={rewrite} source="AI tip, checked by the rules" className="mb-[8px] ml-[46px]" />}
+                    </li>
+                  );
+                })}
               </ol>
             )}
             {!all && sentences.length > FIRST_SHOWN && (
@@ -152,9 +161,52 @@ export function SessionReview({ session, previous }: SessionReviewProps) {
             </section>
           )}
 
+          {ai.available &&
+            (ai.summary ? (
+              <AiSummaryCard text={ai.summary} />
+            ) : (
+              <div className="flex flex-col gap-[6px]">
+                <Button variant="soft" fullWidth onClick={ai.ask} disabled={ai.phase === 'loading'}>
+                  {ai.phase === 'loading' ? 'Writing the summary…' : 'Write an AI summary'}
+                </Button>
+                {ai.error && (
+                  <p role="status" className="text-center text-small text-gray">
+                    {ai.error}
+                  </p>
+                )}
+              </div>
+            ))}
+
           <Button href={practice} fullWidth className="mt-auto">
             Practice this
           </Button>
+
+          {/* Figma 48:1092: asked once, before the first summary. */}
+          <Sheet
+            open={ai.phase === 'consent'}
+            onClose={ai.decline}
+            title="Write an AI summary?"
+            art={<Art name="sparkle" size={64} />}
+            primary={{ label: 'Write summary', onClick: ai.accept }}
+            secondary={{ label: 'Not now', onClick: ai.decline }}
+          >
+            <dl className="flex flex-col">
+              {[
+                ['Sent', 'Your sentence text'],
+                ['Never sent', "Audio, your child's name"],
+                ['Counts', 'Stay as the rules coded them'],
+              ].map(([term, detail], i) => (
+                <Fragment key={term}>
+                  {i > 0 && <Divider />}
+                  <div className="flex items-center justify-between gap-[16px] py-[12px]">
+                    <dt className="text-body text-gray">{term}</dt>
+                    <dd className="text-right text-body-strong text-ink">{detail}</dd>
+                  </div>
+                </Fragment>
+              ))}
+            </dl>
+            <p className="pt-[8px] text-small text-gray">Written by Anthropic&apos;s Claude. PlayReps keeps no copy on a server.</p>
+          </Sheet>
         </div>
       </div>
     </div>

@@ -63,8 +63,9 @@ No login. Everything you do is kept in this browser. The site carries its own ve
   assumptions.
 - Results with real families: not measured. PlayReps has no real users yet.
 - Accuracy on real speech: not measured. The 72 of 80 below is typed text, and no certified coder has checked it.
-- Recordings and the AI summary: off by default (`lib/features.ts`) and not built. Nothing records audio and nothing
-  calls a language model.
+- Recordings: off by default (`lib/features.ts`) and not built. Nothing records audio.
+- The AI summary of a session: built, off by default. When it is switched on and the parent agrees, the sentence
+  text of that one session goes to Anthropic's Claude to be put into words (`app/api/summary/route.ts`).
 
 ## Run it
 
@@ -126,9 +127,12 @@ runs ESLint.
 
 ## Why this is not a ChatGPT wrapper
 
-Rules in code decide every code, count, target and reaction. No language model is called anywhere in this build: no
-model SDK is among the dependencies, the only `fetch` calls in the code are the two in `client/entitlement.ts`, to
-the site's own Stripe routes, and at run time only the three Stripe routes call out from the server, to Stripe.
+Rules in code decide every code, count, target and reaction. A language model never codes or counts anything. The
+one place a model is used is the optional AI summary of a session, off by default: the parent agrees first, the
+device sends that session's sentence text and the counts the rules already computed, and Claude puts them into
+words (`lib/ai/summary.ts`, `app/api/summary/route.ts`). It may also suggest what to say instead of a question or a
+command; a suggestion is shown only when the same rules code it as specific praise, a reflection or a description,
+so the model suggests and the rules decide. With the summary off, the only calls out from the server are to Stripe.
 Voice input is optional and uses the browser's speech recognition, which in Chrome sends the audio to Google's
 speech service; PlayReps receives the text only and keeps no audio. Because the engine is pure and deterministic,
 the same sentences at the same moments give the same round every time. The product is a path, not a chat: a first
@@ -164,7 +168,9 @@ answers stay in `localStorage` on their device.
 | --- | --- |
 | `STRIPE_SECRET_KEY` | Optional. A Stripe **test** key (`sk_test_...`). Without it the paywall runs in demo mode: no payment is taken and "Continue" gives demo access. With it, "Continue" opens Stripe's test checkout. The routes refuse any key that is not a test key. To set it locally, copy `.env.example` to `.env.local`. |
 | `NEXT_PUBLIC_FEATURE_LIVE` | Optional. `false` takes live mode off the Practice tab and the jury guide, and `/live` answers 404. On by default. |
-| `NEXT_PUBLIC_FEATURE_RECORDING`, `NEXT_PUBLIC_FEATURE_AI_SUMMARY` | Optional. Off unless set to `true` or `1`. Leave them off: the recorder and the summary are not built. |
+| `NEXT_PUBLIC_FEATURE_RECORDING` | Optional. Off unless set to `true` or `1`. Leave it off: the recorder is not built. |
+| `NEXT_PUBLIC_FEATURE_AI_SUMMARY` | Optional. `true` shows "Write an AI summary" on the session review. Needs `ANTHROPIC_API_KEY`; without it the button answers that the summary is not set up. |
+| `ANTHROPIC_API_KEY` | Optional. A Claude API key for the AI summary, read only by `app/api/summary/route.ts`. |
 
 `VERCEL_PROJECT_PRODUCTION_URL` is set by Vercel and gives link previews their address.
 

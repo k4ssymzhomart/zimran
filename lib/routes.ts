@@ -38,6 +38,8 @@ export const ROUTES = {
     entitlement: '/api/entitlement',
     /** The daily reminder as a calendar file (app/api/calendar/route.ts). */
     calendar: '/api/calendar',
+    /** The optional AI summary of one session (app/api/summary/route.ts), behind FEATURES.aiSummary. */
+    summary: '/api/summary',
   },
 
   /** The daily five minutes in the Split design (app/daily): the day, its three sentences, the round, the result. Needs access. */

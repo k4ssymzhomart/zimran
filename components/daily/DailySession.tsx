@@ -108,7 +108,7 @@ function Daily() {
         partner={partner}
         heading={`Day ${day.n} done.`}
         back={{ href: ROUTES.today, label: 'Back to my plan' }}
-        review={ROUTES.session(saved.id)}
+        review={saved.id ? ROUTES.session(saved.id) : null}
       />
     );
   }

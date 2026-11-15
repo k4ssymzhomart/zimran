@@ -21,8 +21,8 @@ export interface SessionResultProps {
   heading: string;
   /** The one action: back where the parent came from. */
   back: { href: string; label: string };
-  /** The review of the session that was just saved. */
-  review: string;
+  /** The review of the session that was just saved; null when nothing was said and nothing was saved. */
+  review: string | null;
 }
 
 /**
@@ -85,9 +85,13 @@ export function SessionResult({ done, partner, heading, back, review }: SessionR
           <Button href={back.href} fullWidth>
             {back.label}
           </Button>
-          <Button href={review} variant="ghost">
-            Review
-          </Button>
+          {review ? (
+            <Button href={review} variant="ghost">
+              Review
+            </Button>
+          ) : (
+            <p className="py-[10px] text-small text-gray">Nothing was said, so this round was not saved.</p>
+          )}
         </div>
       }
     >
