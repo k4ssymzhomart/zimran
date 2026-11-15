@@ -10,8 +10,9 @@ import { RoundStage } from '@/components/RoundStage';
 import { SayField } from '@/components/SayField';
 import { ActionLink, Art, Heading, Option, Screen, TopBar } from '@/components/ui';
 import { loadProgress, saveProgress, todayISO } from '@/client/progressStore';
+import { sessionStore } from '@/client/sessionStore';
 import { useJourney } from '@/hooks/useJourney';
-import { useRound } from '@/hooks/useRound';
+import { sessionDraft, useRound } from '@/hooks/useRound';
 import { activeTask, lastTry, lessonDone, ROUND2 } from '@/lib/flow/journey';
 import { addSession, dayNumber } from '@/lib/progress/history';
 import { planDay, PLAN, PLAN_DAYS } from '@/lib/progress/plan';
@@ -291,8 +292,8 @@ function FirstVisit() {
 /** One daily five-minute session. The scene alternates by plan day; the result is saved to progress. */
 function Daily() {
   const round = useRound();
-  const { state, start } = round;
-  const { t } = useChild();
+  const { state, start, done } = round;
+  const { child, t } = useChild();
   const [day, setDay] = useState<number | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -306,10 +307,13 @@ function Daily() {
 
   useEffect(() => {
     if (state.phase !== 'ended' || !state.result || saved) return;
-    saveProgress(addSession(loadProgress(), state.result, todayISO(), 'practice'));
+    const today = todayISO();
+    // The session store goes first: on its first run it brings the old sessions over, and this one must not be among them.
+    if (done) sessionStore.add(sessionDraft(done, { kind: 'daily', date: today, sceneId: state.sceneId, partner: child.id }));
+    saveProgress(addSession(loadProgress(), state.result, today, 'practice'));
     const id = setTimeout(() => setSaved(true), 0);
     return () => clearTimeout(id);
-  }, [state.phase, state.result, saved]);
+  }, [state.phase, state.result, state.sceneId, saved, done, child.id]);
 
   useEffect(() => {
     window.scrollTo(0, 0);

@@ -1,7 +1,109 @@
 @import "tailwindcss";
 
 /*
- * PlayReps in the Zimran house style (Finelo, Coursiv): a near-black canvas, white Inter set heavy and tight,
+ * Two themes share this file while the screens are rebuilt.
+ *
+ * Split (new, light): a flat violet block holds the picture, white holds the words, one black pill is the action.
+ * Its tokens carry the Figma names. A screen opts in by sitting inside .split-root.
+ *
+ * Legacy (old, dark): everything from "Legacy dark theme" down. It stays as it was until its last screen is rebuilt.
+ */
+
+/* ---------- Split tokens ---------- */
+
+@theme {
+  /* Colors, named as in Figma. */
+  --color-white: #ffffff;
+  --color-ink: #0b0b0f;
+  --color-gray: #76767e;
+  --color-faint: #a9a9b2;
+  --color-line: #e8e8ed;
+  --color-mist: #f5f5f7;
+  --color-violet: #5b52ff;
+  --color-violet-press: #4b42e6;
+  --color-violet-tint: #6961ff;
+  --color-lilac: #eeedff;
+  --color-lilac-2: #dcdaff;
+
+  /*
+   * Text styles, named as in Figma. One class (text-display, text-body, ...) sets size, line height, weight and
+   * tracking. Tracking is the Figma percent written in em: -3.2% is -0.032em.
+   */
+  --text-display: 40px;
+  --text-display--line-height: 44px;
+  --text-display--font-weight: 700;
+  --text-display--letter-spacing: -0.032em;
+
+  --text-title: 32px;
+  --text-title--line-height: 36px;
+  --text-title--font-weight: 700;
+  --text-title--letter-spacing: -0.028em;
+
+  --text-heading: 22px;
+  --text-heading--line-height: 28px;
+  --text-heading--font-weight: 600;
+  --text-heading--letter-spacing: -0.02em;
+
+  --text-body: 17px;
+  --text-body--line-height: 24px;
+  --text-body--font-weight: 400;
+  --text-body--letter-spacing: -0.011em;
+
+  --text-body-strong: 17px;
+  --text-body-strong--line-height: 24px;
+  --text-body-strong--font-weight: 600;
+  --text-body-strong--letter-spacing: -0.013em;
+
+  --text-label: 15px;
+  --text-label--line-height: 20px;
+  --text-label--font-weight: 500;
+  --text-label--letter-spacing: -0.008em;
+
+  --text-small: 13px;
+  --text-small--line-height: 18px;
+  --text-small--font-weight: 400;
+  --text-small--letter-spacing: -0.003em;
+
+  --text-small-strong: 13px;
+  --text-small-strong--line-height: 18px;
+  --text-small-strong--font-weight: 600;
+  --text-small-strong--letter-spacing: -0.003em;
+
+  --text-number: 56px;
+  --text-number--line-height: 56px;
+  --text-number--font-weight: 700;
+  --text-number--letter-spacing: -0.04em;
+
+  --text-tab: 11px;
+  --text-tab--line-height: 14px;
+  --text-tab--font-weight: 600;
+  --text-tab--letter-spacing: 0em;
+
+  /* Desktop only. */
+  --text-display-xl: 72px;
+  --text-display-xl--line-height: 76px;
+  --text-display-xl--font-weight: 700;
+  --text-display-xl--letter-spacing: -0.036em;
+
+  --text-title-xl: 48px;
+  --text-title-xl--line-height: 52px;
+  --text-title-xl--font-weight: 700;
+  --text-title-xl--letter-spacing: -0.03em;
+
+  --text-lead: 20px;
+  --text-lead--line-height: 28px;
+  --text-lead--font-weight: 400;
+  --text-lead--letter-spacing: -0.005em;
+
+  /* Motion: one ease and one duration, used as "duration-quick ease-out-quint". The legacy theme shares the ease. */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-duration-quick: 200ms;
+}
+
+/* ---------- Legacy dark theme ---------- */
+
+/*
+ * The Zimran house style (Finelo, Coursiv): a near-black canvas, white Inter set heavy and tight,
  * and one violet. Everything colourful is a shade of that violet: buttons, rings, tags, 3D objects.
  * Never yellow, never red: sentences to swap are calm grey.
  */
@@ -21,12 +123,9 @@
   --color-fg-soft: #a3a1bd;
   --color-fg-faint: #6e6c8d;
 
-  /* the one colour */
-  --color-violet: #6c63ff;
+  /* the one colour (violet, lilac and lilac-2 are restored for legacy pages just below) */
   --color-violet-400: #8a83ff;
   --color-violet-600: #5a50f2;
-  --color-lilac: #b7b3ff;
-  --color-lilac-2: #e0deff;
 
   /* the three skills, one violet family from deep to light */
   --color-praise: #6c63ff;
@@ -40,7 +139,6 @@
   --shadow-float: inset 0 0 0 1px rgb(255 255 255 / 0.09), 0 28px 70px -30px rgb(0 0 0 / 0.95);
   --shadow-violet: 0 14px 34px -12px rgb(108 99 255 / 0.75);
 
-  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 
   --animate-enter: enter 560ms var(--ease-out-quint) both;
@@ -49,6 +147,16 @@
 
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/*
+ * Split reuses three legacy color names with new values. A page with no .split-root keeps the old ones,
+ * so the dark screens render as they always did. Delete this rule with the last dark screen.
+ */
+body:not(:has(.split-root)) {
+  --color-violet: #6c63ff;
+  --color-lilac: #b7b3ff;
+  --color-lilac-2: #e0deff;
 }
 
 @keyframes enter {
@@ -112,7 +220,41 @@ body {
   background: rgb(108 99 255 / 0.45);
 }
 
+/* ---------- Split bridge ---------- */
+
+/* Once a screen opts in with .split-root, the dark canvas and the legacy footer in app/layout.tsx step aside. */
+html:has(.split-root) {
+  background: var(--color-white);
+  color-scheme: light;
+}
+
+body:has(.split-root) {
+  background: var(--color-white);
+  color: var(--color-ink);
+}
+
+body:has(.split-root) > footer {
+  display: none;
+}
+
+body:has(.split-root) ::selection {
+  background: var(--color-lilac-2);
+  color: var(--color-ink);
+}
+
 @layer components {
+  /* The root of every Split screen. In the components layer, so a utility on the same element still wins. */
+  .split-root {
+    min-height: 100dvh;
+    background: var(--color-white);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ---------- Legacy components ---------- */
+
   /* Headlines: Inter heavy and tight, the way Finelo and Coursiv set them. */
   .title {
     font-weight: 800;
@@ -330,5 +472,14 @@ body {
   .btn,
   .field {
     transition: none;
+  }
+
+  /* Split screens: every transition and animation on the page, kit components included, lands at once. */
+  body:has(.split-root) *,
+  body:has(.split-root) *::before,
+  body:has(.split-root) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

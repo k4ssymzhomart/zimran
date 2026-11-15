@@ -47,8 +47,9 @@ const clock = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padSt
  * the coach speaks its lines aloud (for an earbud), and the screen is kept awake where the browser allows it.
  */
 export function RoundStage({ round, title, live = false }: { round: Round; title: string; live?: boolean }) {
-  const { state, view, rings, say, copy, wait, dispute, end } = round;
-  const speech = useSpeech(say);
+  const { state, view, rings, say, saySpoken, copy, wait, dispute, end } = round;
+  // The microphone has its own `say`, so a saved session knows which sentences were spoken.
+  const speech = useSpeech(saySpoken);
   const { start: startListening, stop: stopListening, sayAloud } = speech;
   const [aloud, setAloud] = useState(live);
   const vp = useVisibleViewport();

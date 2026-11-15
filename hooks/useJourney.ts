@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { loadFirstRounds, loadProgress, saveFirstRounds, saveProgress, todayISO } from '@/client/progressStore';
+import { sessionStore } from '@/client/sessionStore';
+import { useChild } from '@/components/child';
+import type { RoundDone } from '@/components/round/types';
 import { initialJourney, journeyReducer, ROUND1, ROUND2, type JourneyPhase, type SetupAnswers } from '@/lib/flow/journey';
 import { addSession, dayNumber } from '@/lib/progress/history';
-import { useRound } from './useRound';
+import { sessionDraft, useRound } from './useRound';
 
 /**
  * The first visit, wired: the pure journey reducer, the round engine with its clock, and storage.
@@ -13,8 +16,11 @@ import { useRound } from './useRound';
 export function useJourney(startAt: JourneyPhase = 'opener') {
   const [state, dispatch] = useReducer(journeyReducer, startAt, (phase) => initialJourney(1, phase));
   const round = useRound();
-  const { state: r, start } = round;
+  const { state: r, start, done } = round;
+  const { child } = useChild();
   const saved = useRef(false);
+  /** Both rounds in full, for the session store: the engine lets go of round one when round two starts. */
+  const rounds = useRef<{ before: RoundDone | null; after: RoundDone | null }>({ before: null, after: null });
   /** Day of the plan, read from the saved progress when the plan screen opens. */
   const [day, setDay] = useState<number | null>(null);
 
@@ -35,16 +41,30 @@ export function useJourney(startAt: JourneyPhase = 'opener') {
     else if (state.phase === 'change' && r.result !== state.round2) dispatch({ type: 'result_updated', result: r.result });
   }, [r.phase, r.result, r.seed, roundSeed, state.phase, state.round1, state.round2]);
 
+  // Each finished round is kept with its sentences; a dispute on the result screen replaces it.
+  useEffect(() => {
+    if (!done) return;
+    if (r.seed === state.seed) rounds.current.before = done;
+    if (r.seed === state.seed + 1) rounds.current.after = done;
+  }, [done, r.seed, state.seed]);
+
   // Both rounds are saved once, when the before-and-after is first shown.
   useEffect(() => {
     if (state.phase !== 'change' || !state.round1 || !state.round2 || saved.current) return;
     saved.current = true;
     const today = todayISO();
+    const firstVisit = !loadFirstRounds();
+    // The session store goes first: on its first run it brings the old sessions over, and these two must not be among them.
+    const { before, after } = rounds.current;
+    const about = { date: today, partner: child.id };
+    // Like the "First visit" card below, the before and after are the very first two rounds; a replay is practice.
+    if (before) sessionStore.add(sessionDraft(before, { ...about, kind: firstVisit ? 'first_before' : 'practice', sceneId: ROUND1.sceneId }));
+    if (after) sessionStore.add(sessionDraft(after, { ...about, kind: firstVisit ? 'first_after' : 'practice', sceneId: ROUND2.sceneId }));
     const withFirst = addSession(loadProgress(), state.round1, today, 'practice');
     saveProgress(addSession(withFirst, state.round2, today, 'practice'));
     // Kept from the very first visit only: the dashboard card is called "First visit".
-    if (!loadFirstRounds()) saveFirstRounds(state.round1, state.round2);
-  }, [state.phase, state.round1, state.round2]);
+    if (firstVisit) saveFirstRounds(state.round1, state.round2);
+  }, [state.phase, state.round1, state.round2, child.id]);
 
   // On the plan screen: the chosen moment goes into the saved progress, and the day of the plan is read.
   useEffect(() => {
@@ -65,6 +85,7 @@ export function useJourney(startAt: JourneyPhase = 'opener') {
   const finishSetup = useCallback(() => dispatch({ type: 'finish_setup' }), []);
   const restart = useCallback(() => {
     saved.current = false;
+    rounds.current = { before: null, after: null };
     dispatch({ type: 'restart' });
   }, []);
 

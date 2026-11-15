@@ -81,3 +81,20 @@ export {
   type SpeechStatus,
   type SpokenLine,
 } from './speech/speech';
+export {
+  beforeAfter,
+  bestStreakOf,
+  monthGrid,
+  planDayOf,
+  sessionPatterns,
+  streakOf,
+  totalsOf,
+  weekNumbers,
+  type CalendarDay,
+  type SessionPattern,
+  type SkillTotals,
+  type Streak,
+  type Totals,
+  type WeekTotals,
+} from './progress/sessions';
+export { FEATURES } from './features';

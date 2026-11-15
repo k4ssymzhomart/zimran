@@ -179,3 +179,71 @@ export interface CoachPrompt {
   kind: PromptKind;
   text: string;
 }
+
+// ---------- the app: profile, saved sessions ----------
+// Frozen on day zero (docs/BUILD-PLAN.md). Both developers build against these; changing one needs both.
+
+/** The simulated child the parent practises with. Live mode has no partner. */
+export type PartnerId = 'mia' | 'leo';
+
+/** Where a saved session came from. The two first-visit rounds are the parent's own before and after. */
+export type SessionKind = 'first_before' | 'first_after' | 'daily' | 'practice' | 'live';
+
+/** How the parent answered in that session. */
+export type InputMode = 'typed' | 'spoken' | 'mixed';
+
+/** One sentence the parent said, kept so a session can be read back later. */
+export interface SavedSentence {
+  text: string;
+  code: Code;
+  /** Seconds from the start of the round to the start and the end of the sentence. */
+  startSec: number;
+  atSec: number;
+  /** Name of the rule that fired, for "How coding works". */
+  rule?: string;
+  /** True when the parent tapped "Disagree?"; a disputed sentence is not counted. */
+  disputed?: boolean;
+}
+
+/** A finished round, as the round screen hands it over. The store adds the id. */
+export interface SessionDraft {
+  kind: SessionKind;
+  /** ISO date-time on this device when the round started. */
+  startedAt: string;
+  /** Local calendar day, YYYY-MM-DD: what streaks and the calendar count. */
+  date: string;
+  durationSec: number;
+  sceneId: string;
+  partner: PartnerId | null;
+  counts: Counts;
+  targets: Targets;
+  met: boolean;
+  input: InputMode;
+  sentences: SavedSentence[];
+  /** Key of the audio blob on this device, when the parent chose to record. */
+  audioId?: string;
+}
+
+export interface SavedSession extends SessionDraft {
+  id: string;
+}
+
+/** What the parent told us in the quiz. Lives on this device only. */
+export interface Profile {
+  childName: string | null;
+  /** 2 to 7. */
+  childAge: number | null;
+  /** The hardest moments of the day the parent picked. */
+  moments: string[];
+  /** The parent's guess: questions asked in one minute of play. */
+  guess: number | null;
+  partner: PartnerId;
+  /** Scene id for daily practice. */
+  sceneId: string;
+  /** The daily moment the five minutes are tied to, for example "after dinner". */
+  anchor: string | null;
+  /** Both are off until the parent turns them on. */
+  recordAudio: boolean;
+  aiSummary: boolean;
+  createdAt: string | null;
+}

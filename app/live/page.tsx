@@ -1,16 +1,20 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ArrowRight, Mic } from '@/components/Icons';
-import { RoundStage } from '@/components/RoundStage';
+import { RoundRunner } from '@/components/round/RoundRunner';
+import type { RoundDone } from '@/components/round/types';
 import { ActionLink, Art, Heading, Pill, Screen, Stat } from '@/components/ui';
 import { loadProgress, saveProgress, todayISO } from '@/client/progressStore';
-import { useRound } from '@/hooks/useRound';
+import { sessionStore } from '@/client/sessionStore';
+import { sessionDraft } from '@/hooks/useRound';
 import { addSession } from '@/lib/progress/history';
+import type { RoundResult } from '@/lib/types';
 import { useChild } from '@/components/child';
 
 const SECONDS = 300;
+const SCENE = 'blocks';
 
 const STEPS = [
   { text: 'Put one earbud in and the phone on the table, with this page open.', hint: 'The screen stays on where the browser allows it. If it locks, listening stops.' },
@@ -32,22 +36,23 @@ export default function LivePage() {
 
 function Live() {
   const { child, t } = useChild();
-  const round = useRound();
-  const { state, start } = round;
-  const [saved, setSaved] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState<RoundResult | null>(null);
 
-  useEffect(() => {
-    if (state.phase !== 'ended' || !state.result || saved) return;
-    saveProgress(addSession(loadProgress(), state.result, todayISO(), 'live'));
-    const id = setTimeout(() => setSaved(true), 0);
-    return () => clearTimeout(id);
-  }, [state.phase, state.result, saved]);
+  // The round runner calls this once, when the five minutes are over or the parent ends them.
+  function save(done: RoundDone) {
+    const today = todayISO();
+    // The session store goes first: on its first run it brings the old sessions over, and this one must not be among them.
+    sessionStore.add(sessionDraft(done, { kind: 'live', date: today, sceneId: SCENE, partner: null }));
+    saveProgress(addSession(loadProgress(), done.result, today, 'live'));
+    setResult(done.result);
+  }
 
-  if (state.phase === 'running') return <RoundStage round={round} title="Live, five minutes" live />;
+  if (running && !result) {
+    return <RoundRunner mode="live" sceneId={SCENE} partner={null} durationSec={SECONDS} seed={1} title="Live, five minutes" onDone={save} />;
+  }
 
-  if (state.phase === 'ended') {
-    const result = state.result;
-    if (!result) return null;
+  if (result) {
     return (
       <Screen action={<ActionLink href="/dashboard">Back to my plan</ActionLink>}>
         <Art src={result.met ? '/art/trophy.png' : '/art/progress.png'} size="sm" priority />
@@ -87,14 +92,7 @@ function Live() {
     <Screen
       action={
         <>
-          <button
-            type="button"
-            className="btn btn-primary btn-block"
-            onClick={() => {
-              setSaved(false);
-              start('blocks', SECONDS, 1, undefined, true);
-            }}
-          >
+          <button type="button" className="btn btn-primary btn-block" onClick={() => setRunning(true)}>
             Start five minutes
             <ArrowRight size={20} />
           </button>
