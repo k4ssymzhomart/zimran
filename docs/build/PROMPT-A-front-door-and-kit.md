@@ -58,11 +58,13 @@ Rules for production from now on:
   `vercel deploy --prod --yes` (without `--prod` for a preview).
 - Ask me before every production deploy and before every push to `main`. Pushing to `redesign/premium-ui` is fine.
 
-## Step 1: the kit (already checked against Figma)
+## Step 1: the kit (being checked by agents started before this prompt)
 
-The kit was compared with the Components page component by component before you started, and an icon set
-(`Icon`) and the quiz age tile (`NumberTile`) were added. Open `/kit` to see it. Developer B is blocked by every kit
-defect, so a kit request from B (`// TODO kit`) takes priority over my current screen when more than three are open.
+Agents started before this prompt are comparing the kit with the Figma Components page component by component, and
+adding an icon set (`Icon`) and the quiz age tile (`NumberTile`). Do not redo that work and do not edit
+`components/kit/**` while they run; their fixes land as their own commit. Open `/kit` to see the kit. Developer B is
+blocked by every kit defect, so a kit request from B (`// TODO kit`) takes priority over my current screen when more
+than three are open.
 
 ## Step 2: first priority, the path the jury walks
 
