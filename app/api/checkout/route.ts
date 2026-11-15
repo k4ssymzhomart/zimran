@@ -39,6 +39,10 @@ export async function POST(req: Request) {
     // Stripe is constructed here, not at module level, so a missing key can never break the import.
     const session = await new Stripe(key).checkout.sessions.create({
       mode: 'subscription',
+      // The app is in English and its prices are in US dollars: the checkout says the same,
+      // not the visitor's local language and a converted price.
+      locale: 'en',
+      adaptive_pricing: { enabled: false },
       line_items: [
         {
           quantity: 1,
