@@ -125,6 +125,15 @@ describe('the lessons follow the plan', () => {
     for (const d of PLAN.slice(0, 7)) expect(dayLesson(d.day).task.miaSays).toBeNull();
   });
 
+  it('day 1 fits the scene the parent chose: descriptions that name no toy', () => {
+    // The plan names no scene for day 1, so its round plays the parent's own scene, blocks or drawing.
+    expect(PLAN[0].sceneId ?? null).toBeNull();
+    const { say, task } = dayLesson(1);
+    for (const sentence of [...say, task.example]) expect(codeTurn(sentence).map((s) => s.code), sentence).toEqual(['description']);
+    expect([...say, task.setup, task.example].join(' ')).not.toMatch(/block|tower|stack|crayon|draw|paper|car\b/i);
+    expect(checkDayTask(1, task.example)).toMatchObject({ ok: true, code: 'description' });
+  });
+
   it('day 5 is the wordless copy plus a description', () => {
     const { task } = dayLesson(5);
     expect(PLAN[4].title).toBe('Copy what she does');

@@ -31,6 +31,11 @@ export interface PaywallScreenProps {
   cancelled?: boolean;
   /** Why the checkout did not open, as one sentence (27:552). */
   error?: string | null;
+  /**
+   * This device has a profile (`profile.createdAt` is set): the headline says "Keep practicing with Mia." A first-time
+   * visitor, sent here from a page that needs access, reads "Practice with Mia." Left out, the drawn headline.
+   */
+  returning?: boolean;
   /** The one action. */
   onContinue(): void;
   /** Access with no payment, labelled as a demo. Only reached in `stripe` mode. */
@@ -67,6 +72,7 @@ export function PaywallScreen({
   opening = false,
   cancelled = false,
   error = null,
+  returning = true,
   onContinue,
   onDemo,
   onClose,
@@ -110,7 +116,7 @@ export function PaywallScreen({
         <div className="flex flex-col gap-[14px]">
           {moment ? <p className="text-label text-gray">{moment}</p> : null}
           <h1 ref={headline} tabIndex={-1} className="text-title outline-none">
-            Keep practicing with {child.name}.
+            {returning ? 'Keep practicing' : 'Practice'} with {child.name}.
           </h1>
           {closed ? <p className="text-body text-gray">Checkout was closed. Nothing was charged.</p> : null}
 

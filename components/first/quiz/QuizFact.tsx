@@ -9,7 +9,7 @@ import type { QuizFactProps } from '../quizTypes';
  * fact.test.ts fails when one of the three changes: change the words here together with the number.
  */
 const TITLE = 'Clinics count ten, ten, ten in five minutes.';
-const BODY = 'Ten praises, ten reflections, ten descriptions, and at most three questions or commands.';
+const BODY = 'Ten specific praises, ten reflections, ten descriptions, and at most three questions, commands or corrections.';
 const SOURCE = 'PCIT protocol, Eyberg & Funderburk, 2011';
 
 /**

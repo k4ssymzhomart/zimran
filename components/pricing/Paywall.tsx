@@ -109,6 +109,8 @@ function PaywallFlow({ checkout }: PaywallProps) {
       opening={opening}
       cancelled={cancelled}
       error={error}
+      // A device with no profile has never played: it is sent here by a page that needs access, not to keep going.
+      returning={profile.createdAt !== null}
       onContinue={pay}
       onDemo={unlock}
       onClose={close}

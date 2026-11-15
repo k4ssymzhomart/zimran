@@ -38,11 +38,14 @@ function takeFocus(heading: HTMLElement | null) {
 }
 
 /**
- * A day of the plan is done and the 28 days are laid out. Phones are Figma 24:568, from 1024px it is 32:272;
+ * A day of the plan starts and the 28 days are laid out. Phones are Figma 24:568, from 1024px it is 32:272;
  * the daily moment sits in the mist card that 49:1651 keeps it in.
  *
+ * The frame says "Day 1 of 28 is done.", but Today counts a day as done only after its daily five minutes, and
+ * right after this screen it offers them. So the headline says the day starts now, and the two screens agree.
+ *
  * Everything shown comes from `day`, `anchor` and the plan in lib/progress/plan.ts: the weeks and their skills,
- * which week is now, and the plan's own line about tomorrow, which is the teaser of the day that is done.
+ * which week is now, and the plan's own line about tomorrow, which is the teaser of the day that starts now.
  * This screen is given no results, so the share of the clinic pace and the pace cards of 49:1651 are not here.
  *
  * The two actions are the two of the frame, and each leads where it says: "Open my plan" to the plan itself
@@ -50,8 +53,8 @@ function takeFocus(heading: HTMLElement | null) {
  * the way to the plans passes no `onOpenPlan`, and the screen then has that one control.
  */
 export function PlanResult({ partner, anchor, day, onNext, onOpenPlan }: PlanResultProps) {
-  const done = Number.isFinite(day) ? Math.min(PLAN_DAYS, Math.max(1, Math.floor(day))) : 1;
-  const today = planDay(done);
+  const current = Number.isFinite(day) ? Math.min(PLAN_DAYS, Math.max(1, Math.floor(day))) : 1;
+  const today = planDay(current);
   const next = comingUp(shown(today.teaser, partner));
   const moment = anchor?.trim() || null;
 
@@ -80,7 +83,7 @@ export function PlanResult({ partner, anchor, day, onNext, onOpenPlan }: PlanRes
     >
       <div className="flex flex-col gap-[12px] pt-[4px] lg:pt-0">
         <h1 ref={takeFocus} tabIndex={-1} className="text-title outline-none">
-          Day {done} of {PLAN_DAYS} is done.
+          Day {current} of {PLAN_DAYS} starts now.
         </h1>
 
         <ol aria-label="The weeks of your plan" className="flex flex-col">

@@ -89,6 +89,16 @@ const BELL = (
 );
 
 /**
+ * "7:30 PM" from "19:30", "12:00 PM" from "12:00", "12:15 AM" from "00:15". Only the drawn copy changes: the state,
+ * the native field and the calendar file keep HH:MM. Anything that is not HH:MM is drawn as it is.
+ */
+function clock12(time: string): string {
+  if (!isTime(time)) return time;
+  const [hours, minutes] = time.split(':').map(Number);
+  return `${hours % 12 || 12}:${String(minutes).padStart(2, '0')} ${hours < 12 ? 'AM' : 'PM'}`;
+}
+
+/**
  * The Time row: the look of a compact PlanRow over a native time field. The field is not drawn, but it covers the
  * whole row, takes every tap and key, and opens the picker the phone already has.
  * TODO kit: a PlanRow that can hold a native control.
@@ -113,9 +123,9 @@ function TimeRow({ value, onChange }: { value: string; onChange(time: string): v
   return (
     <label className={cn('relative flex min-h-[52px] w-full cursor-pointer items-center gap-[8px]', focusRingWithin)}>
       <span className="min-w-0 flex-1 text-body text-gray">Time</span>
-      {/* The field reads its own value aloud; this is the copy that is drawn. */}
-      <span aria-hidden className="shrink-0 text-body-strong text-ink">
-        {value}
+      {/* The field reads its own value aloud; this is the copy that is drawn, on the clock an American reader uses. */}
+      <span aria-hidden className="shrink-0 whitespace-nowrap text-body-strong text-ink">
+        {clock12(value)}
       </span>
       <RowChevron />
       <input

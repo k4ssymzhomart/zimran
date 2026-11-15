@@ -6,8 +6,18 @@ import { cn } from './cn';
  * On its own a shell is the Split root of the page. Inside AppShell pass `embedded`: the shell is the root there.
  */
 
-/** The top row of a screen: a 44px back button at the left, at most one control at the right. */
-const BAR = 'relative flex h-[44px] shrink-0 items-center justify-between px-[12px] lg:h-[80px] lg:px-[28px]';
+/**
+ * The top row of a screen: a 44px back button at the left, at most one control at the right. Its side padding from
+ * 1024px depends on where it sits, so it is one of the two below; cn only joins, so the two never meet on one row.
+ */
+const BAR = 'relative flex h-[44px] shrink-0 items-center justify-between px-[12px] lg:h-[80px]';
+/** On a violet block and on a plain page: 28px in from the edge. */
+const BAR_INSET = 'lg:px-[28px]';
+/**
+ * In the white column of a split page, where the title and the page start at the column's edge: the 24px icon sits
+ * 10px inside its 44px button, so the row reaches 10px past the column and the icon lines up with the title.
+ */
+const BAR_IN_COLUMN = 'lg:-mx-[10px] lg:px-0';
 
 /** Where a picture rests in a violet block: centered (portraits, objects) or standing on the bottom edge (full-body poses). */
 type Rest = 'center' | 'bottom';
@@ -36,7 +46,7 @@ function Violet({ picture, pattern, bar, rest, className }: VioletProps) {
         </div>
       )}
       {/* Above the stage, so a picture taller than the block never covers the way back. */}
-      {bar && <div className={cn(BAR, 'z-[1]')}>{bar}</div>}
+      {bar && <div className={cn(BAR, BAR_INSET, 'z-[1]')}>{bar}</div>}
       <div
         data-stage=""
         className={cn(
@@ -175,7 +185,7 @@ export function PageScreen({ title, aside, bar, children, embedded = false, clas
   const split = !empty(picture) || !empty(pattern);
   const page = (
     <>
-      {bar && <div className={BAR}>{bar}</div>}
+      {bar && <div className={cn(BAR, split ? BAR_IN_COLUMN : BAR_INSET)}>{bar}</div>}
       <header
         className={cn(
           'flex items-center justify-between gap-[16px] px-[24px] pt-[6px]',

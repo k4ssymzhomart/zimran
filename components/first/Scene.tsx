@@ -71,10 +71,11 @@ interface ScenePicture {
 /**
  * The pictures of each scene in lib/child/scenes.ts. Leo has no pose with blocks or with crayons yet
  * (components/kit/art-manifest.ts), and the kit's fallback would put one picture on both cards. Until the two are
- * drawn he plays on the floor on one card and holds up his drawing on the other.
+ * drawn he waves, with no toy in his hands, on the blocks card, so the picture never shows a toy the card does not
+ * name, and he holds up his drawing on the other.
  */
 const PICTURES = new Map<string, ScenePicture>([
-  ['blocks', { art: 'blocks', pose: { mia: 'body-blocks', leo: 'body-car' } }],
+  ['blocks', { art: 'blocks', pose: { mia: 'body-blocks', leo: 'body-waving' } }],
   ['drawing', { art: 'drawing', pose: { mia: 'body-drawing', leo: 'body-showing' } }],
 ]);
 

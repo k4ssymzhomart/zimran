@@ -22,7 +22,7 @@ export interface Plan {
 
 /**
  * The same prices as PLANS in app/api/checkout/route.ts, which is what the test checkout charges.
- * A plan lists only what is built: weeks 9 to 12 are not, so no line sells them.
+ * A detail covers the whole term: paid access keeps live mode open until the term ends.
  */
 export const PLANS: readonly Plan[] = [
   { id: 'four_weeks', weeks: termWeeks('four_weeks'), dollars: 29, tag: null, detail: null },
@@ -31,7 +31,7 @@ export const PLANS: readonly Plan[] = [
     weeks: termWeeks('twelve_weeks'),
     dollars: 69,
     tag: 'Best value',
-    detail: 'Weeks 1–4 with Mia, weeks 5–8 live with your child',
+    detail: 'Weeks 1–4 with Mia, weeks 5–12 live with your child',
   },
 ];
 

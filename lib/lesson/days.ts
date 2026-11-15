@@ -56,13 +56,14 @@ const THREE_SKILLS_HINT = 'Describe what she is doing, say her words back, or pr
 /** Days 1 to 28, in the order of PLAN. */
 const DAYS: Omit<DayLesson, 'day'>[] = [
   // ----- week 1: Follow. Each task turns a question or an order into a statement. -----
-  // 1 Follow her lead
+  // 1 Follow her lead. The plan names no scene for day 1, so the round plays the parent's own scene: every line
+  // here fits blocks and drawing alike.
   lesson(
     'For these five minutes she picks the game and you follow. Say what you see her doing, and save questions and directions for the rest of the day.',
-    ["You're stacking the blocks.", 'You picked the red one.', "You're building it your way."],
+    ["You're doing it your way.", 'You picked the red one.', "You're making something new."],
     task(
-      'Mia lines up three green blocks. Turn “What are you making?” into a statement about what you see.',
-      null, DESCRIBE, "You're lining up the green blocks.",
+      'Mia picks up a green one. Turn “What are you making?” into a statement about what you see.',
+      null, DESCRIBE, "You're picking up the green one.",
       "Start with “You're …” and name what her hands are doing.",
     ),
   ),
