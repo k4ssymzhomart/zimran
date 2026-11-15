@@ -4,7 +4,7 @@ window.DECK = {
   url: 'fammy-app.vercel.app',
   repo: 'github.com/k4ssymzhomart/zimran',
   // The number `npx vitest run` prints. Update it after the last change.
-  tests: 1977,
+  tests: 1996,
   // The team on slide 10, as each person wants to be named.
   team: [
     {
