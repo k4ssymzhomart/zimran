@@ -227,7 +227,7 @@ export function useFirstVisit() {
     (index: number) => {
       const before = rounds.before;
       if (step !== 'result1' || !before) return;
-      const next = afterDispute(before.sentences, index, ROUND1.seconds, before.durationSec);
+      const next = afterDispute(before.sentences, index, ROUND1.seconds, before.durationSec, before.result.short === true);
       if (!next) return;
       setRounds((r) => ({ ...r, before: { ...before, ...next } }));
       dispatch({ type: 'result_updated', result: next.result });

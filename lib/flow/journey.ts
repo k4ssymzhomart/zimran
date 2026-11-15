@@ -9,7 +9,8 @@ import { codeTurn } from '../coding/classify';
 import { SAFETY_NOTE } from '../coding/safety';
 import { BLOCKS } from '../child/scenes';
 import { checkAnswer, lessonFor, type Lesson, type LessonTask } from '../lesson/lesson';
-import { compareRounds, summarizeRound } from '../progress/targets';
+import { biggestLever, compareRounds, LEVER_TEXT, summarizeRound } from '../progress/targets';
+import { MAX_DISPUTES } from '../round/session';
 
 export const ROUND1 = { sceneId: 'blocks', seconds: 60 } as const;
 export const ROUND2 = { sceneId: 'drawing', seconds: 40 } as const;
@@ -203,8 +204,13 @@ export function afterDispute(
   index: number,
   plannedSeconds: number,
   measuredSeconds: number,
+  /** True when the round was ended before half of its planned length: it keeps having no pace verdict. */
+  short = false,
 ): { sentences: SavedSentence[]; result: RoundResult } | null {
-  if (!sentences[index]) return null;
+  const target = sentences[index];
+  if (!target) return null;
+  // As in the round engine: a round has MAX_DISPUTES slots; taking a dispute back frees one.
+  if (!target.disputed && sentences.filter((s) => s.disputed).length >= MAX_DISPUTES) return null;
   const next = sentences.map((s, i): SavedSentence => {
     if (i !== index) return s;
     const { disputed, ...rest } = s;
@@ -213,7 +219,14 @@ export function afterDispute(
   const counted = next
     .filter((s) => !s.disputed)
     .map((s): CodedSentence => ({ text: s.text, code: s.code, bucket: BUCKET[s.code], confidence: 1, rule: s.rule ?? '' }));
-  return { sentences: next, result: { ...summarizeRound(counted, plannedSeconds), seconds: measuredSeconds } };
+  const base = summarizeRound(counted, plannedSeconds);
+  let result: RoundResult = { ...base, seconds: measuredSeconds };
+  if (short) {
+    const lever = biggestLever(base.counts, base.targets);
+    result = { ...result, met: false, lever, leverText: lever ? LEVER_TEXT[lever] : null, short: true };
+  }
+  const disputed = next.filter((s) => s.disputed).length;
+  return { sentences: next, result: disputed > 0 ? { ...result, disputed } : result };
 }
 
 function answerOpener(state: JourneyState, text: string): JourneyState {
