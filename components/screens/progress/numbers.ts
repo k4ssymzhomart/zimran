@@ -24,7 +24,7 @@ export function signed(n: number): string {
   return '0';
 }
 
-/** One session, or the mean of several, at five-minute pace. Reflections are not counted in live play: null. */
+/** One session, or the mean of several, on the five-minute scale of the clinic numbers. Reflections are not counted in live play: null. */
 export interface Pace {
   praise: number;
   reflect: number | null;
@@ -32,9 +32,13 @@ export interface Pace {
   swap: number;
 }
 
-/** A session's counts scaled to five minutes. Under a minute counts as a minute, so a short round is not blown up. */
+/**
+ * A session's counts on the five-minute scale. A session shorter than five minutes is taken as it is, never scaled
+ * up: four praises in one minute are four, not twenty, so Progress shows the same numbers as the session's review.
+ * A longer one is scaled down.
+ */
 export function paceOf(session: SavedSession): Pace {
-  const scale = FIVE_MINUTES / Math.max(session.durationSec, 60);
+  const scale = FIVE_MINUTES / Math.max(session.durationSec, FIVE_MINUTES);
   const at = (n: number) => n * scale;
   return {
     praise: at(session.counts.specific_praise),
@@ -98,7 +102,7 @@ export function trendLine(sessions: readonly SavedSession[], today: string): str
   return 'A steady pace';
 }
 
-/** One ring of Trends: the latest session at five-minute pace, and the change since the session before it. */
+/** One ring of Trends: the latest session's count, and the change since the session before it. */
 export interface TrendStat {
   value: number | null;
   delta?: string;

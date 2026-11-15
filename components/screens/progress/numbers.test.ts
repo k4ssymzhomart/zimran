@@ -47,14 +47,20 @@ describe('Progress numbers', () => {
     expect(trendLine([session({ date: '2026-11-10' })], today)).toBe('Your first sessions');
   });
 
-  it('scales a one-minute round to five-minute pace, and keeps reflections out of live play', () => {
+  it('shows a short round as it was played, the same numbers as its review, and keeps reflections out of live play', () => {
     const stats = latestStats([
       session({ counts: counts({ specific_praise: 5 }) }),
       session({ durationSec: 60, kind: 'live', counts: counts({ specific_praise: 2, question: 1 }) }),
     ]);
-    expect(stats?.praise).toEqual({ value: 10, delta: '+5' });
+    // Two praises in one minute are two, not ten.
+    expect(stats?.praise).toEqual({ value: 2, delta: '−3' });
     expect(stats?.reflect.value).toBeNull();
-    expect(stats?.swap).toEqual({ value: 5, delta: '+5' });
+    expect(stats?.swap).toEqual({ value: 1, delta: '+1' });
+  });
+
+  it('scales a session longer than five minutes down to the five-minute scale', () => {
+    const stats = latestStats([session({ durationSec: 600, counts: counts({ description: 20 }) })]);
+    expect(stats?.describe.value).toBe(10);
   });
 
   it('lays out four calendar weeks, oldest first', () => {

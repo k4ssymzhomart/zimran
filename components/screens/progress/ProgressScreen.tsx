@@ -171,7 +171,7 @@ export function ProgressScreen() {
   const month = today.slice(0, 7);
   const played = [...new Set(sessions.map((s) => s.date))];
   const metDays = [...new Set(sessions.filter((s) => s.met).map((s) => s.date))];
-  const caption = `${whenLabel(last.date, today)}, at five-minute pace. A full ring is the clinic pace of ten.`;
+  const caption = `${whenLabel(last.date, today)}. A full ring is the clinic pace: ten in five minutes. A shorter round is not stretched to five.`;
   const chips = FEATURES.live && <ChipGroup<Filter> label="Show sessions" options={FILTERS} value={filter} onChange={setFilter} />;
   const noneShown = shown.length === 0 && <p className="py-[24px] text-body text-gray">No live sessions yet.</p>;
 
@@ -285,7 +285,7 @@ export function ProgressScreen() {
 
 const CARD = 'flex min-w-0 flex-col gap-[20px] rounded-[36px] border border-line p-[28px]';
 
-/** The weekly mean of each skill at five-minute pace, with the clinic pace dashed across. TODO kit: a trend chart. */
+/** The weekly mean of each skill on the five-minute scale (a shorter round is not stretched), with the clinic pace dashed across. TODO kit: a trend chart. */
 function WeekChart({ weeks }: { weeks: Week[] }) {
   const W = 560;
   const H = 160;
