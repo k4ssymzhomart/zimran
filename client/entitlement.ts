@@ -78,9 +78,12 @@ export async function confirmCheckout(sessionId: string): Promise<Entitlement> {
   }
 }
 
-/** Fallback for the jury if Stripe is unreachable. The UI must label it as a demo unlock. */
-export function demoUnlock(): Entitlement {
-  const e: Entitlement = { paid: true, plan: 'four_weeks', demo: true, startedAt: startOf('four_weeks', true) };
+/**
+ * Access with no payment, for the plan the visitor chose (4 weeks when none is given). It is how the paywall works
+ * while no payment is taken on the site, and the jury's way past the test checkout. The UI must label it as a demo.
+ */
+export function demoUnlock(plan: PlanId = 'four_weeks'): Entitlement {
+  const e: Entitlement = { paid: true, plan, demo: true, startedAt: startOf(plan, true) };
   write(e);
   return e;
 }
