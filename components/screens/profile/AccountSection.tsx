@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { deleteAccount, signInWith, signOut } from '@/client/account';
 import { SettingRow, SettingsSection, Sheet } from '@/components/kit';
 import { useAccount } from '@/hooks/useAccount';
@@ -25,6 +25,18 @@ export function AccountSection({ className }: { className?: string }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // "Sign in" on the landing leads to /profile#sign-in: the group comes into view and the Sign in sheet opens.
+  useEffect(() => {
+    if (account.status !== 'guest' && account.status !== 'signed-in') return;
+    const hash = window.location.hash;
+    if (hash !== '#sign-in' && hash !== '#account') return;
+    const id = setTimeout(() => {
+      document.getElementById('account')?.scrollIntoView({ block: 'center' });
+      if (hash === '#sign-in' && account.status === 'guest') setForm('sign-in');
+    }, 0);
+    return () => clearTimeout(id);
+  }, [account.status]);
 
   if (account.status === 'checking' || account.status === 'off') return null;
 
@@ -66,7 +78,8 @@ export function AccountSection({ className }: { className?: string }) {
 
   return (
     <>
-      <SettingsSection title="Account" className={className}>
+      <div id="account" className="scroll-mt-[24px]">
+        <SettingsSection title="Account" className={className}>
         {account.status === 'signed-in' ? (
           <>
             <SettingRow art="/art/cloud.png" label={account.email} value="Synced" />
@@ -79,7 +92,8 @@ export function AccountSection({ className }: { className?: string }) {
             <SettingRow art="/art/key.png" label="Sign in" chevron onClick={() => setForm('sign-in')} />
           </>
         )}
-      </SettingsSection>
+        </SettingsSection>
+      </div>
 
       <Sheet
         open={form !== null}

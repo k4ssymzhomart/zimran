@@ -9,6 +9,7 @@ import { Footer } from '@/components/landing/Footer';
 import { FourCounts } from '@/components/landing/FourCounts';
 import { Hero } from '@/components/landing/Hero';
 import { InPageLinks } from '@/components/landing/InPageLinks';
+import { JuryPill } from '@/components/landing/JuryPill';
 import { LandingBar } from '@/components/landing/LandingBar';
 import { LandingMotion } from '@/components/landing/LandingMotion';
 import { LiveAnswer } from '@/components/landing/LiveAnswer';
@@ -72,6 +73,7 @@ export default function Landing() {
       <InPageLinks />
       <LandingMotion />
       <LandingBar sections={sectionLinks} actionHref={ANSWER_HREF} />
+      <JuryPill />
       <main>
         <Hero actionHref={ANSWER_HREF} />
         <div data-reveal>

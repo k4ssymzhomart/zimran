@@ -14,6 +14,9 @@ export interface LandingBarProps {
   actionHref: string;
 }
 
+/** The optional account lives in Profile; this opens its Sign in sheet there (AccountSection). */
+const SIGN_IN = `${ROUTES.profile}#sign-in`;
+
 /** A scroll down faster than this, in pixels a millisecond, puts the bar away until the visitor scrolls back up. */
 const FAST = 1;
 
@@ -86,7 +89,12 @@ export function LandingBar({ sections = [], actionHref }: LandingBarProps) {
     };
   }, [sections]);
 
-  const links = [...sections, { label: 'Jury guide', href: ROUTES.jury }, { label: 'Open app', href: ROUTES.today }];
+  const links = [
+    ...sections,
+    { label: 'Jury guide', href: ROUTES.jury },
+    { label: 'Sign in', href: SIGN_IN },
+    { label: 'Open app', href: ROUTES.today },
+  ];
 
   return (
     <>
@@ -139,7 +147,17 @@ export function LandingBar({ sections = [], actionHref }: LandingBarProps) {
               </ul>
             </nav>
 
-            {/* Phones, over the violet block: the way into the app, in white. */}
+            {/* Phones, over the violet block: signing in and the way into the app, in white. */}
+            <Link
+              href={SIGN_IN}
+              className={cn(
+                'inline-flex min-h-[44px] items-center rounded-[8px] text-label text-white lg:hidden',
+                solid && 'hidden',
+                focusRingOnViolet,
+              )}
+            >
+              Sign in
+            </Link>
             <Link
               href={ROUTES.today}
               className={cn(
