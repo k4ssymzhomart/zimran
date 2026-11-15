@@ -137,7 +137,7 @@ parent who disagrees with a code can tap "Disagree?" to take that sentence out o
 
 ## Numbers we stand behind
 
-- **1,939 unit tests** in 32 files: the count `npx vitest run` printed on 15 November 2026, the day of submission.
+- **1,963 unit tests** in 35 files: the count `npx vitest run` printed on 15 November 2026, the day of submission.
   They cover the rules engine in `lib/`, the stores in `client/`, the round hook, the checkout route (with Stripe
   replaced by a stand-in) and the pure parts of the screens, among them the jury guide's statements about the rules,
   run against the engine (`components/jury/guide.test.ts`). Run `npm test`.
