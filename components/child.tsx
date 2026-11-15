@@ -31,7 +31,7 @@ const KEY = 'playreps.child.v1';
 
 /** After "her", these words make it possessive ("her words" → "his words"); anything else is an object ("asks her to" → "asks him to"). */
 const POSSESSED =
-  /^(own|words?|hands?|arms?|arm|crayons?|lead|sports|picture|last|latest|line|blocks?|drawing|commentator|play|tower|toys?|turn|face|feelings?|name|ideas?|game|paper|shoulders|head|eyes|voice|choice|way|story|house|dog|car|train)\b/i;
+  /^(own|words?|hands?|arms?|arm|crayons?|lead|sports|picture|last|latest|line|blocks?|drawing|commentator|sportscaster|play|tower|toys?|turn|face|feelings?|name|ideas?|game|paper|shoulders|head|eyes|voice|choice|way|story|house|dog|car|train)\b/i;
 
 /** Rewrites engine text written about Mia so it is about the chosen child. Mia's text is returned as is. */
 export function forChild(text: string, child: ChildId): string;

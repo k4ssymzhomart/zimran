@@ -14,6 +14,7 @@ describe('forChild', () => {
     expect(forChild('Mia stacks a red block. Say her words back.', 'leo')).toBe('Leo stacks a red block. Say his words back.');
     expect(forChild('Describe her hands', 'leo')).toBe('Describe his hands');
     expect(forChild('Follow her lead', 'leo')).toBe('Follow his lead');
+    expect(forChild('Be her sportscaster', 'leo')).toBe('Be his sportscaster');
     expect(forChild("Mia's shoulders drop.", 'leo')).toBe("Leo's shoulders drop.");
   });
 
