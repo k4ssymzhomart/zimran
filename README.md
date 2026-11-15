@@ -2,7 +2,9 @@
 
 Live: <add the Vercel URL here>
 
-PlayReps lets a parent practise the five-minute play skill that clinics teach, with Mia or Leo, a simulated four-year-old girl or boy.
+Track: Skills. Business Cup 2.0.
+
+PlayReps lets a parent practice the five-minute play skill that clinics teach, with Mia or Leo, a simulated four-year-old girl or boy.
 Every sentence the parent types or speaks is coded live by rules in `/lib`, Mia reacts to it, and three rings fill
 toward the clinic pace. After a 60-second round and a 30-second lesson, the parent plays again and sees their own before and after.
 
@@ -10,7 +12,7 @@ toward the clinic pace. After a 60-second round and a 30-second lesson, the pare
 
 No login. The same guide is on the site at `/jury`.
 
-1. `/` — the landing page, with one button: "Start practising".
+1. `/` — the landing page, with one button: "Start practicing".
 2. `/start` — pick Mia or Leo, then answer in your own words.
 3. `/play` — a 60-second round, a 30-second lesson, a second round, and the before and after. Type, or tap the
    microphone in Chrome or Edge.
@@ -76,7 +78,7 @@ result) to take it out of the count.
 
 ## Numbers we stand behind
 
-- **321 unit tests**, all in `lib/`. Run `npm test`.
+- **423 unit tests**: the rules engine in `lib/`, the stores in `client/` and the round hook. Run `npm test`.
 - **72 of 80 (90%)** on the first run of a blind set, before any rule was changed: 80 casual turns written by a
   separate reviewer who had not seen the rules (`lib/coding/blindset.ts`). After generic fixes that set is 80 of 80,
   so it is no longer blind. An earlier check set of 48 (`lib/coding/heldout.ts`) was 40 of 48 on its first run and
@@ -111,7 +113,75 @@ Without the key the site still runs; only the checkout is unavailable.
 - The paywall is a Stripe test-mode subscription. There is no cancel control in this build.
 - The hook and the pages were built in 24 hours.
 
+## Business model and sources
+
+Track: Skills. The buyer is a US parent aged 25 to 45 with a child aged 2 to 7. Everything below is a model. There
+are no real users and no real payers yet; Stripe runs in test mode.
+
+### What is sold
+
+| Plan | Price | Per day | Stripe fee | Kept |
+| --- | --- | --- | --- | --- |
+| 4 weeks, selected by default | $29 | $1.04 | $1.14 | $27.86 |
+| 12 weeks | $69 | $0.82 | $2.30 | $66.70 |
+
+The first visit is free and ends with the parent's own before and after. Weeks 1 to 4 are practice with Mia, one
+skill a week. Day 28 is a skill check against the clinic numbers. Weeks 5 to 8 are the same skills in live mode with
+the parent's own child (beta). The price is the same on renewal.
+
+### The funnel
+
+The ad lands on the product, not on a quiz, and the paywall comes after the parent's first win.
+
+| Step | Public benchmark | Assumed |
+| --- | --- | --- |
+| Ad click-through | 1.71% (WordStream 2025, all industries) | 1.5% |
+| Cost per click | $0.60 to $1.06 for traffic, $1.80 to $1.92 for leads | $1.20 |
+| Click to paywall | 35 to 60% for quiz funnels; none for this mechanic | 20% |
+| Paywall to payment | 2 to 5%, the best 8 to 12%, usually with a paid trial | 10% |
+| Click to payment | about 1.1% (Consumer App Index, 250 web funnels) | 2.0% as the target |
+
+### Unit economics
+
+Assumed: 60% buy 4 weeks and 40% buy 12 weeks; Stripe takes 2.9% + $0.30; 5% refund; no language-model cost. On the
+4-week plan 50% pay a second time, 33% a third, 23% a fourth. On the 12-week plan 35% renew once. A payer brings $45
+on day one and $89 over twelve months after fees, refunds and hosting. Margin before ads is 90%.
+
+| Clicks that pay | Benchmark 1.1% | Cautious 1.4% | Target 2.0% | Strong 2.7% |
+| --- | --- | --- | --- | --- |
+| Cost to win a payer | $109 | $86 | $60 | $44 |
+| Day-one cash covers | 37% | 47% | 67% | 91% |
+| 12-month value to cost | 0.81 | 1.04 | 1.48 | 2.00 |
+| Payback | not within a year | day 336 | day 84 | day 28 |
+
+Break-even is 1.35% of clicks paying at a $1.20 click, or 2.25% at $2.00. The model depends on the cost of winning a
+payer more than on renewal: 74% of a payer's yearly revenue arrives in the first 84 days.
+
+### The market
+
+About 22 million US children are aged 2 to 7 (CDC births, 2019 to 2024), in about 15 million homes (our estimate).
+8.6% of preschoolers have tantrums every day (Wakschlag et al., 2012), which is about 1.3 million homes. That is
+where we start: 4% of it is 50,000 active subscribers and about $17M a year. $100M needs 300,000 active subscribers
+and more than tantrums: ages 7 to 12, Spanish, a second caregiver, then the same engine for other hard conversations.
+
+### Sources
+
+- Good Inside, $34M revenue in 2025: [Fortune, 27 February 2026](https://fortune.com/2026/02/27/dr-becky-kennedy-good-inside-revenue-leadership-playbook-for-parenting-34-million-a-year-business/)
+- Parents' stress: [US Surgeon General](https://www.hhs.gov/surgeongeneral/priorities/parents/index.html)
+- Daily tantrums in 8.6% of preschoolers: [Wakschlag et al., 2012](https://pmc.ncbi.nlm.nih.gov/articles/PMC3633202)
+- US births: [CDC NCHS](https://www.cdc.gov/nchs/products/databriefs/db535.htm)
+- PCIT therapist requirements, the role-play clause: [PCIT International, 2013](https://www.aucd.org/docs/LEND%20Resources/Certified%20PCIT%20Therapist%20Training%20Requirements.pdf)
+- PCIT sessions and dropout: [review](https://www.dovepress.com/reconceptualizing-attrition-in-parent-child-interaction-therapy-dropou-peer-reviewed-fulltext-article-PRBM)
+- Waitlists of about three months: [Wisconsin OCMH](https://children.wi.gov/Pages/WhileYouWait.aspx)
+- Happypillar acquired by Manatee: [press release](https://www.newswire.com/news/manatee-acquires-happypillar-to-scale-personalized-mental-health-care-22659782)
+- Vipo.AI: [Boston University](https://www.bu.edu/innovate/vipo-ai-transforms-parenting-support-with-ai-powered-therapy-assistant)
+- Meta ad benchmarks: [WordStream, 2025](https://www.wordstream.com/blog/facebook-ads-benchmarks-2025)
+- Web funnels, 1.1% click to payment: [Consumer App Index](https://cai-breakdowns.pages.dev/web2app-paywalls-2026)
+- Paywall conversion and refunds: [Adapty](https://adapty.io/blog/what-is-web-to-app-and-how-does-it-work/)
+- Renewals: [RevenueCat, 2026](https://www.revenuecat.com/state-of-subscription-apps-2026/)
+- Stripe fees: [stripe.com/pricing](https://stripe.com/pricing)
+
 ## Not therapy
 
-PlayReps is skill practice. It gives no diagnosis and makes no promise about a child's behaviour. Families who want
+PlayReps is skill practice. It gives no diagnosis and makes no promise about a child's behavior. Families who want
 a certified therapist can find one at [pcit.org](https://www.pcit.org).

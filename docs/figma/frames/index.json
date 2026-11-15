@@ -1,0 +1,884 @@
+[
+ {
+  "id": "20:7",
+  "size": "mobile",
+  "row": "1  Start",
+  "name": "1.1 Landing",
+  "file": "mobile/20-7_1-1-landing.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "66:1267",
+  "size": "mobile",
+  "row": "1  Start",
+  "name": "1.2 Landing, full page",
+  "file": "mobile/66-1267_1-2-landing-full-page.png",
+  "width": 390,
+  "height": 8890
+ },
+ {
+  "id": "49:998",
+  "size": "mobile",
+  "row": "2  Personalization",
+  "name": "2.1 Your child's name",
+  "file": "mobile/49-998_2-1-your-child-s-name.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "49:1045",
+  "size": "mobile",
+  "row": "2  Personalization",
+  "name": "2.2 Age",
+  "file": "mobile/49-1045_2-2-age.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "49:1099",
+  "size": "mobile",
+  "row": "2  Personalization",
+  "name": "2.3 Hardest moments",
+  "file": "mobile/49-1099_2-3-hardest-moments.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "49:1163",
+  "size": "mobile",
+  "row": "2  Personalization",
+  "name": "2.4 How often",
+  "file": "mobile/49-1163_2-4-how-often.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "49:1218",
+  "size": "mobile",
+  "row": "2  Personalization",
+  "name": "2.5 What you say most",
+  "file": "mobile/49-1218_2-5-what-you-say-most.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "49:1273",
+  "size": "mobile",
+  "row": "2  Personalization",
+  "name": "2.6 A fact",
+  "file": "mobile/49-1273_2-6-a-fact.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "49:1316",
+  "size": "mobile",
+  "row": "2  Personalization",
+  "name": "2.7 Practice partner",
+  "file": "mobile/49-1316_2-7-practice-partner.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "20:74",
+  "size": "mobile",
+  "row": "3  First answer",
+  "name": "3.1 Mia speaks",
+  "file": "mobile/20-74_3-1-mia-speaks.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "20:109",
+  "size": "mobile",
+  "row": "3  First answer",
+  "name": "3.2 How it was read",
+  "file": "mobile/20-109_3-2-how-it-was-read.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "20:156",
+  "size": "mobile",
+  "row": "3  First answer",
+  "name": "3.3 She heard you",
+  "file": "mobile/20-156_3-3-she-heard-you.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "20:178",
+  "size": "mobile",
+  "row": "3  First answer",
+  "name": "3.4 Close, one way to say it",
+  "file": "mobile/20-178_3-4-close-one-way-to-say-it.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "21:95",
+  "size": "mobile",
+  "row": "4  Round one",
+  "name": "4.1 Ready",
+  "file": "mobile/21-95_4-1-ready.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "21:139",
+  "size": "mobile",
+  "row": "4  Round one",
+  "name": "4.2 Round",
+  "file": "mobile/21-139_4-2-round.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "21:205",
+  "size": "mobile",
+  "row": "4  Round one",
+  "name": "4.3 After you speak",
+  "file": "mobile/21-205_4-3-after-you-speak.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "21:280",
+  "size": "mobile",
+  "row": "4  Round one",
+  "name": "4.4 Keyboard open",
+  "file": "mobile/21-280_4-4-keyboard-open.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "21:403",
+  "size": "mobile",
+  "row": "4  Round one",
+  "name": "4.5 Speaking instead of typing",
+  "file": "mobile/21-403_4-5-speaking-instead-of-typing.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "58:1165",
+  "size": "mobile",
+  "row": "4  Round one",
+  "name": "4.6 Speaking, with recording on",
+  "file": "mobile/58-1165_4-6-speaking-with-recording-on.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "21:468",
+  "size": "mobile",
+  "row": "4  Round one",
+  "name": "4.7 Mia turns away",
+  "file": "mobile/21-468_4-7-mia-turns-away.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "21:543",
+  "size": "mobile",
+  "row": "4  Round one",
+  "name": "4.8 Round one result",
+  "file": "mobile/21-543_4-8-round-one-result.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "49:1371",
+  "size": "mobile",
+  "row": "4  Round one",
+  "name": "4.9 Your guess against the count",
+  "file": "mobile/49-1371_4-9-your-guess-against-the-count.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "21:598",
+  "size": "mobile",
+  "row": "4  Round one",
+  "name": "4.10 Your sentences",
+  "file": "mobile/21-598_4-10-your-sentences.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "24:216",
+  "size": "mobile",
+  "row": "5  Lesson",
+  "name": "5.1 The idea",
+  "file": "mobile/24-216_5-1-the-idea.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "24:255",
+  "size": "mobile",
+  "row": "5  Lesson",
+  "name": "5.2 Your turn",
+  "file": "mobile/24-255_5-2-your-turn.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "24:292",
+  "size": "mobile",
+  "row": "5  Lesson",
+  "name": "5.3 Not there yet",
+  "file": "mobile/24-292_5-3-not-there-yet.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "24:331",
+  "size": "mobile",
+  "row": "5  Lesson",
+  "name": "5.4 Second turn",
+  "file": "mobile/24-331_5-4-second-turn.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "24:375",
+  "size": "mobile",
+  "row": "5  Lesson",
+  "name": "5.5 Ready for round two",
+  "file": "mobile/24-375_5-5-ready-for-round-two.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "24:401",
+  "size": "mobile",
+  "row": "6  Round two",
+  "name": "6.1 Round two",
+  "file": "mobile/24-401_6-1-round-two.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "24:477",
+  "size": "mobile",
+  "row": "6  Round two",
+  "name": "6.2 Before and after",
+  "file": "mobile/24-477_6-2-before-and-after.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "49:1412",
+  "size": "mobile",
+  "row": "7  Your plan",
+  "name": "7.1 Scene",
+  "file": "mobile/49-1412_7-1-scene.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "24:523",
+  "size": "mobile",
+  "row": "7  Your plan",
+  "name": "7.2 When you play",
+  "file": "mobile/24-523_7-2-when-you-play.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "62:1460",
+  "size": "mobile",
+  "row": "7  Your plan",
+  "name": "7.3 Put it in your calendar",
+  "file": "mobile/62-1460_7-3-put-it-in-your-calendar.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "49:1516",
+  "size": "mobile",
+  "row": "7  Your plan",
+  "name": "7.4 Recordings, asked at the first microphone tap",
+  "file": "mobile/49-1516_7-4-recordings-asked-at-the-first-microphone-tap.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "49:1573",
+  "size": "mobile",
+  "row": "7  Your plan",
+  "name": "7.5 Your plan, from your answers",
+  "file": "mobile/49-1573_7-5-your-plan-from-your-answers.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "49:1651",
+  "size": "mobile",
+  "row": "7  Your plan",
+  "name": "7.6 Your 28 days",
+  "file": "mobile/49-1651_7-6-your-28-days.png",
+  "width": 390,
+  "height": 952
+ },
+ {
+  "id": "24:568",
+  "size": "mobile",
+  "row": "7  Your plan",
+  "name": "7.7 Your 28 days",
+  "file": "mobile/24-568_7-7-your-28-days.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "47:665",
+  "size": "mobile",
+  "row": "8  Today",
+  "name": "8.1 Today",
+  "file": "mobile/47-665_8-1-today.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "47:749",
+  "size": "mobile",
+  "row": "8  Today",
+  "name": "8.2 Done for today",
+  "file": "mobile/47-749_8-2-done-for-today.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "47:842",
+  "size": "mobile",
+  "row": "8  Today",
+  "name": "8.3 Plan locked",
+  "file": "mobile/47-842_8-3-plan-locked.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "50:1165",
+  "size": "mobile",
+  "row": "8  Today",
+  "name": "8.4 Demo data (not built)",
+  "file": "mobile/50-1165_8-4-demo-data-not-built.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "62:1176",
+  "size": "mobile",
+  "row": "8  Today",
+  "name": "8.5 Welcome back",
+  "file": "mobile/62-1176_8-5-welcome-back.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "57:1145",
+  "size": "mobile",
+  "row": "9  Streak",
+  "name": "9.1 This month",
+  "file": "mobile/57-1145_9-1-this-month.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "57:1348",
+  "size": "mobile",
+  "row": "9  Streak",
+  "name": "9.2 A day opened",
+  "file": "mobile/57-1348_9-2-a-day-opened.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "47:921",
+  "size": "mobile",
+  "row": "10  Practice",
+  "name": "10.1 Practice",
+  "file": "mobile/47-921_10-1-practice.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "47:1021",
+  "size": "mobile",
+  "row": "10  Practice",
+  "name": "10.2 Practice with Leo",
+  "file": "mobile/47-1021_10-2-practice-with-leo.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "47:1125",
+  "size": "mobile",
+  "row": "11  Progress",
+  "name": "11.1 Trends",
+  "file": "mobile/47-1125_11-1-trends.png",
+  "width": 390,
+  "height": 1356
+ },
+ {
+  "id": "47:1270",
+  "size": "mobile",
+  "row": "11  Progress",
+  "name": "11.2 Sessions",
+  "file": "mobile/47-1270_11-2-sessions.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "47:1375",
+  "size": "mobile",
+  "row": "11  Progress",
+  "name": "11.3 No sessions yet",
+  "file": "mobile/47-1375_11-3-no-sessions-yet.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "48:898",
+  "size": "mobile",
+  "row": "12  Session review",
+  "name": "12.1 Review with recording",
+  "file": "mobile/48-898_12-1-review-with-recording.png",
+  "width": 390,
+  "height": 1770
+ },
+ {
+  "id": "48:1092",
+  "size": "mobile",
+  "row": "12  Session review",
+  "name": "12.2 Before the first AI summary",
+  "file": "mobile/48-1092_12-2-before-the-first-ai-summary.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "48:1117",
+  "size": "mobile",
+  "row": "12  Session review",
+  "name": "12.3 Typed session",
+  "file": "mobile/48-1117_12-3-typed-session.png",
+  "width": 390,
+  "height": 1325
+ },
+ {
+  "id": "48:1232",
+  "size": "mobile",
+  "row": "12  Session review",
+  "name": "12.4 Share summary",
+  "file": "mobile/48-1232_12-4-share-summary.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "62:1272",
+  "size": "mobile",
+  "row": "13  Week and finish",
+  "name": "13.1 Week in numbers",
+  "file": "mobile/62-1272_13-1-week-in-numbers.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "62:1344",
+  "size": "mobile",
+  "row": "13  Week and finish",
+  "name": "13.2 Your 28 days",
+  "file": "mobile/62-1344_13-2-your-28-days.png",
+  "width": 390,
+  "height": 850
+ },
+ {
+  "id": "48:1286",
+  "size": "mobile",
+  "row": "14  Profile",
+  "name": "14.1 Profile",
+  "file": "mobile/48-1286_14-1-profile.png",
+  "width": 390,
+  "height": 2091
+ },
+ {
+  "id": "48:1509",
+  "size": "mobile",
+  "row": "14  Profile",
+  "name": "14.2 Your child",
+  "file": "mobile/48-1509_14-2-your-child.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "48:1580",
+  "size": "mobile",
+  "row": "14  Profile",
+  "name": "14.3 Recordings",
+  "file": "mobile/48-1580_14-3-recordings.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "48:1634",
+  "size": "mobile",
+  "row": "14  Profile",
+  "name": "14.4 Erase everything",
+  "file": "mobile/48-1634_14-4-erase-everything.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "62:1494",
+  "size": "mobile",
+  "row": "14  Profile",
+  "name": "14.5 How coding works",
+  "file": "mobile/62-1494_14-5-how-coding-works.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "25:599",
+  "size": "mobile",
+  "row": "15  Daily session",
+  "name": "15.1 Today",
+  "file": "mobile/25-599_15-1-today.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "62:1413",
+  "size": "mobile",
+  "row": "15  Daily session",
+  "name": "15.2 Three examples",
+  "file": "mobile/62-1413_15-2-three-examples.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "25:628",
+  "size": "mobile",
+  "row": "15  Daily session",
+  "name": "15.3 Five-minute round",
+  "file": "mobile/25-628_15-3-five-minute-round.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "25:704",
+  "size": "mobile",
+  "row": "15  Daily session",
+  "name": "15.4 Session result",
+  "file": "mobile/25-704_15-4-session-result.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:462",
+  "size": "mobile",
+  "row": "16  Paywall",
+  "name": "16.1 Paywall",
+  "file": "mobile/27-462_16-1-paywall.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:507",
+  "size": "mobile",
+  "row": "16  Paywall",
+  "name": "16.2 Opening checkout",
+  "file": "mobile/27-507_16-2-opening-checkout.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:552",
+  "size": "mobile",
+  "row": "16  Paywall",
+  "name": "16.3 Checkout unavailable",
+  "file": "mobile/27-552_16-3-checkout-unavailable.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:599",
+  "size": "mobile",
+  "row": "16  Paywall",
+  "name": "16.4 Came back without paying",
+  "file": "mobile/27-599_16-4-came-back-without-paying.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:645",
+  "size": "mobile",
+  "row": "16  Paywall",
+  "name": "16.5 Confirming",
+  "file": "mobile/27-645_16-5-confirming.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:664",
+  "size": "mobile",
+  "row": "16  Paywall",
+  "name": "16.6 You're in",
+  "file": "mobile/27-664_16-6-you-re-in.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:687",
+  "size": "mobile",
+  "row": "16  Paywall",
+  "name": "16.7 Payment not completed",
+  "file": "mobile/27-687_16-7-payment-not-completed.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:714",
+  "size": "mobile",
+  "row": "17  Live with your child",
+  "name": "17.1 Before you start",
+  "file": "mobile/27-714_17-1-before-you-start.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:767",
+  "size": "mobile",
+  "row": "17  Live with your child",
+  "name": "17.2 Microphone and privacy",
+  "file": "mobile/27-767_17-2-microphone-and-privacy.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:808",
+  "size": "mobile",
+  "row": "17  Live with your child",
+  "name": "17.3 Live session",
+  "file": "mobile/27-808_17-3-live-session.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:874",
+  "size": "mobile",
+  "row": "17  Live with your child",
+  "name": "17.4 Microphone off",
+  "file": "mobile/27-874_17-4-microphone-off.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:931",
+  "size": "mobile",
+  "row": "17  Live with your child",
+  "name": "17.5 Live result",
+  "file": "mobile/27-931_17-5-live-result.png",
+  "width": 390,
+  "height": 844
+ },
+ {
+  "id": "27:973",
+  "size": "mobile",
+  "row": "18  Jury guide",
+  "name": "18.1 Jury guide",
+  "file": "mobile/27-973_18-1-jury-guide.png",
+  "width": 390,
+  "height": 1719
+ },
+ {
+  "id": "63:224",
+  "size": "desktop",
+  "row": "Landing",
+  "name": "Landing",
+  "file": "desktop/63-224_landing.png",
+  "width": 1440,
+  "height": 9390
+ },
+ {
+  "id": "32:74",
+  "size": "desktop",
+  "row": "First round",
+  "name": "Pick a child",
+  "file": "desktop/32-74_pick-a-child.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "32:91",
+  "size": "desktop",
+  "row": "First round",
+  "name": "Mia speaks",
+  "file": "desktop/32-91_mia-speaks.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "32:109",
+  "size": "desktop",
+  "row": "First round",
+  "name": "Round",
+  "file": "desktop/32-109_round.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "32:164",
+  "size": "desktop",
+  "row": "First round",
+  "name": "Round one result",
+  "file": "desktop/32-164_round-one-result.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "32:212",
+  "size": "desktop",
+  "row": "Lesson and plan",
+  "name": "Lesson",
+  "file": "desktop/32-212_lesson.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "32:240",
+  "size": "desktop",
+  "row": "Lesson and plan",
+  "name": "When you play",
+  "file": "desktop/32-240_when-you-play.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "32:272",
+  "size": "desktop",
+  "row": "Lesson and plan",
+  "name": "Your 28 days",
+  "file": "desktop/32-272_your-28-days.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "33:171",
+  "size": "desktop",
+  "row": "Paywall",
+  "name": "Paywall",
+  "file": "desktop/33-171_paywall.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "33:204",
+  "size": "desktop",
+  "row": "Paywall",
+  "name": "You're in",
+  "file": "desktop/33-204_you-re-in.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "33:220",
+  "size": "desktop",
+  "row": "Live and guide",
+  "name": "Live, before you start",
+  "file": "desktop/33-220_live-before-you-start.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "33:260",
+  "size": "desktop",
+  "row": "Live and guide",
+  "name": "Live session",
+  "file": "desktop/33-260_live-session.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "33:315",
+  "size": "desktop",
+  "row": "Live and guide",
+  "name": "Jury guide",
+  "file": "desktop/33-315_jury-guide.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "54:137",
+  "size": "desktop",
+  "row": "The app, with navigation",
+  "name": "Today",
+  "file": "desktop/54-137_today.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "54:221",
+  "size": "desktop",
+  "row": "The app, with navigation",
+  "name": "Practice",
+  "file": "desktop/54-221_practice.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "60:223",
+  "size": "desktop",
+  "row": "The app, with navigation",
+  "name": "Progress",
+  "file": "desktop/60-223_progress.png",
+  "width": 1440,
+  "height": 1420
+ },
+ {
+  "id": "60:651",
+  "size": "desktop",
+  "row": "The app, with navigation",
+  "name": "Profile",
+  "file": "desktop/60-651_profile.png",
+  "width": 1440,
+  "height": 1136
+ },
+ {
+  "id": "54:725",
+  "size": "desktop",
+  "row": "Session review",
+  "name": "Session review",
+  "file": "desktop/54-725_session-review.png",
+  "width": 1440,
+  "height": 1640
+ },
+ {
+  "id": "54:908",
+  "size": "desktop",
+  "row": "Personalization",
+  "name": "Age",
+  "file": "desktop/54-908_age.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "54:955",
+  "size": "desktop",
+  "row": "Personalization",
+  "name": "Hardest moments",
+  "file": "desktop/54-955_hardest-moments.png",
+  "width": 1440,
+  "height": 900
+ },
+ {
+  "id": "54:1010",
+  "size": "desktop",
+  "row": "Personalization",
+  "name": "A fact",
+  "file": "desktop/54-1010_a-fact.png",
+  "width": 1440,
+  "height": 900
+ }
+]

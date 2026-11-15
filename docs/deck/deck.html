@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PlayReps pitch deck</title>
+<script src="deck.config.js"></script>
+<style>
+@font-face { font-family: "Inter"; src: url("fonts/inter-latin.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: block; }
+@page { size: 1920px 1080px; margin: 0; }
+:root {
+  --white: #fff; --ink: #0B0B0F; --gray: #76767E; --faint: #A9A9B2; --line: #E8E8ED; --mist: #F5F5F7;
+  --violet: #5B52FF; --press: #4B42E6; --tint: #6961FF; --lilac: #EEEDFF; --lilac2: #DCDAFF;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #d9d9de; }
+body { font-family: "Inter", system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; font-feature-settings: "ss01", "cv11"; }
+.slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; background: var(--white); page-break-after: always; break-after: page; margin: 0 auto 24px; }
+@media print { html, body { background: none; } .slide { margin: 0; } }
+
+/* chrome */
+.logo { position: absolute; left: 96px; top: 60px; display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 700; letter-spacing: -0.035em; z-index: 5; }
+.logo svg { height: 28px; width: auto; }
+.rubric { position: absolute; right: 96px; top: 56px; display: flex; align-items: center; gap: 18px; z-index: 5; }
+.rubric b { background: var(--lilac); color: var(--violet); font-size: 22px; font-weight: 600; padding: 10px 22px; border-radius: 999px; }
+.rubric span { font-size: 20px; color: var(--gray); font-weight: 500; }
+.page { position: absolute; right: 96px; bottom: 52px; font-size: 20px; color: var(--faint); font-weight: 500; z-index: 5; }
+.src { position: absolute; left: 96px; bottom: 52px; right: 300px; font-size: 20px; line-height: 28px; color: var(--gray); z-index: 5; }
+.on-violet .logo, .on-violet .src { color: var(--white); }
+.on-violet .rubric b { background: var(--white); }
+.on-violet .rubric span, .on-violet .page { color: var(--white); }
+
+/* type */
+h1 { font-size: 132px; line-height: 124px; font-weight: 700; letter-spacing: -0.045em; }
+h2 { font-size: 72px; line-height: 78px; font-weight: 700; letter-spacing: -0.035em; text-wrap: balance; }
+.lead { font-size: 34px; line-height: 46px; font-weight: 400; color: var(--ink); }
+.body { font-size: 28px; line-height: 38px; }
+.gray { color: var(--gray); }
+.small { font-size: 22px; line-height: 30px; }
+.num { font-size: 112px; line-height: 104px; font-weight: 700; letter-spacing: -0.045em; }
+.violet { color: var(--violet); }
+
+/* pieces */
+.block { position: absolute; background: var(--violet); overflow: hidden; }
+.pill { display: inline-flex; align-items: center; height: 60px; padding: 0 30px; border-radius: 999px; font-size: 26px; font-weight: 600; white-space: nowrap; }
+.pill.ink { background: var(--ink); color: var(--white); }
+.pill.mist { background: var(--mist); color: var(--ink); }
+.pill.lilac { background: var(--lilac); color: var(--violet); }
+.pill.white { background: var(--white); color: var(--ink); }
+.pill.todo { background: var(--white); color: var(--violet); outline: 3px dashed var(--violet); outline-offset: -3px; }
+.tag { display: inline-flex; align-items: center; height: 40px; padding: 0 18px; border-radius: 999px; font-size: 20px; font-weight: 600; background: var(--lilac); color: var(--violet); white-space: nowrap; }
+.tag.quiet { background: var(--mist); color: var(--gray); }
+.tag.ink { background: var(--ink); color: var(--white); }
+.card { background: var(--mist); border-radius: 40px; }
+.art { object-fit: contain; display: block; }
+.phone { border-radius: 52px; display: block; background: var(--white); outline: 2px solid var(--line); outline-offset: -1px; }
+.phonewrap { position: relative; }
+.phonewrap.render::after { content: "Design render"; position: absolute; left: 50%; top: 14px; transform: translateX(-50%); background: var(--ink); color: var(--white); font-size: 18px; font-weight: 600; padding: 8px 16px; border-radius: 999px; white-space: nowrap; }
+
+/* patterns, tone on tone */
+.pat { position: absolute; inset: 0; pointer-events: none; }
+.pat-bars svg { position: absolute; }
+.row { display: flex; }
+.col { display: flex; flex-direction: column; }
+</style>
+</head>
+<body>
+
+<!-- shared SVG defs -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="mark" viewBox="0 0 113 100">
+      <path d="M16 32H105A8 8 0 0 0 106.43 16.13L18.85 .26A16 16 0 1 0 16 32Z"/>
+      <rect y="40.5" width="82.8" height="26" rx="13"/>
+      <rect y="75" width="52.6" height="25" rx="12.5"/>
+    </symbol>
+    <symbol id="mark2" viewBox="0 0 113 100">
+      <path d="M16 32H105A8 8 0 0 0 106.43 16.13L18.85 .26A16 16 0 1 0 16 32Z" fill="currentColor"/>
+      <rect y="40.5" width="82.8" height="26" rx="13" fill="currentColor"/>
+      <rect y="75" width="52.6" height="25" rx="12.5" fill="var(--accent, #5B52FF)"/>
+    </symbol>
+    <pattern id="reps" width="170" height="130" patternUnits="userSpaceOnUse">
+      <use href="#mark" x="12" y="14" width="76" height="67" fill="#6961FF"/>
+      <use href="#mark" x="97" y="79" width="76" height="67" fill="#6961FF"/>
+      <use href="#mark" x="-73" y="79" width="76" height="67" fill="#6961FF"/>
+      <use href="#mark" x="97" y="-51" width="76" height="67" fill="#6961FF"/>
+      <use href="#mark" x="-73" y="-51" width="76" height="67" fill="#6961FF"/>
+    </pattern>
+    <pattern id="sentences" width="420" height="96" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)">
+      <rect x="0" y="10" width="150" height="26" rx="13" fill="#6961FF"/>
+      <rect x="174" y="10" width="64" height="26" rx="13" fill="#6961FF"/>
+      <rect x="262" y="10" width="110" height="26" rx="13" fill="#6961FF"/>
+      <rect x="60" y="58" width="92" height="26" rx="13" fill="#6961FF"/>
+      <rect x="176" y="58" width="190" height="26" rx="13" fill="#6961FF"/>
+    </pattern>
+  </defs>
+</svg>
+
+<!-- 1 ─────────────────────────────────────────── -->
+<section class="slide" id="s1">
+  <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>PlayReps</div>
+  <div style="position:absolute; left:96px; top:228px; width:930px">
+    <h1 style="font-size:112px; line-height:108px; white-space:nowrap">Practice tonight.<br>Use it tomorrow.</h1>
+    <p class="lead" style="margin-top:40px; width:840px">A parent rehearses the five-minute play skill clinics teach, with a simulated four-year-old. Every sentence is scored against the clinic numbers.</p>
+    <div class="row" style="gap:14px; margin-top:44px">
+      <span class="pill lilac">Track: Skills</span>
+      <span class="pill mist">US parents, 25–45</span>
+      <span class="pill mist">Web, no sign-up</span>
+    </div>
+  </div>
+  <div style="position:absolute; left:96px; bottom:72px; display:flex; align-items:center; gap:28px">
+    <span class="pill ink" data-k="url"></span>
+    <span class="body gray">Skill practice, not therapy.</span>
+  </div>
+  <div class="block" style="left:1060px; top:0; width:860px; height:1080px">
+    <div class="pat pat-bars"><svg viewBox="0 0 113 100" style="width:1500px; left:-170px; top:-110px" fill="#6961FF"><use href="#mark"/></svg></div>
+    <img class="art" src="../../public/mia/body-blocks.png" style="position:absolute; left:120px; bottom:214px; width:620px; height:560px">
+    <div style="position:absolute; left:92px; top:118px; background:#fff; border-radius:44px 44px 44px 10px; padding:30px 44px; font-size:60px; font-weight:700; letter-spacing:-0.035em">“I made a tower!”</div>
+    <div style="position:absolute; left:80px; right:80px; bottom:86px; height:104px; background:#fff; border-radius:999px; display:flex; align-items:center; justify-content:space-between; padding:0 16px 0 44px">
+      <span style="font-size:34px; color:var(--faint)">What do you say back?</span>
+      <span style="width:76px; height:76px; border-radius:50%; background:var(--ink); display:flex; align-items:center; justify-content:center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V4M5 11l7-7 7 7"/></svg></span>
+    </div>
+  </div>
+</section>
+
+<!-- 2 ─────────────────────────────────────────── -->
+<section class="slide" id="s2">
+  <div class="block" style="left:0; top:0; width:640px; height:1080px">
+    <svg class="pat" width="640" height="1080"><rect width="640" height="1080" fill="url(#reps)"/></svg>
+    <img class="art" src="../../public/parent/mum.png" style="position:absolute; left:80px; top:170px; width:480px; height:480px">
+    <div style="position:absolute; left:64px; right:64px; bottom:64px; background:#fff; border-radius:40px; padding:36px 40px">
+      <div style="font-size:40px; line-height:46px; font-weight:700; letter-spacing:-0.03em">Jess, 34, nurse, Ohio</div>
+      <div class="body" style="margin-top:8px">Her son Noah is four and melts down every day. She is on a waitlist for a behavior specialist.</div>
+      <span class="tag quiet" style="margin-top:20px">Composite persona</span>
+    </div>
+  </div>
+  <div class="logo on" style="color:#fff"><svg viewBox="0 0 113 100" style="--accent:#DCDAFF"><use href="#mark2"/></svg>PlayReps</div>
+  <div class="rubric"><span>Problem and user, 15%</span><b>Who do we sell to?</b></div>
+  <div style="position:absolute; left:736px; top:168px; width:1088px">
+    <h2>She has saved every script. She still says “Stop it.”</h2>
+    <div class="col" style="gap:30px; margin-top:54px">
+      <div class="row" style="gap:40px; align-items:center">
+        <div class="num violet" style="width:390px; flex:none; white-space:nowrap">8.6%</div>
+        <div><div class="body">of preschoolers have tantrums every day.</div><div class="small gray">Wakschlag et al., 2012, n = 1,490 children aged 3–5</div></div>
+      </div>
+      <div class="row" style="gap:40px; align-items:center">
+        <div class="num violet" style="width:390px; flex:none; white-space:nowrap">48%</div>
+        <div><div class="body">of parents say most days their stress is completely overwhelming. Other adults: 26%.</div><div class="small gray">US Surgeon General, 2024</div></div>
+      </div>
+      <div class="row" style="gap:40px; align-items:center">
+        <div class="num violet" style="width:390px; flex:none; white-space:nowrap">12–20</div>
+        <div><div class="body">weekly clinic sessions in the program that trains the skill, after a wait of about three months where waitlists exist.</div><div class="small gray">PCIT reviews; Wisconsin OCMH</div></div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute; left:736px; right:96px; bottom:64px; background:var(--lilac); border-radius:36px; padding:30px 40px; font-size:32px; line-height:42px; font-weight:600; letter-spacing:-0.02em; color:var(--violet)">Clinics don’t start with discipline. They start with five calm minutes of play a day.</div>
+</section>
+
+<!-- 3 ─────────────────────────────────────────── -->
+<section class="slide" id="s3">
+  <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>PlayReps</div>
+  <div class="rubric"><span>Problem and user, business potential</span><b>Why now?</b></div>
+  <div style="position:absolute; left:96px; top:168px; width:1500px">
+    <h2>Parents already pay for advice. Practice with a score is still stuck in clinics.</h2>
+  </div>
+  <div class="row" style="position:absolute; left:96px; right:96px; top:400px; gap:28px">
+    <div class="card" style="flex:1; padding:36px 36px 40px; height:556px; position:relative">
+      <img class="art" src="../../public/art/card.png" style="width:124px; height:124px">
+      <div class="num" style="margin-top:24px; font-size:92px; line-height:92px; white-space:nowrap">$34M</div>
+      <div class="body" style="margin-top:16px; font-size:25px; line-height:34px">Good Inside revenue in 2025: 100K+ subscribers at about $25 a month, for videos and scripts.</div>
+      <div class="small gray" style="position:absolute; left:36px; bottom:30px">Fortune, 2026</div>
+    </div>
+    <div class="card" style="flex:1; padding:36px 36px 40px; height:556px; position:relative">
+      <img class="art" src="../../public/art/stethoscope.png" style="width:124px; height:124px">
+      <div class="num" style="margin-top:24px; font-size:92px; line-height:92px; white-space:nowrap">12–20</div>
+      <div class="body" style="margin-top:16px; font-size:25px; line-height:34px">weekly sessions of Parent-Child Interaction Therapy, the method that trains the skill.</div>
+      <div class="small gray" style="position:absolute; left:36px; bottom:30px">PCIT reviews</div>
+    </div>
+    <div class="card" style="flex:1; padding:36px 36px 40px; height:556px; position:relative">
+      <img class="art" src="../../public/art/door.png" style="width:124px; height:124px">
+      <div class="num" style="margin-top:24px; font-size:76px; line-height:92px; white-space:nowrap">Oct 2025</div>
+      <div class="body" style="margin-top:16px; font-size:25px; line-height:34px">Happypillar scored real play sessions. A clinic network acquired it.</div>
+      <div class="small gray" style="position:absolute; left:36px; bottom:30px">Manatee press release</div>
+    </div>
+    <div class="block" style="position:relative; flex:1; padding:36px 36px 40px; height:556px; border-radius:40px; color:#fff">
+      <svg class="pat" width="100%" height="100%"><rect width="100%" height="100%" fill="url(#sentences)"/></svg>
+      <div style="position:relative">
+        <img class="art" src="../../public/art/microphone.png" style="width:124px; height:124px">
+        <div class="num" style="margin-top:24px; font-size:92px; line-height:92px">$0</div>
+        <div class="body" style="margin-top:16px; font-size:25px; line-height:34px">per session. Speech recognition now ships in the browser, and rules do the scoring.</div>
+      </div>
+      <div class="small" style="position:absolute; left:36px; bottom:30px">Our repository</div>
+    </div>
+  </div>
+  <div class="page">3</div>
+</section>
+
+<!-- 4 ─────────────────────────────────────────── -->
+<section class="slide" id="s4">
+  <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>PlayReps</div>
+  <div class="rubric"><span>Product and engineering, 40%</span><b>Does it work?</b></div>
+  <div style="position:absolute; left:96px; top:168px; width:790px">
+    <h2 style="font-size:68px; line-height:74px">Before, a 30&#8209;second lesson, after on a new scene.</h2>
+    <p class="lead" style="margin-top:28px">Three minutes, no sign-up. The parent makes the first try, takes the lesson, then does it again on a scene they have not seen.</p>
+  </div>
+  <div class="block" style="left:96px; bottom:64px; width:760px; height:330px; border-radius:40px; color:#fff; padding:36px 40px">
+    <svg class="pat" width="760" height="330"><rect width="760" height="330" fill="url(#sentences)"/></svg>
+    <div style="position:relative">
+      <div style="font-size:26px; font-weight:600">The clinic numbers, in five minutes</div>
+      <div class="row" style="gap:18px; margin-top:22px">
+        <div style="flex:1"><div class="num" style="font-size:92px; line-height:88px">10</div><div class="small" style="margin-top:6px">specific praises</div></div>
+        <div style="flex:1"><div class="num" style="font-size:92px; line-height:88px">10</div><div class="small" style="margin-top:6px">reflections</div></div>
+        <div style="flex:1"><div class="num" style="font-size:92px; line-height:88px">10</div><div class="small" style="margin-top:6px">descriptions</div></div>
+        <div style="flex:1.1"><div class="num" style="font-size:92px; line-height:88px">≤3</div><div class="small" style="margin-top:6px">questions and commands</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="row" style="position:absolute; left:932px; top:150px; gap:36px">
+    <div style="width:280px">
+      <div class="phonewrap" data-shot="1-answer"><img class="phone" style="width:280px; height:606px"></div>
+      <div style="margin-top:22px; font-size:24px; line-height:32px"><b style="color:var(--violet)">1</b>&ensp;Mia speaks first. You answer in your own words.</div>
+    </div>
+    <div style="width:280px; margin-top:76px">
+      <div class="phonewrap" data-shot="2-round"><img class="phone" style="width:280px; height:606px"></div>
+      <div style="margin-top:22px; font-size:24px; line-height:32px"><b style="color:var(--violet)">2</b>&ensp;Every sentence is coded and counted as you say it.</div>
+    </div>
+    <div style="width:280px; margin-top:152px">
+      <div class="phonewrap" data-shot="3-before-after"><img class="phone" style="width:280px; height:606px"></div>
+      <div style="margin-top:22px; font-size:24px; line-height:32px"><b style="color:var(--violet)">3</b>&ensp;Your own before and after.</div>
+    </div>
+  </div>
+  <div class="page">4</div>
+</section>
+
+<!-- 5 ─────────────────────────────────────────── -->
+<section class="slide on-violet" id="s5" style="background:var(--violet); color:#fff">
+  <div class="pat pat-bars"><svg viewBox="0 0 113 100" style="width:1900px; right:-520px; top:-240px" fill="#6961FF"><use href="#mark"/></svg></div>
+  <div class="logo"><svg viewBox="0 0 113 100" style="--accent:#DCDAFF"><use href="#mark2"/></svg>PlayReps</div>
+  <div class="rubric"><span>Product and engineering, 40%</span><b style="color:var(--violet)">Does it work?</b></div>
+  <div style="position:absolute; left:96px; top:168px; width:1500px">
+    <h2 data-k="engineTitle"></h2>
+  </div>
+  <div class="row" style="position:absolute; left:96px; right:96px; top:420px; gap:40px">
+    <div style="flex:0.8"><div class="num" style="font-size:176px; line-height:160px; height:160px; white-space:nowrap">0</div><div class="body" style="margin-top:16px" data-k="llmLabel"></div></div>
+    <div style="flex:1"><div class="num" style="font-size:176px; line-height:160px; height:160px; white-space:nowrap" data-k="tests"></div><div class="body" style="margin-top:16px">unit tests cover the rules and the data</div></div>
+    <div style="flex:1.25"><div class="num" style="font-size:176px; line-height:160px; height:160px; white-space:nowrap">72<span style="font-size:76px; letter-spacing:-0.03em"> of 80</span></div><div class="body" style="margin-top:16px">on a blind set, first run: 90%*</div></div>
+    <div style="flex:0.8"><div class="num" style="font-size:176px; line-height:160px; height:160px; white-space:nowrap">$0</div><div class="body" style="margin-top:16px">cost to us per session</div></div>
+  </div>
+  <div style="position:absolute; left:96px; top:770px; background:#fff; color:var(--ink); border-radius:36px; padding:28px 40px; font-size:32px; line-height:42px; font-weight:600; letter-spacing:-0.02em">More than a wrapper: a structured path, your own data over time, behavioral mechanics.</div>
+  <div class="src" style="right:200px">*Typed sentences, 10 per code, written by a reviewer who had not seen the rules. Not validated against certified coders or on real speech. A parent can dispute any code with “Disagree?”.</div>
+  <div class="page">5</div>
+</section>
+
+<!-- 6 ─────────────────────────────────────────── -->
+<section class="slide" id="s6">
+  <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>PlayReps</div>
+  <div class="rubric"><span>Originality, 10%</span><b>Is it new?</b></div>
+  <div style="position:absolute; left:96px; top:168px; width:1560px">
+    <h2>Everyone tells parents what to say. We let them practice it, with a score.</h2>
+  </div>
+  <!-- the map -->
+  <div style="position:absolute; left:96px; top:404px; width:1010px; height:560px">
+    <div style="position:absolute; left:64px; top:0; right:0; bottom:60px; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:12px">
+      <div class="card" style="border-radius:32px; padding:26px; display:flex; flex-wrap:wrap; gap:12px; align-content:flex-start">
+        <span class="pill white" style="height:52px; font-size:23px">Good Inside</span><span class="pill white" style="height:52px; font-size:23px">ChatGPT</span><span class="pill white" style="height:52px; font-size:23px">ChildMind AI</span>
+      </div>
+      <div class="block" style="position:relative; border-radius:32px; padding:26px">
+        <svg class="pat" width="100%" height="100%"><rect width="100%" height="100%" fill="url(#reps)"/></svg>
+        <span class="pill white" style="position:relative; height:64px; font-size:28px; gap:12px"><svg viewBox="0 0 113 100" style="height:24px"><use href="#mark2"/></svg>PlayReps</span>
+        <div style="position:relative; color:#fff; font-size:23px; line-height:31px; margin-top:16px; font-weight:500">Scored practice with a simulated child, then live with your own.</div>
+      </div>
+      <div class="card" style="border-radius:32px; padding:26px"></div>
+      <div class="card" style="border-radius:32px; padding:26px; display:flex; flex-wrap:wrap; gap:12px; align-content:flex-start">
+        <span class="pill white" style="height:52px; font-size:23px">Clinic (PCIT)</span><span class="pill white" style="height:52px; font-size:23px">Happypillar</span>
+      </div>
+    </div>
+    <div style="position:absolute; left:64px; right:0; bottom:8px; display:flex; justify-content:space-around; font-size:24px; font-weight:600"><span>Tells you</span><span>Trains you</span></div>
+    <div style="position:absolute; left:0; top:0; bottom:60px; width:44px; display:flex; flex-direction:column; justify-content:space-around; align-items:center; font-size:24px; font-weight:600">
+      <span style="writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap">Works after bedtime</span>
+      <span style="writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap">Needs the child</span>
+    </div>
+  </div>
+  <div style="position:absolute; left:1170px; top:404px; width:654px">
+    <div style="border-left:6px solid var(--violet); padding-left:28px">
+      <div style="font-size:30px; line-height:40px; font-weight:600; letter-spacing:-0.02em">Therapists may meet these same numbers in “a 5-minute role-play with an adult portraying a child”.</div>
+      <div class="small gray" style="margin-top:12px">PCIT International, therapist training requirements</div>
+    </div>
+    <div class="body" style="margin-top:36px">We give parents that role-play. A new mechanic in a category that exists.</div>
+    <div class="row" style="gap:12px; margin-top:32px; flex-wrap:wrap">
+      <span class="tag">Scored practice</span><span class="tag">Clinic numbers</span><span class="tag">$0 per session</span>
+    </div>
+    <div class="small gray" style="margin-top:32px">Closest research project: Vipo.AI at Boston University. No public product or price found.</div>
+  </div>
+  <div class="page">6</div>
+</section>
+
+<!-- 7 ─────────────────────────────────────────── -->
+<section class="slide" id="s7">
+  <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>PlayReps</div>
+  <div class="rubric" style="right:668px"><span>Value and retention, 20%</span><b>What do we sell?</b></div>
+  <div style="position:absolute; left:96px; top:168px; width:1140px">
+    <h2 style="font-size:64px; line-height:70px">You pay for five coached minutes a day. You renew until you hit the numbers with your own child.</h2>
+  </div>
+  <!-- timeline -->
+  <div style="position:absolute; left:96px; top:520px; width:1140px">
+    <div style="position:absolute; left:20px; right:20px; top:19px; height:6px; background:var(--lilac2); border-radius:3px"></div>
+    <div class="row" style="position:relative; gap:16px">
+      <div style="flex:1"><div style="width:44px; height:44px; border-radius:50%; background:var(--violet)"></div><div style="font-size:26px; font-weight:700; margin-top:18px">First visit</div><div class="small" style="margin-top:6px">Your own before and after.</div><span class="tag quiet" style="margin-top:14px">Free</span></div>
+      <div style="flex:1"><div style="width:44px; height:44px; border-radius:50%; background:var(--violet)"></div><div style="font-size:26px; font-weight:700; margin-top:18px">Weeks 1–4</div><div class="small" style="margin-top:6px">Practice with Mia, one skill a week.</div><span class="tag" style="margin-top:14px">Built</span></div>
+      <div style="flex:1"><div style="width:44px; height:44px; border-radius:50%; background:var(--violet)"></div><div style="font-size:26px; font-weight:700; margin-top:18px">Day 28</div><div class="small" style="margin-top:6px">Skill check against the clinic numbers.</div><span class="tag" style="margin-top:14px">Built</span></div>
+      <div style="flex:1"><div style="width:44px; height:44px; border-radius:50%; background:var(--violet)"></div><div style="font-size:26px; font-weight:700; margin-top:18px">Weeks 5–8</div><div class="small" style="margin-top:6px">The same skills, live with your child.</div><span class="tag" style="margin-top:14px">Built, beta</span></div>
+      <div style="flex:1"><div style="width:44px; height:44px; border-radius:50%; background:var(--white); border:6px solid var(--lilac2)"></div><div style="font-size:26px; font-weight:700; margin-top:18px">Weeks 9–12</div><div class="small" style="margin-top:6px">Harder scenes, a second check.</div><span class="tag quiet" style="margin-top:14px">Next build</span></div>
+    </div>
+  </div>
+  <!-- price -->
+  <div class="row" style="position:absolute; left:96px; bottom:104px; gap:20px; align-items:stretch">
+    <div style="border:3px solid var(--ink); border-radius:32px; padding:22px 32px; width:330px"><div style="font-size:24px; font-weight:600">Every 4 weeks</div><div class="num" style="font-size:76px; line-height:80px; margin-top:4px">$29</div><div class="small gray">$1.04 a day</div></div>
+    <div style="border:2px solid var(--line); border-radius:32px; padding:22px 32px; width:330px"><div style="font-size:24px; font-weight:600">Every 12 weeks</div><div class="num" style="font-size:76px; line-height:80px; margin-top:4px">$69</div><div class="small gray">$0.82 a day</div></div>
+    <div style="width:420px; padding:10px 0 0 16px"><div class="body">The same price on renewal. Cancel anytime.</div><div class="small gray" style="margin-top:12px">Web only, paid through Stripe: about 4% in fees.</div></div>
+  </div>
+  <div class="src" style="right:760px">Renewal is not measured yet. Our model assumes at most half renew.</div>
+  <div class="block" style="left:1300px; top:0; width:620px; height:1080px">
+    <svg class="pat" width="620" height="1080"><rect width="620" height="1080" fill="url(#reps)"/></svg>
+    <div class="phonewrap" data-shot="today" style="position:absolute; left:140px; top:150px"><img class="phone" style="width:340px; height:736px; outline:none"></div>
+    <div style="position:absolute; left:60px; right:60px; bottom:64px; color:#fff; font-size:26px; line-height:34px; font-weight:600; text-align:center">The plan, the streak and the daily check-in bring her back.</div>
+  </div>
+  <div class="page" style="color:#fff">7</div>
+</section>
+
+<!-- 8 ─────────────────────────────────────────── -->
+<section class="slide" id="s8">
+  <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>PlayReps</div>
+  <div class="rubric"><span>Business potential, 15%</span><b>Why does it make money?</b></div>
+  <div style="position:absolute; left:96px; top:168px; width:1500px">
+    <h2>The ad lands on the product. Break-even is 1.35% click-to-pay.</h2>
+  </div>
+  <!-- funnel -->
+  <div class="row" style="position:absolute; left:96px; top:372px; gap:10px; align-items:center; font-size:24px; font-weight:600">
+    <span class="pill mist" style="height:54px; font-size:24px">Ad</span><span class="gray">→</span>
+    <span class="pill mist" style="height:54px; font-size:24px">Mia</span><span class="gray">→</span>
+    <span class="pill mist" style="height:54px; font-size:24px">60-second round</span><span class="gray">→</span>
+    <span class="pill mist" style="height:54px; font-size:24px">Before and after</span><span class="gray">→</span>
+    <span class="pill ink" style="height:54px; font-size:24px">Paywall</span>
+    <span class="small gray" style="margin-left:22px; font-weight:400">No quiz in between. The paywall comes after the first win.</span>
+  </div>
+  <!-- ad -->
+  <div class="block" style="left:96px; top:470px; width:520px; height:440px; border-radius:40px; color:#fff; padding:34px 36px">
+    <svg class="pat" width="520" height="440"><rect width="520" height="440" fill="url(#sentences)"/></svg>
+    <div style="position:relative">
+      <span class="tag" style="background:#fff">The ad</span>
+      <div style="font-size:40px; line-height:46px; font-weight:700; letter-spacing:-0.03em; margin-top:22px">How many questions do you ask in one minute of play?</div>
+      <div style="font-size:23px; line-height:31px; margin-top:18px">Coaches count them. Now you can. Play one minute with Mia, a simulated 4-year-old. No sign-up.</div>
+    </div>
+  </div>
+  <!-- table -->
+  <div style="position:absolute; left:660px; top:470px; right:96px">
+    <table style="width:100%; border-collapse:collapse; font-size:25px; line-height:32px">
+      <thead><tr style="font-size:21px; color:var(--gray); text-align:right">
+        <th style="text-align:left; font-weight:500; padding:0 0 14px">Clicks that pay</th>
+        <th style="font-weight:500; padding:0 16px 14px">Benchmark<br><b style="font-size:34px; color:var(--ink)">1.1%</b></th>
+        <th style="font-weight:500; padding:0 16px 14px">Cautious<br><b style="font-size:34px; color:var(--ink)">1.4%</b></th>
+        <th style="font-weight:500; padding:14px 16px; background:var(--lilac); border-radius:24px 24px 0 0; color:var(--violet)">Target<br><b style="font-size:34px">2.0%</b></th>
+        <th style="font-weight:500; padding:0 16px 14px">Strong<br><b style="font-size:34px; color:var(--ink)">2.7%</b></th>
+      </tr></thead>
+      <tbody style="text-align:right; font-weight:600">
+        <tr style="border-top:2px solid var(--line)"><td style="text-align:left; font-weight:400; padding:15px 0">Cost to win a payer</td><td style="padding:15px 16px">$109</td><td style="padding:15px 16px">$86</td><td style="padding:15px 16px; background:var(--lilac)">$60</td><td style="padding:15px 16px">$44</td></tr>
+        <tr style="border-top:2px solid var(--line)"><td style="text-align:left; font-weight:400; padding:15px 0">Day-one cash covers</td><td style="padding:15px 16px">37%</td><td style="padding:15px 16px">47%</td><td style="padding:15px 16px; background:var(--lilac)">67%</td><td style="padding:15px 16px">91%</td></tr>
+        <tr style="border-top:2px solid var(--line)"><td style="text-align:left; font-weight:400; padding:15px 0">12-month value to cost</td><td style="padding:15px 16px">0.81</td><td style="padding:15px 16px">1.04</td><td style="padding:15px 16px; background:var(--lilac)">1.48</td><td style="padding:15px 16px">2.00</td></tr>
+        <tr style="border-top:2px solid var(--line)"><td style="text-align:left; font-weight:400; padding:15px 0">Payback</td><td style="padding:15px 16px">not in a year</td><td style="padding:15px 16px">day 336</td><td style="padding:15px 16px; background:var(--lilac); border-radius:0 0 24px 24px">day 84</td><td style="padding:15px 16px">day 28</td></tr>
+      </tbody>
+    </table>
+    <div class="row" style="gap:44px; margin-top:28px">
+      <div><span style="font-size:44px; font-weight:700; letter-spacing:-0.03em">$89</span><div class="small gray">12-month value per payer</div></div>
+      <div><span style="font-size:44px; font-weight:700; letter-spacing:-0.03em">90%</span><div class="small gray">margin before ads</div></div>
+      <div><span style="font-size:44px; font-weight:700; letter-spacing:-0.03em">$1.20</span><div class="small gray">assumed cost per click on Meta</div></div>
+    </div>
+  </div>
+  <div class="src" style="right:150px; font-size:19px; line-height:26px">A model, not a measurement. Zero real payers; Stripe is in test mode. Assumed: 20% of clicks reach the paywall, 10% of those pay, 50% renew once, 5% refund, 40% choose 12 weeks. At a $2.00 click break-even is 2.25%. Benchmarks: Consumer App Index (250 web funnels), WordStream 2025, RevenueCat 2026, Adapty.</div>
+  <div class="page">8</div>
+</section>
+
+<!-- 9 ─────────────────────────────────────────── -->
+<section class="slide" id="s9">
+  <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>PlayReps</div>
+  <div class="rubric"><span>Business potential, 15%</span><b>Why does it make money?</b></div>
+  <div style="position:absolute; left:96px; top:168px; width:1560px">
+    <h2>Beachhead: 1.3M US homes with daily tantrums. $100M takes three steps.</h2>
+  </div>
+  <div class="col" style="position:absolute; left:96px; top:420px; width:520px; gap:14px">
+    <div class="card" style="border-radius:28px; padding:20px 30px"><span style="font-size:44px; font-weight:700; letter-spacing:-0.03em">22M</span><span class="small gray">&ensp;children aged 2–7 in the US</span></div>
+    <div class="card" style="border-radius:28px; padding:20px 30px; width:440px"><span style="font-size:44px; font-weight:700; letter-spacing:-0.03em">15M</span><span class="small gray">&ensp;homes, about</span></div>
+    <div class="card" style="border-radius:28px; padding:20px 30px; width:360px"><span style="font-size:44px; font-weight:700; letter-spacing:-0.03em">8.6%</span><span class="small gray">&ensp;daily tantrums</span></div>
+    <div class="block" style="position:relative; border-radius:28px; padding:22px 30px; width:330px; color:#fff"><span style="font-size:56px; font-weight:700; letter-spacing:-0.03em">1.3M</span><div class="small">homes: where we start</div></div>
+  </div>
+  <!-- ladder -->
+  <div class="row" style="position:absolute; left:700px; right:96px; bottom:150px; gap:20px; align-items:flex-end">
+    <div class="card" style="flex:1; height:300px; padding:30px 32px; position:relative">
+      <span class="tag">Step 1</span>
+      <div class="num" style="font-size:88px; line-height:88px; margin-top:16px">$17M</div>
+      <div class="small" style="margin-top:12px">Tantrums, ages 2–7, US.<br>50,000 active subscribers, 4% of the beachhead.</div>
+    </div>
+    <div class="card" style="flex:1; height:400px; padding:30px 32px; position:relative; background:var(--lilac)">
+      <span class="tag" style="background:#fff">Step 2</span>
+      <div class="num" style="font-size:88px; line-height:88px; margin-top:16px">$50M</div>
+      <div class="small" style="margin-top:12px">Ages 7–12, Spanish, a second caregiver in the home.<br>150,000 active.</div>
+    </div>
+    <div class="block" style="position:relative; flex:1; height:500px; padding:30px 32px; border-radius:40px; color:#fff">
+      <div class="pat pat-bars"><svg viewBox="0 0 113 100" style="width:760px; left:-60px; top:140px" fill="#6961FF"><use href="#mark"/></svg></div>
+      <div style="position:relative">
+        <span class="tag" style="background:#fff">Step 3</span>
+        <div class="num" style="font-size:88px; line-height:88px; margin-top:16px">$100M</div>
+        <div class="small" style="margin-top:12px">The same engine for other hard conversations. UK, Canada, Australia.<br>300,000 active.</div>
+      </div>
+    </div>
+  </div>
+  <div class="src" style="right:150px; font-size:19px; line-height:26px">Annual recurring revenue. $334 a year is a subscriber who stays all year; the modeled payer stays about 15 weeks, so 300K active needs about 1M new payers a year. Homes are our estimate from CDC births, 2019–2024. Good Inside is proof that parents pay, not proof of our channel. A ladder, not a promise.</div>
+  <div class="page">9</div>
+</section>
+
+<!-- 10 ─────────────────────────────────────────── -->
+<section class="slide" id="s10">
+  <div class="logo"><svg viewBox="0 0 113 100"><use href="#mark2"/></svg>PlayReps</div>
+  <div class="rubric" style="right:756px"><span>Product and engineering, 40%</span><b>Does it work?</b></div>
+  <div style="position:absolute; left:96px; top:176px; width:1040px">
+    <h1 style="font-size:104px; line-height:102px">Open it. No sign-up. Three minutes.</h1>
+    <div class="row" style="gap:14px; margin-top:44px; flex-wrap:wrap">
+      <span class="pill ink" data-k="url"></span>
+      <span class="pill mist" data-k="jury"></span>
+      <span class="pill mist" data-k="repo"></span>
+    </div>
+  </div>
+  <div class="row" style="position:absolute; left:96px; top:664px; width:1040px; gap:20px">
+    <div class="card" style="flex:1.15; border-radius:32px; padding:26px 30px; height:250px"><span class="tag ink">Real today</span><div class="small" style="margin-top:16px" data-k="realList"></div></div>
+    <div class="card" style="flex:0.9; border-radius:32px; padding:26px 30px; height:250px; background:var(--lilac)"><span class="tag" style="background:#fff">Simulated, labeled</span><div class="small" style="margin-top:16px">Mia and Leo, the four-year-olds you practice with. Real children vary.</div></div>
+    <div class="card" style="flex:1; border-radius:32px; padding:26px 30px; height:250px"><span class="tag quiet" style="background:#fff">Not yet</span><div class="small" style="margin-top:16px" data-k="notYet"></div></div>
+  </div>
+  <div class="src" style="right:900px">Skill practice, not therapy. Not affiliated with or endorsed by PCIT International.</div>
+  <div class="block" style="left:1220px; top:0; width:700px; height:1080px">
+    <div class="pat pat-bars"><svg viewBox="0 0 113 100" style="width:1300px; left:-220px; top:-60px" fill="#6961FF"><use href="#mark"/></svg></div>
+    <img class="art" src="../../public/mia/body-waving.png" style="position:absolute; left:60px; bottom:120px; width:580px; height:700px">
+    <div style="position:absolute; left:60px; right:60px; bottom:56px; color:#fff; font-size:30px; line-height:38px; font-weight:700; letter-spacing:-0.02em; text-align:center">Practice tonight. Use it tomorrow.</div>
+  </div>
+</section>
+
+<script>
+// Page numbers and the rubric order are static. Everything that can change before submission lives in deck.config.js.
+const C = window.DECK || {};
+const text = {
+  url: C.url || 'add the live link in deck.config.js',
+  jury: C.url ? C.url.replace(/\/$/, '') + '/jury' : '/jury: the three-minute guide',
+  repo: C.repo || '',
+  tests: String(C.tests ?? ''),
+  engineTitle: C.aiSummary ? 'No language model in the scoring. Rules you can argue with.' : 'No language model. Rules you can argue with.',
+  llmLabel: C.aiSummary ? 'language-model calls to score a session' : 'language-model calls',
+};
+const list = (items) => items.map((s) => `<div style="margin-top:6px">${s}</div>`).join('');
+const html = {
+  realList: list([`The rules engine and its ${C.tests} tests`, 'Your before and after, from your own sentences', ...(C.checkoutVerified ? ['Stripe test checkout, card 4242'] : [])]),
+  notYet: list([C.realParents ? `Real parents: ${C.realParents}` : 'Real users: zero so far', 'Measured renewal', 'Accuracy on real speech']),
+};
+document.querySelectorAll('[data-k]').forEach((el) => {
+  const k = el.dataset.k;
+  if (k in html) el.innerHTML = html[k]; else el.textContent = text[k] ?? '';
+  if (k === 'url' && !C.url) el.className = 'pill todo';
+});
+// Product pictures: a real screenshot in shots/ wins; otherwise the design render from Figma, marked as such.
+document.querySelectorAll('[data-shot]').forEach((wrap) => {
+  const img = wrap.querySelector('img'), name = wrap.dataset.shot;
+  img.onerror = () => { img.onerror = null; img.src = `renders/${name}.png`; wrap.classList.add('render'); };
+  img.src = `shots/${name}.png`;
+});
+</script>
+</body>
+</html>
