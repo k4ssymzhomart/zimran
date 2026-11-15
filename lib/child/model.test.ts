@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ChildState, Move } from '../types';
-import { actionWeights, applyMove, EFFECTS, farewell, initialChild, tick, view } from './model';
-import { BLOCKS, CLEANUP, DRAWING, KITCHEN, sceneForDay, SCENES } from './scenes';
+import { actionWeights, applyMove, COPY_CONNECTION_CEILING, EFFECTS, farewell, initialChild, isOutburst, tick, view } from './model';
+import { BLOCKS, CLEANUP, DRAWING, KITCHEN, sceneById, sceneForDay, SCENES } from './scenes';
 
 describe('each skill has its own effect', () => {
   const base = initialChild();
@@ -275,5 +275,42 @@ describe('the scene of the day', () => {
   it('plays day 1 for anything that is not a day number', () => {
     for (const odd of [0, -3, Number.NaN, Number.POSITIVE_INFINITY, 0.4]) expect(sceneForDay(odd)).toBe(sceneForDay(1));
     expect(sceneForDay(2.9)).toBe(sceneForDay(2));
+  });
+});
+
+describe('copying her play', () => {
+  it('warms her, but only up to a ceiling: the rest of the way takes words', () => {
+    let s = initialChild();
+    expect(applyMove(s, 'copy').connection).toBe(s.connection + EFFECTS.copy[0]);
+    for (let i = 0; i < 100; i++) s = applyMove(s, 'copy');
+    expect(s.connection).toBe(COPY_CONNECTION_CEILING);
+    // Below "leaning in" and the warm goodbye: copying alone does not get the best ending.
+    expect(COPY_CONNECTION_CEILING).toBeLessThan(70);
+    expect(view(s).posture).toBe('at_toy');
+    expect(farewell(s, BLOCKS)).toBe(BLOCKS.farewell.mid);
+    // Words take her further.
+    expect(applyMove(s, 'specific_praise').connection).toBeGreaterThan(COPY_CONNECTION_CEILING);
+  });
+  it('never lowers a connection that words have already built', () => {
+    const warm = { ...initialChild(), connection: 90 };
+    const copied = applyMove(warm, 'copy');
+    expect(copied.connection).toBe(90);
+    // The rest of the move still lands.
+    expect(copied.focus).toBe(warm.focus + EFFECTS.copy[1]);
+    expect(copied.tension).toBe(warm.tension + EFFECTS.copy[3]);
+  });
+});
+
+describe('outburst beats', () => {
+  it('are whines, scripted whines and meltdowns, and nothing else', () => {
+    expect((['play', 'wander', 'whine', 'scripted_whine', 'meltdown'] as const).filter(isOutburst)).toEqual(['whine', 'scripted_whine', 'meltdown']);
+  });
+});
+
+describe('a scene by its id', () => {
+  it('finds each of the four scenes and nothing for an unknown id', () => {
+    for (const scene of SCENES) expect(sceneById(scene.id)).toBe(scene);
+    expect(sceneById('cleanup')).toBe(CLEANUP);
+    for (const odd of ['', 'Blocks', 'no-such-scene', 'constructor', '__proto__']) expect(sceneById(odd)).toBeUndefined();
   });
 });

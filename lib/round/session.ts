@@ -4,12 +4,12 @@
  * always give the same round. The reducer never mutates its input.
  */
 import type { Beat, ChildState, CoachPrompt, CodedSentence, RoundResult, Scene } from '../types';
-import { codeSentence, codeTurn, normalize } from '../coding/classify';
+import { codeSentence, codeTurn, isReflection, normalize } from '../coding/classify';
 import { SAFETY_NOTE } from '../coding/safety';
-import { applyMove, farewell, initialChild, MICRO_REACTION, tick } from '../child/model';
-import { BLOCKS, SCENES } from '../child/scenes';
+import { applyMove, farewell, initialChild, isOutburst, MICRO_REACTION, tick } from '../child/model';
+import { BLOCKS, sceneById } from '../child/scenes';
 import { coachPrompt, REACT_GAP } from '../coach/policy';
-import { countCodes, paceTargets, summarizeRound } from '../progress/targets';
+import { biggestLever, countCodes, LEVER_TEXT, paceTargets, summarizeRound } from '../progress/targets';
 
 export interface TimedSentence extends CodedSentence {
   atSec: number;
@@ -20,6 +20,11 @@ export interface TimedSentence extends CodedSentence {
    * reflected. It is kept in the list as neutral talk (rule 'repeat') and fills no ring.
    */
   repeat?: boolean;
+  /**
+   * A target sentence beyond the MAX_COUNTED_PER_TURN counted in one turn. It is kept in the list as
+   * neutral talk (rule 'turn_cap') and fills no ring. The list shows TURN_CAP_NOTE on it.
+   */
+  capped?: boolean;
 }
 
 export interface TimedBeat extends Beat {
@@ -61,6 +66,16 @@ export interface RoundState {
    * counted because the app does not know which words were the child's.
    */
   live: boolean;
+  /** How many more sentences the parent may set aside with "Disagree?" in this round. Starts at MAX_DISPUTES. */
+  disputesLeft: number;
+  /** An outburst has happened and no specific praise has followed her calming down yet. */
+  calmPraiseDue: boolean;
+  /** `atSec` of the outburst beat the wait_out line last went up for, or null. */
+  waitOutBeatSec: number | null;
+  /** The beat interval (elapsedSec / beatEverySec, rounded down) of the last "Copy her" that counted, or null. */
+  copiedBeat: number | null;
+  /** The line about English sentences has been shown in this round. It is shown once. */
+  englishNoteShown: boolean;
   result: RoundResult | null;
   farewell: string | null;
 }
@@ -86,6 +101,14 @@ export const DEFAULT_BEAT_EVERY_SEC = 7;
 export const REPEAT_WINDOW_SEC = 20;
 /** Label for a sentence marked `repeat`, for the chip in the list. */
 export const REPEAT_NOTE = 'Already said. Say something new.';
+/** One turn counts at most this many target sentences. A pasted paragraph is one turn of talk, not ten. */
+export const MAX_COUNTED_PER_TURN = 3;
+/** Label for a sentence marked `capped`, for the chip in the list. */
+export const TURN_CAP_NOTE = 'One turn counts up to three sentences.';
+/** "Disagree?" sets aside at most this many sentences a round, so it corrects the coding and does not replace it. */
+export const MAX_DISPUTES = 3;
+/** Shown with a result marked `short`. */
+export const SHORT_ROUND_NOTE = 'This round ended early, so it has no pace verdict.';
 const REPEAT_COACH = 'That one is already counted. Say something new you see.';
 const ENGLISH_ONLY = 'This practice reads English sentences. Try a short one.';
 
@@ -113,21 +136,43 @@ export function initialRound(): RoundState {
     safety: false,
     combo: 0,
     live: false,
+    disputesLeft: MAX_DISPUTES,
+    calmPraiseDue: false,
+    waitOutBeatSec: null,
+    copiedBeat: null,
+    englishNoteShown: false,
     result: null,
     farewell: null,
   };
 }
 
-const sceneOf = (id: string): Scene => SCENES.find((s) => s.id === id) ?? BLOCKS;
+const sceneOf = (id: string): Scene => sceneById(id) ?? BLOCKS;
 
 const counted = (state: RoundState): TimedSentence[] => state.sentences.filter((s) => !s.disputed);
 
 /**
+ * Whether the coach may ask to say her current line back. Not a line with no content word ("No!":
+ * nothing said back could count as a reflection), and not a line from a whine or a meltdown.
+ */
+function canSayBack(state: RoundState): boolean {
+  const line = state.child.lastSaid;
+  if (line === null || !isReflection(line, line)) return false;
+  for (let i = state.beats.length - 1; i >= 0; i--) {
+    if (state.beats[i].says !== null) return !isOutburst(state.beats[i].kind);
+  }
+  return true;
+}
+
+/**
  * Ask the coach. A new line replaces the old one. With nothing new to say, the old line is taken down
  * once it no longer fits: the parent has said something since, or it asked to say her words back and
- * that is done or her line has gone.
+ * that is done or her line has gone. The wait_out line stays for as long as she is upset.
  */
 function withCoach(state: RoundState, justCoded: CodedSentence | null): RoundState {
+  const beat = state.beats.length > 0 ? state.beats[state.beats.length - 1] : null;
+  const outburst = beat !== null && isOutburst(beat.kind);
+  const calmAgain = state.calmPraiseDue && !outburst;
+  const canReflect = canSayBack(state);
   const prompt = coachPrompt({
     nowSec: state.elapsedSec,
     lastPromptSec: state.lastPromptSec,
@@ -136,12 +181,28 @@ function withCoach(state: RoundState, justCoded: CodedSentence | null): RoundSta
     childSpokeSec: state.child.lastSaid === null ? null : state.childSpokeSec,
     reflectedSinceChildSpoke: state.reflectedSinceChildSpoke,
     justCoded,
+    outburst,
+    // Once per outburst beat, and one line across several outburst beats in a row.
+    waitOutShown: state.coach?.kind === 'wait_out' || (outburst && state.waitOutBeatSec === beat.atSec),
+    calmAgain,
+    canReflect,
   });
-  if (prompt) return { ...state, coach: prompt, lastPromptSec: state.elapsedSec };
+  if (prompt) {
+    return {
+      ...state,
+      coach: prompt,
+      lastPromptSec: state.elapsedSec,
+      waitOutBeatSec: prompt.kind === 'wait_out' && beat ? beat.atSec : state.waitOutBeatSec,
+      // With calmAgain the only praise_now the coach gives is the one for her calming down. It is given once.
+      calmPraiseDue: calmAgain && prompt.kind === 'praise_now' ? false : state.calmPraiseDue,
+    };
+  }
+  if (!state.coach) return state;
   const stale =
-    justCoded !== null ||
-    (state.coach?.kind === 'reflect_now' && (state.child.lastSaid === null || state.reflectedSinceChildSpoke));
-  return stale && state.coach ? { ...state, coach: null } : state;
+    state.coach.kind === 'wait_out'
+      ? !outburst
+      : justCoded !== null || (state.coach.kind === 'reflect_now' && (state.reflectedSinceChildSpoke || !canReflect));
+  return stale ? { ...state, coach: null } : state;
 }
 
 /**
@@ -155,11 +216,21 @@ export function measuredSeconds(state: RoundState): number {
   return Math.min(state.seconds, Math.max(played, Math.ceil(state.seconds / 2)));
 }
 
-/** Targets, `met` and the lever stay those of the planned length; only the time measured follows the clock. */
-const summary = (state: RoundState): RoundResult => ({
-  ...summarizeRound(counted(state), state.seconds, { reflections: !state.live }),
-  seconds: measuredSeconds(state),
-});
+/**
+ * Targets and the lever stay those of the planned length; only the time measured follows the clock.
+ * A round the parent ended before half of its planned length gets no pace verdict: a burst of
+ * sentences in the first seconds is not five minutes of play. The lever is still worked out.
+ */
+function summary(state: RoundState): RoundResult {
+  const base = summarizeRound(counted(state), state.seconds, { reflections: !state.live });
+  let result: RoundResult = { ...base, seconds: measuredSeconds(state) };
+  if (state.elapsedSec < state.seconds / 2) {
+    const lever = biggestLever(base.counts, base.targets);
+    result = { ...result, met: false, lever, leverText: lever ? LEVER_TEXT[lever] : null, short: true };
+  }
+  const disputed = state.sentences.filter((s) => s.disputed).length;
+  return disputed > 0 ? { ...result, disputed } : result;
+}
 
 function finish(state: RoundState): RoundState {
   return {
@@ -220,20 +291,62 @@ function advance(state: RoundState, dtSec: number): RoundState {
       next.childSpokeSec = next.nextBeatAtSec;
       next.reflectedSinceChildSpoke = false;
     }
+    // After a whine or a meltdown, the first calm moment is the one to praise.
+    if (isOutburst(beat.kind)) next.calmPraiseDue = true;
     next.nextBeatAtSec += next.beatEverySec;
   }
 
   return next.elapsedSec >= next.seconds ? finish(next) : withCoach(next, null);
 }
 
-/** Case and punctuation do not make a sentence new. */
-const repeatKey = (text: string): string =>
-  normalize(text)
+/** Words that do not make a sentence new: articles, determiners, "you are", "I see", names, fillers, intensifiers. */
+const KEY_DROP = new Set(
+  (
+    "a an the this that that's these those my your her his our their its some " +
+    "you you're you've i i'm i've it it's them is are am was were be been being have has had " +
+    'mia sweetie sweetheart honey buddy baby kiddo ' +
+    'so very really such just too quite ' +
+    'oh wow yay hey ok okay well and now please yes yeah see notice noticed job work'
+  ).split(' '),
+);
+/** Every praise word is the same word here: "Nice stacking." and "Great stacking." are one sentence. */
+const KEY_PRAISE = new Set(
+  (
+    'good great nice nicely awesome excellent fantastic terrific wonderful amazing super perfect beautiful ' +
+    'beautifully lovely gorgeous cute brilliant impressive incredible cool neat smart clever proud bravo ' +
+    'like love thank thanks'
+  ).split(' '),
+);
+
+/** Fold plural and -ing/-ed endings: blocks ~ block, stacking ~ stacked ~ stack, putting ~ put, making ~ make. */
+function keyStem(word: string): string {
+  let w = word;
+  if (w.length > 4) w = w.replace(/(?:ing|ed)$/, '');
+  if (w.length > 3 && !w.endsWith('ss')) w = w.replace(/s$/, '');
+  if (w.length > 3) w = w.replace(/e$/, '');
+  return w.replace(/([a-z])\1$/, '$1');
+}
+
+/**
+ * What makes a sentence "the same sentence" for the repeat window: the set of its content-word stems.
+ * Swapping "the" for "a", adding "Mia" or "so", or changing one praise word for another does not make
+ * a sentence new; another color, toy or place does.
+ */
+export function repeatKey(text: string): string {
+  const plain = normalize(text)
     .replace(/[^a-z0-9' ]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+  const stems = plain
+    .split(' ')
+    .filter((w) => w !== '' && !KEY_DROP.has(w))
+    .map((w) => (KEY_PRAISE.has(w) ? '+praise' : keyStem(w)));
+  // A sentence made only of dropped words ("ok", "Yes.") keeps its plain text, so two different ones stay different.
+  return stems.length > 0 ? Array.from(new Set(stems)).sort().join(' ') : plain;
+}
 
-const asRepeat = (s: CodedSentence): CodedSentence => ({ text: s.text, code: 'neutral', bucket: 'neutral', confidence: s.confidence, rule: 'repeat' });
+const asNeutral = (s: CodedSentence, rule: string): CodedSentence => ({ text: s.text, code: 'neutral', bucket: 'neutral', confidence: s.confidence, rule });
+const asRepeat = (s: CodedSentence): CodedSentence => asNeutral(s, 'repeat');
 
 function say(state: RoundState, text: string): RoundState {
   if (!text.trim()) return state;
@@ -241,7 +354,15 @@ function say(state: RoundState, text: string): RoundState {
   if (coded.length === 0) return state;
 
   const next: RoundState = { ...state, sentences: [...state.sentences] };
-  let lastCoded: CodedSentence | null = null;
+  // What was said inside the repeat window, kept in step with the list while this turn is added.
+  const heard = next.sentences
+    .filter((p) => next.elapsedSec - p.atSec <= REPEAT_WINDOW_SEC)
+    .map((p) => ({ key: repeatKey(p.text), counted: p.bucket === 'target' || p.repeat }));
+  const outburst = next.beats.length > 0 && isOutburst(next.beats[next.beats.length - 1].kind);
+  /** The last coded sentence of the turn that was not cut by the turn cap: Mia and the coach react to it. */
+  let last: CodedSentence | null = null;
+  let lastAvoid: CodedSentence | null = null;
+  let countedTargets = 0;
   let safety = false;
   for (const raw of coded) {
     let s = raw;
@@ -267,28 +388,37 @@ function say(state: RoundState, text: string): RoundState {
     // The same target sentence said again within the window fills no ring, in one paste or over several turns.
     // A reflection has already passed "one line of hers, one reflection" above: when she says the same
     // line again, saying it back again is a new reflection, whatever was typed a few seconds ago.
-    if (s.bucket === 'target' && s.code !== 'reflection') {
-      const key = repeatKey(s.text);
-      const saidAlready = next.sentences.some(
-        (p) => (p.bucket === 'target' || p.repeat) && next.elapsedSec - p.atSec <= REPEAT_WINDOW_SEC && repeatKey(p.text) === key,
-      );
-      if (saidAlready) s = asRepeat(s);
+    const key = repeatKey(s.text);
+    if (s.bucket === 'target' && s.code !== 'reflection' && heard.some((h) => h.counted && h.key === key)) s = asRepeat(s);
+    const repeat = s.rule === 'repeat';
+
+    // One turn counts up to MAX_COUNTED_PER_TURN target sentences; the rest of a paste is kept as neutral talk.
+    // Questions, commands and criticism are never cut: every one of them is counted.
+    let capped = false;
+    if (s.bucket === 'target') {
+      if (countedTargets >= MAX_COUNTED_PER_TURN) {
+        s = asNeutral(s, 'turn_cap');
+        capped = true;
+      } else countedTargets += 1;
     }
 
-    const repeat = s.rule === 'repeat';
     // Filler said again ("ok", "Good job!") keeps its code, but she has just heard it: it does not warm her twice.
-    const again =
-      !repeat &&
-      (s.code === 'neutral' || s.code === 'general_praise') &&
-      next.sentences.some((p) => next.elapsedSec - p.atSec <= REPEAT_WINDOW_SEC && repeatKey(p.text) === repeatKey(s.text));
-    next.sentences.push({ ...s, atSec: next.elapsedSec, disputed: false, repeat });
+    const again = !repeat && !capped && (s.code === 'neutral' || s.code === 'general_praise') && heard.some((h) => h.key === key);
+    next.sentences.push({ ...s, atSec: next.elapsedSec, disputed: false, repeat, capped });
+    heard.push({ key, counted: s.bucket === 'target' || repeat });
     if (s.rule === 'safety') safety = true;
-    if (s.code !== 'unknown') lastCoded = s;
-    // A repeat is words she has just heard: it moves neither her nor the combo.
-    if (repeat || again) continue;
+    if (s.code !== 'unknown' && !capped) last = s;
+    if (s.bucket === 'avoid') lastAvoid = s;
+    // Words she has just heard, words beyond the turn cap and words the classifier could not make out
+    // (rule 'unclear_...') move neither her nor the combo.
+    if (repeat || again || capped || s.rule.startsWith('unclear_')) continue;
 
     next.child = applyMove(next.child, s.code, s.namedBehavior);
-    if (s.code === 'specific_praise') next.lastSpecificPraiseSec = next.elapsedSec;
+    if (s.code === 'specific_praise') {
+      next.lastSpecificPraiseSec = next.elapsedSec;
+      // Praise once she is calm is what the calm-again nudge asks for. Praise during the outburst is not.
+      if (!outburst) next.calmPraiseDue = false;
+    }
     if (s.code === 'reflection') {
       if (reflectsPrev) next.prevReflected = true;
       else next.reflectedSinceChildSpoke = true;
@@ -297,32 +427,52 @@ function say(state: RoundState, text: string): RoundState {
     else if (s.bucket === 'avoid') next.combo = 0;
   }
 
+  const reaction = (s: CodedSentence): string => MICRO_REACTION[s.rule.startsWith('unclear_') ? 'neutral' : s.code];
   if (safety) {
     next.safety = true;
     // Live play may read the coach aloud next to the child; there the screen's card carries the support lines.
     next.coach = next.live ? null : { kind: 'swap', text: SAFETY_NOTE.body };
     next.lastPromptSec = next.elapsedSec;
-    if (lastCoded) next.microReaction = MICRO_REACTION[lastCoded.code];
+    if (last) next.microReaction = reaction(last);
     return next;
   }
-  // Digits and emoji alone ("1, 2, 3!") are not another language: they get no line about English.
-  if (!lastCoded) return /\p{L}/u.test(text) ? { ...next, coach: { kind: 'swap', text: ENGLISH_ONLY }, lastPromptSec: next.elapsedSec } : next;
-  next.microReaction = MICRO_REACTION[lastCoded.code];
-  if (lastCoded.rule === 'repeat') {
-    const since = next.lastPromptSec === null ? Infinity : next.elapsedSec - next.lastPromptSec;
-    return since >= REACT_GAP ? { ...next, coach: { kind: 'swap', text: REPEAT_COACH }, lastPromptSec: next.elapsedSec } : { ...next, coach: null };
+  if (!last) {
+    // Digits and emoji alone ("1, 2, 3!") are not another language: they get no line about English.
+    // The line is shown once a round. Live play never shows it: there the uncoded words may be a child's name.
+    if (next.live || next.englishNoteShown || !/\p{L}/u.test(text)) return next;
+    return { ...next, coach: { kind: 'swap', text: ENGLISH_ONLY }, lastPromptSec: next.elapsedSec, englishNoteShown: true };
   }
-  return withCoach(next, lastCoded);
+  next.microReaction = reaction(last);
+  // A to-swap sentence anywhere in the turn gets its swap line, whatever came after it.
+  if (lastAvoid) return withCoach(next, lastAvoid);
+  // A turn that was only a repeat gets one calm line, unless she is upset: then the wait_out line stays.
+  if (last.rule === 'repeat' && !outburst) {
+    const since = next.lastPromptSec === null ? Infinity : next.elapsedSec - next.lastPromptSec;
+    if (since >= REACT_GAP) return { ...next, coach: { kind: 'swap', text: REPEAT_COACH }, lastPromptSec: next.elapsedSec };
+  }
+  return withCoach(next, last);
 }
 
 function dispute(state: RoundState, index: number): RoundState {
-  if (!state.sentences[index]) return state;
+  const target = state.sentences[index];
+  if (!target) return state;
+  // Setting a sentence aside takes one of the MAX_DISPUTES slots; with none left nothing changes.
+  // Taking a dispute back frees its slot.
+  if (!target.disputed && state.disputesLeft <= 0) return state;
   const next: RoundState = {
     ...state,
     sentences: state.sentences.map((s, i) => (i === index ? { ...s, disputed: !s.disputed } : s)),
+    disputesLeft: state.disputesLeft + (target.disputed ? 1 : -1),
   };
   // A dispute in the replay, after the round, also updates the final result.
   return next.phase === 'ended' ? { ...next, result: summary(next) } : next;
+}
+
+/** "Copy her" changes her once per beat: tapping it twenty times a second is still one imitation of one thing she did. */
+function copy(state: RoundState): RoundState {
+  const beat = Math.floor(state.elapsedSec / state.beatEverySec);
+  if (state.copiedBeat === beat) return state;
+  return { ...state, copiedBeat: beat, child: applyMove(state.child, 'copy'), microReaction: MICRO_REACTION.copy };
 }
 
 export function roundReducer(state: RoundState, event: RoundEvent): RoundState {
@@ -336,8 +486,9 @@ export function roundReducer(state: RoundState, event: RoundEvent): RoundState {
     case 'say':
       return say(state, event.text);
     case 'copy':
+      return copy(state);
     case 'wait':
-      return { ...state, child: applyMove(state.child, event.type), microReaction: MICRO_REACTION[event.type] };
+      return { ...state, child: applyMove(state.child, 'wait'), microReaction: MICRO_REACTION.wait };
     case 'end':
       return finish(state);
   }

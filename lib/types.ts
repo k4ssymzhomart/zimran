@@ -163,6 +163,13 @@ export interface RoundResult {
   /** The one thing to work on next, or null when the round met the pace. */
   lever: Lever | null;
   leverText: string | null;
+  /**
+   * True when the parent ended the round before half of its planned length. A short round gets no pace
+   * verdict (`met` is false) and does not complete a plan day.
+   */
+  short?: boolean;
+  /** How many sentences the parent set aside with "Disagree?" in this round. Left out when none. */
+  disputed?: number;
 }
 
 /**
@@ -186,7 +193,8 @@ export interface RoundChange {
 
 // ---------- coach ----------
 
-export type PromptKind = 'swap' | 'praise_parent' | 'reflect_now' | 'praise_now';
+/** `wait_out`: she is whining or melting down; the parent stays close and quiet until the first calm thing. */
+export type PromptKind = 'swap' | 'praise_parent' | 'reflect_now' | 'praise_now' | 'wait_out';
 
 export interface CoachPrompt {
   kind: PromptKind;

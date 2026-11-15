@@ -17,9 +17,20 @@ export interface CoachInput {
   reflectedSinceChildSpoke: boolean;
   /** The sentence that was just coded, or null on a timer tick. */
   justCoded: CodedSentence | null;
+  /** She is whining or melting down on the current beat. Left out, she is calm. */
+  outburst?: boolean;
+  /** The wait_out line is on screen, or has already gone up on this outburst beat. */
+  waitOutShown?: boolean;
+  /** An outburst has passed, she is calm now, and no specific praise has followed yet. */
+  calmAgain?: boolean;
+  /**
+   * False when her current line cannot be said back: it has no content word ("No!") or it was part
+   * of an outburst. Left out, it can.
+   */
+  canReflect?: boolean;
 }
 
-/** Shortest pause between a reaction to a sentence and the previous line. */
+/** Shortest pause between a praise or a hint for a sentence and the previous line. Swap lines do not wait. */
 export const REACT_GAP = 8;
 /** Shortest pause between unprompted nudges. */
 export const NUDGE_GAP = 15;
@@ -32,6 +43,11 @@ const SWAP: Partial<Record<Code, string>> = {
   criticism: 'Let small things pass. Praise the opposite when you see it.',
 };
 
+/** Shown on a whine or a meltdown. The method does not answer an outburst: the parent stays near and waits for calm. */
+export const WAIT_OUT_TEXT = 'She is upset. Stay close and quiet, then praise the first calm thing she does.';
+/** Shown on the first calm beat after an outburst. */
+export const CALM_PRAISE_TEXT = 'She is calm again. Praise that: “Thank you for using your calm voice.”';
+
 const PRAISE_PARENT: Partial<Record<Code, string>> = {
   specific_praise: 'Nice specific praise. She knows exactly what you liked.',
   reflection: 'Good reflection. She heard that you were listening.',
@@ -42,20 +58,31 @@ export function coachPrompt(i: CoachInput): CoachPrompt | null {
   const since = i.lastPromptSec === null ? Infinity : i.nowSec - i.lastPromptSec;
 
   if (i.justCoded) {
-    if (since < REACT_GAP) return null;
+    // A to-swap sentence always gets its swap line, whatever is showing: a question typed a moment after
+    // another line is still a question, and silence there reads as approval.
     const swap = SWAP[i.justCoded.code];
     if (swap) return { kind: 'swap', text: swap };
+    // During an outburst the one line that matters is "stay close and quiet": no praise for talking through it.
+    if (i.outburst) return null;
+    if (since < REACT_GAP) return null;
     const praise = PRAISE_PARENT[i.justCoded.code];
     if (praise) return { kind: 'praise_parent', text: praise };
     if (i.justCoded.code === 'general_praise') {
-      return { kind: 'swap', text: 'Warm! Now add exactly what she did: “Good job stacking so gently.”' };
+      return { kind: 'swap', text: 'Warm. Now add exactly what she did: “Good job stacking so gently.”' };
     }
     return null;
   }
 
+  // An outburst is not answered: no "say it back", no "praise now". The line goes up once and at once.
+  if (i.outburst) return i.waitOutShown ? null : { kind: 'wait_out', text: WAIT_OUT_TEXT };
+
+  // The first calm moment is the one to praise. It takes over from the wait_out line at once, and
+  // otherwise leaves a line about the parent's own sentence its few seconds.
+  if (i.calmAgain && (i.waitOutShown || since >= REACT_GAP)) return { kind: 'praise_now', text: CALM_PRAISE_TEXT };
+
   if (since < NUDGE_GAP) return null;
 
-  if (i.childSpokeSec !== null && !i.reflectedSinceChildSpoke && i.nowSec - i.childSpokeSec >= REFLECT_WITHIN) {
+  if (i.canReflect !== false && i.childSpokeSec !== null && !i.reflectedSinceChildSpoke && i.nowSec - i.childSpokeSec >= REFLECT_WITHIN) {
     return { kind: 'reflect_now', text: 'Say back what she just said.' };
   }
 

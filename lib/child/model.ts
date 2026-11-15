@@ -54,6 +54,13 @@ const WAIT_WORKS_FROM = 45;
 const WAIT_BEATS = 2;
 const WAIT_RELIEF = 6;
 const HABIT_GAIN = 0.5;
+/**
+ * Copying her play warms her up to here and no further. Without this ceiling a parent who only taps
+ * "Copy her" and never says a word would fill the connection bar; the rest of the way takes words.
+ */
+export const COPY_CONNECTION_CEILING = 65;
+/** Beats that are an outburst. The coach does not ask the parent to answer these; see coach/policy.ts. */
+export const isOutburst = (kind: BeatKind): boolean => kind === 'whine' || kind === 'scripted_whine' || kind === 'meltdown';
 
 /** Apply one parent move. Returns a new state; never mutates. */
 export function applyMove(state: ChildState, move: Move, namedBehavior?: Habit): ChildState {
@@ -67,6 +74,8 @@ export function applyMove(state: ChildState, move: Move, namedBehavior?: Habit):
     tension: clamp(state.tension + dx),
   };
   if (move === 'specific_praise' && namedBehavior) next.habits[namedBehavior] += HABIT_GAIN;
+  // A copy never lowers the bar either: above the ceiling it leaves connection where it is.
+  if (move === 'copy') next.connection = Math.max(state.connection, Math.min(COPY_CONNECTION_CEILING, next.connection));
   if (move === 'wait') next.waitArmed = state.tension >= WAIT_WORKS_FROM ? WAIT_BEATS : 0;
   // Talking at her while "waiting" cancels the wait.
   if (AVOID.includes(move)) next.waitArmed = 0;

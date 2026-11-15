@@ -134,6 +134,11 @@ export const CLEANUP: Scene = {
 
 export const SCENES: Scene[] = [BLOCKS, DRAWING, KITCHEN, CLEANUP];
 
+/** The scene with this id, or undefined. A plan day may name its scene; the caller picks the fallback. */
+export function sceneById(id: string): Scene | undefined {
+  return SCENES.find((s) => s.id === id);
+}
+
 /**
  * The free first visit plays blocks, then drawing. The daily plan starts on the two scenes a new
  * family has not seen yet and then goes round all four, so no scene comes up two days in a row.
