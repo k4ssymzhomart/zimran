@@ -5,6 +5,7 @@ import { HELDOUT } from './heldout';
 /**
  * History of this set: on its first run 40 of the 48 turns were coded as expected. The misses led to generic
  * fixes in classify.ts (contractions, run-on sentences, a few lead-in words), which is how it reached 47.
+ * The last one ("what are you doing now are you making a car") came with the run-on split at clause starts: 48.
  */
 const FIRST_RUN_CODED = 40;
 

@@ -24,8 +24,6 @@ export const EXAMPLES: [string, Code, string?][] = [
 
   // ----- general praise -----
   ['Good job!', 'general_praise'],
-  ['Good job today.', 'general_praise'],
-  ['Nice work again!', 'general_praise'],
   ['Awesome!', 'general_praise'],
   ['Nice!', 'general_praise'],
   ['Great work!', 'general_praise'],
