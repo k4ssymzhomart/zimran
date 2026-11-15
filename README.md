@@ -16,7 +16,9 @@ daily session is five minutes.
 ## The three-minute path
 
 No login. Everything you do is kept in this browser. An optional account in Profile (an email and a password) keeps a
-copy for other devices; the walk never needs it. The site carries its own version of this guide at `/jury`.
+copy for other devices; the walk never needs it. On `/jury`, "Load a demo month" adds 27 days of a simulated family
+(every sentence coded by the real rules, `lib/demo/month.ts`), marked "Demo data" on every screen and removable, so the
+streak, the four-week trend and day 28 can be seen in one visit. The site carries its own version of this guide at `/jury`.
 
 1. `/`: the landing. Answer Mia in the field on the page; the rules code your sentence in the browser and show what
    it counted. "Build my plan" carries it into the first visit.

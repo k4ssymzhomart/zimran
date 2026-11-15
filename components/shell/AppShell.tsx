@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from 'react';
 import { cn } from '@/components/kit/cn';
 import type { AppTab } from '@/lib/routes';
+import { DemoBanner } from './DemoBanner';
 import { Rail } from './Rail';
 import { TabBar } from './TabBar';
 
@@ -25,7 +26,10 @@ export function AppShell({ children, current, className }: AppShellProps) {
       <Suspense fallback={null}>
         <Rail current={current} />
       </Suspense>
-      <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+      <main className="flex min-w-0 flex-1 flex-col">
+        <DemoBanner />
+        {children}
+      </main>
       <Suspense fallback={null}>
         <TabBar current={current} />
       </Suspense>

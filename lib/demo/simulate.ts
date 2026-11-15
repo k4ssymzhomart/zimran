@@ -21,6 +21,8 @@ export interface DemoDay {
   date: string;
   result: RoundResult;
   farewell: string;
+  /** The day's sentences, each coded by the real rules. */
+  sentences: CodedSentence[];
 }
 
 /** mulberry32: a small seeded generator of numbers in [0, 1). */
@@ -107,7 +109,7 @@ export function simulateFamily(seed: number, startDate: string, days = 28): { da
     const result = summarizeRound(coded, NORM_SECONDS);
     // One number is drawn and dropped, so the days that follow keep the sequence the tests were written against.
     rng();
-    out.push({ day, date, result, farewell: farewell(child, scene) });
+    out.push({ day, date, result, farewell: farewell(child, scene), sentences: coded });
     progress = addSession(progress, result, date, 'practice');
   }
   return { days: out, progress };

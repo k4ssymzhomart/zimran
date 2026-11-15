@@ -16,6 +16,7 @@ import {
   type Checkout,
   type Fact,
 } from '@/components/jury/guide';
+import { DemoMonthButton } from '@/components/jury/DemoMonthButton';
 import { WayBack } from '@/components/jury/WayBack';
 import { Button, cn, focusRing } from '@/components/kit';
 import { ROUTES } from '@/lib/routes';
@@ -106,6 +107,7 @@ export default function JuryPage() {
                   </li>
                 ))}
               </ol>
+              <DemoMonthButton />
             </Part>
 
             <Part id="break" title="Try to break it" className="gap-[4px] lg:col-start-2 lg:row-span-2 lg:row-start-1">
