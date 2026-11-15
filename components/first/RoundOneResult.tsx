@@ -77,24 +77,28 @@ function amount(count: number, kind: Kind): string {
 
 /**
  * The quiz asked "What do you say most in play?". This sets the answer against round one in the words of frame
- * 49:1371: "You said praise. Round one: one praise, six questions." Praise is specific and general praise
- * together; an instruction is what the coding calls a command. "Not sure" gets the three counts alone.
+ * 49:1371: "You said praise. Round one: one praise, six questions." Praise is specific praise, the count the
+ * Praise tile of the result shows; an instruction is what the coding calls a command. "Not sure" gets the three
+ * counts alone. A guess is called only when its kind alone was said most: a tie lists the tied kinds after the
+ * guess ("You said praise. Round one: one praise, one instruction.").
  * Null when none of the three was said in the round: there is nothing to set the answer against.
  */
 function guessLine(guess: PlayGuess, counts: Counts): string | null {
   const said: Record<Kind, number> = {
     questions: counts.question,
     instructions: counts.command,
-    praise: counts.specific_praise + counts.general_praise,
+    praise: counts.specific_praise,
   };
-  const most = KINDS.reduce((best, kind) => (said[kind] > said[best] ? kind : best));
-  if (said[most] === 0) return null;
+  const most = Math.max(...KINDS.map((kind) => said[kind]));
+  if (most === 0) return null;
   if (guess === 'unsure') {
     const all = [...KINDS].sort((a, b) => said[b] - said[a]).map((kind) => amount(said[kind], kind));
     return `Round one: ${all.join(', ')}.`;
   }
-  if (said[guess] === said[most]) return `You said ${guess}. You called it: ${amount(said[guess], guess)}.`;
-  return `You said ${guess}. Round one: ${amount(said[guess], guess)}, ${amount(said[most], most)}.`;
+  const top = KINDS.filter((kind) => said[kind] === most);
+  if (top.length === 1 && top[0] === guess) return `You said ${guess}. You called it: ${amount(said[guess], guess)}.`;
+  const shown = [guess, ...top.filter((kind) => kind !== guess)];
+  return `You said ${guess}. Round one: ${shown.map((kind) => amount(said[kind], kind)).join(', ')}.`;
 }
 
 // ---------- the pieces of the result ----------

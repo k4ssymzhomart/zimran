@@ -87,7 +87,7 @@ export function QuizAge({ step, steps, onBack, childName, value, onPick }: QuizA
         ))}
       </div>
       <p id={noteId} className="text-small text-gray">
-        Mia and Leo are four. The skills are the same from 2 to 7.
+        Mia and Leo are four. The skills are the same from 2&nbsp;to&nbsp;7.
       </p>
     </QuizQuestion>
   );

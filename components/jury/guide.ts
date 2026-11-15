@@ -179,7 +179,7 @@ export const NUMBERS: readonly Figure[] = [
   },
   {
     value: `${NORM_PER_SKILL}, ${NORM_PER_SKILL}, ${NORM_PER_SKILL}`,
-    caption: `praises, reflections and descriptions in five minutes, with at most ${MAX_AVOID_5MIN} to swap`,
+    caption: `praises, reflections and descriptions in five minutes, with at most ${MAX_AVOID_5MIN} to swap. PCIT protocol, Eyberg & Funderburk, 2011.`,
   },
 ];
 

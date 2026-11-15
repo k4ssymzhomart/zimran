@@ -41,7 +41,7 @@ export function BeforeAfter({ before, after, change, partner = 'mia', farewell, 
         ) : (
           <p className="text-body text-gray">{silent ? 'No sentences in either round yet, so there is nothing to compare.' : 'The same pace in both rounds.'}</p>
         )}
-        <p className="text-small text-gray">Clinics don’t start with discipline. They start with five calm minutes of play a day.</p>
+        <p className="text-small text-gray">Clinics start with five calm minutes of play a day, not with discipline.</p>
       </div>
       {/* The actions sit 20px under the words with 4px between them, as drawn; the `action` slot of the shell would set them at 16px. */}
       <div className="flex flex-col gap-[4px] pt-[20px]">

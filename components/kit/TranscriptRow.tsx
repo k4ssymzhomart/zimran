@@ -26,14 +26,27 @@ export interface TranscriptRowProps {
 
 /** One sentence the parent said, with the code the rules gave it. A sentence to swap is underlined in ink. */
 export function TranscriptRow({ sentence, playing = false, open = false, onToggle, rewrite, rewriteSource, onChangeLabel, className }: TranscriptRowProps) {
-  /* A disputed sentence is not counted, so it keeps its label but loses the skill color and the underline. */
-  const bucket = sentence.disputed ? 'none' : BUCKET[sentence.code];
+  /*
+   * A disputed sentence is not counted. It keeps its label, says so beside it, and loses the skill color and the
+   * underline; its words are struck through in faint gray, as in the first visit's list (RoundOneResult).
+   */
+  const disputed = sentence.disputed === true;
+  const bucket = disputed ? 'none' : BUCKET[sentence.code];
   const swap = bucket === 'avoid';
   const tone: TagTone = bucket === 'target' ? 'skill' : swap ? 'swap' : 'quiet';
+  const label = disputed ? `${LABEL[sentence.code]}, not counted` : swap ? `${LABEL[sentence.code]}, to swap` : LABEL[sentence.code];
   const said = (
     <>
-      <span className={cn('text-body text-ink', swap && 'underline decoration-from-font [text-underline-position:from-font]')}>“{sentence.text}”</span>
-      <Tag tone={tone}>{swap ? `${LABEL[sentence.code]}, to swap` : LABEL[sentence.code]}</Tag>
+      <span
+        className={cn(
+          'text-body',
+          disputed ? 'text-faint line-through' : 'text-ink',
+          swap && 'underline decoration-from-font [text-underline-position:from-font]',
+        )}
+      >
+        {disputed && <span className="sr-only">Not counted: </span>}“{sentence.text}”
+      </span>
+      <Tag tone={tone}>{label}</Tag>
     </>
   );
   const stack = 'flex flex-col items-start gap-[8px]';

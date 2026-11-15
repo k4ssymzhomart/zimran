@@ -14,10 +14,14 @@ describe('the two plans', () => {
     expect([lengthOf(twelve), priceOf(twelve), perDayOf(twelve)]).toEqual(['12 weeks', '$69', '$0.82 a day']);
   });
 
-  it('says what the 12 weeks hold, and sells no week that is not built', () => {
-    expect(planOf('twelve_weeks').detail).toBe('Weeks 1–4 with Mia, weeks 5–8 live with your child');
+  it('says what the 12 weeks hold, to the last week of the term', () => {
+    expect(planOf('twelve_weeks').detail).toBe('Weeks 1–4 with Mia, weeks 5–12 live with your child');
     expect(planOf('four_weeks').detail).toBeNull();
-    for (const plan of PLANS) expect(plan.detail ?? '').not.toMatch(/9|10|11|12/);
+    for (const plan of PLANS) {
+      if (plan.detail === null) continue;
+      const weeks = (plan.detail.match(/\d+/g) ?? []).map(Number);
+      expect(Math.max(...weeks), plan.detail).toBe(plan.weeks);
+    }
   });
 
   it('knows a plan id from anything else a link can carry', () => {
